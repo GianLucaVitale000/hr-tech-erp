@@ -1,0 +1,32 @@
+# ========================
+# Laravel (backend-php)
+# ========================
+backend-php/vendor/
+backend-php/.env
+backend-php/storage/logs/
+backend-php/storage/framework/cache/
+backend-php/storage/framework/sessions/
+backend-php/bootstrap/cache/
+
+# ========================
+# React (frontend-react)
+# ========================
+frontend-react/node_modules/
+frontend-react/dist/
+frontend-react/.env
+frontend-react/.env.local
+
+# ========================
+# Python (microservice-python)
+# ========================
+microservice-python/venv/
+microservice-python/__pycache__/
+microservice-python/*.pyc
+microservice-python/.env
+
+# ========================
+# VSC e sistema operativo
+# ========================
+.vscode/settings.json
+.DS_Store
+Thumbs.db
