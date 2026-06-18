@@ -2,18 +2,27 @@ import { useEffect, useState } from 'react'
 import api from './services/api'
 
 function App() {
-  const [status, setStatus] = useState('In attesa...')
+  const [laravelStatus, setLaravelStatus] = useState('In attesa...')
+  const [pythonStatus, setPythonStatus] = useState('In attesa...')
 
   useEffect(() => {
+    // Test Laravel
     api.get('/ping')
-      .then((res) => setStatus('✅ ' + res.data.message))
-      .catch(() => setStatus('❌ Connessione non riuscita'))
+      .then((res) => setLaravelStatus('✅ ' + res.data.message))
+      .catch(() => setLaravelStatus('❌ Connessione non riuscita'))
+
+    // Test Python
+    fetch('http://localhost:8001')
+      .then((res) => res.json())
+      .then((data) => setPythonStatus('✅ ' + data.message))
+      .catch(() => setPythonStatus('❌ Connessione non riuscita'))
   }, [])
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>HR-Tech ERP Light</h1>
-      <p>Stato connessione Laravel: <strong>{status}</strong></p>
+      <p>Laravel: <strong>{laravelStatus}</strong></p>
+      <p>Python:  <strong>{pythonStatus}</strong></p>
     </div>
   )
 }
