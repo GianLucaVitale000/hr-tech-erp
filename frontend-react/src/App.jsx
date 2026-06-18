@@ -1,29 +1,33 @@
-import { useEffect, useState } from 'react'
-import api from './services/api'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Login from './pages/Auth/Login'
+import AdminDashboard from './pages/Admin/Dashboard'
+import DipendenteDashboard from './pages/Dipendente/Dashboard'
 
 function App() {
-  const [laravelStatus, setLaravelStatus] = useState('In attesa...')
-  const [pythonStatus, setPythonStatus] = useState('In attesa...')
-
-  useEffect(() => {
-    // Test Laravel
-    api.get('/ping')
-      .then((res) => setLaravelStatus('✅ ' + res.data.message))
-      .catch(() => setLaravelStatus('❌ Connessione non riuscita'))
-
-    // Test Python
-    fetch('http://localhost:8001')
-      .then((res) => res.json())
-      .then((data) => setPythonStatus('✅ ' + data.message))
-      .catch(() => setPythonStatus('❌ Connessione non riuscita'))
-  }, [])
-
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>HR-Tech ERP Light</h1>
-      <p>Laravel: <strong>{laravelStatus}</strong></p>
-      <p>Python:  <strong>{pythonStatus}</strong></p>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          
+          <Route path="/admin" element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/dipendente" element={
+            <ProtectedRoute role="dipendente">
+              <DipendenteDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 
