@@ -8,3 +8,5 @@ export const deleteDipendente = (id) => api.delete(`/dipendenti/${id}`)
 
 export const getContratti = () => api.get('/contratti')
 export const createContratto = (data) => api.post('/contratti', data)
+
+export const getMioProfilo = () => api.get('/dipendenti/me')

@@ -12,6 +12,19 @@ class DipendenteController extends Controller
         return Dipendente::with(['user', 'contratto'])->get();
     }
 
+    public function me(Request $request)
+    {
+        $dipendente = \App\Models\Dipendente::with('contratto')
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$dipendente) {
+            return response()->json(['message' => 'Profilo dipendente non trovato'], 404);
+        }
+
+        return $dipendente;
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
