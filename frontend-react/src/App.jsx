@@ -4,6 +4,8 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Auth/Login'
 import AdminDashboard from './pages/Admin/Dashboard'
 import DipendenteDashboard from './pages/Dipendente/Dashboard'
+import Dipendenti from './pages/Admin/Dipendenti'
+import NuovoDipendente from './pages/Admin/NuovoDipendente'
 
 function App() {
   return (
@@ -15,6 +17,18 @@ function App() {
           <Route path="/admin" element={
             <ProtectedRoute role="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/dipendenti" element={
+            <ProtectedRoute role="admin">
+              <Dipendenti />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/dipendenti/nuovo" element={
+            <ProtectedRoute role="admin">
+              <NuovoDipendente />
             </ProtectedRoute>
           } />
 
