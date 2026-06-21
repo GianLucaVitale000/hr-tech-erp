@@ -28,4 +28,9 @@ class Dipendente extends Model
     {
         return $this->belongsTo(Contratto::class);
     }
+
+    public function presenze()
+    {
+        return $this->hasMany(Presenza::class);
+    }
 }
