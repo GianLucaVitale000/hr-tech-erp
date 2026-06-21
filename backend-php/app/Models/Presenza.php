@@ -13,6 +13,7 @@ class Presenza extends Model
         'data',
         'ore_ordinarie',
         'ore_straordinarie',
+        'ore_causale',
         'causale',
         'stato',
     ];

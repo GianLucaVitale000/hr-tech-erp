@@ -6,6 +6,7 @@ import AdminDashboard from './pages/Admin/Dashboard'
 import DipendenteDashboard from './pages/Dipendente/Dashboard'
 import Dipendenti from './pages/Admin/Dipendenti'
 import NuovoDipendente from './pages/Admin/NuovoDipendente'
+import Timesheet from './pages/Dipendente/Timesheet'
 
 function App() {
   return (
@@ -35,6 +36,12 @@ function App() {
           <Route path="/dipendente" element={
             <ProtectedRoute role="dipendente">
               <DipendenteDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/dipendente/timesheet" element={
+            <ProtectedRoute role="dipendente">
+              <Timesheet />
             </ProtectedRoute>
           } />
 

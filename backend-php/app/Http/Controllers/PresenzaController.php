@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 
 class PresenzaController extends Controller
 {
-    // Lista presenze di un dipendente per mese/anno
     public function index(Request $request)
     {
         $query = Presenza::with('dipendente.user');
@@ -29,12 +28,12 @@ class PresenzaController extends Controller
         $validated = $request->validate([
             'dipendente_id' => 'required|exists:dipendenti,id',
             'data' => 'required|date',
-            'ore_ordinarie' => 'nullable|numeric|min:0|max:24',
-            'ore_straordinarie' => 'nullable|numeric|min:0|max:24',
+            'ore_ordinarie' => 'nullable|numeric|min:0|max:8',
+            'ore_straordinarie' => 'nullable|numeric|min:0|max:4',
+            'ore_causale' => 'nullable|numeric|min:0|max:8',
             'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
         ]);
 
-        // Crea o aggiorna se esiste già una riga per quel giorno
         $presenza = Presenza::updateOrCreate(
             [
                 'dipendente_id' => $validated['dipendente_id'],
@@ -54,8 +53,9 @@ class PresenzaController extends Controller
     public function update(Request $request, Presenza $presenza)
     {
         $validated = $request->validate([
-            'ore_ordinarie' => 'nullable|numeric|min:0|max:24',
-            'ore_straordinarie' => 'nullable|numeric|min:0|max:24',
+            'ore_ordinarie' => 'nullable|numeric|min:0|max:8',
+            'ore_straordinarie' => 'nullable|numeric|min:0|max:4',
+            'ore_causale' => 'nullable|numeric|min:0|max:8',
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
         ]);
@@ -72,7 +72,6 @@ class PresenzaController extends Controller
         return response()->json(['message' => 'Presenza eliminata']);
     }
 
-    // Invia il mese al manager (cambia stato in 'inviato')
     public function inviaMese(Request $request)
     {
         $validated = $request->validate([
