@@ -21,7 +21,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dipendenti/me', [DipendenteController::class, 'me']);
     Route::apiResource('contratti', ContrattoController::class);
     Route::apiResource('dipendenti', DipendenteController::class);
-    Route::apiResource('presenze', PresenzaController::class);
-    Route::post('/presenze/invia-mese', [PresenzaController::class, 'inviaMese']);
 
+    // Rotte specifiche PRIMA di apiResource, altrimenti vengono "mangiate" da /presenze/{presenza}
+    Route::post('/presenze/invia-mese', [PresenzaController::class, 'inviaMese']);
+    Route::get('/presenze/in-attesa', [PresenzaController::class, 'inAttesa']);
+    Route::post('/presenze/aggiorna-stato-mese', [PresenzaController::class, 'aggiornaStatoMese']);
+    Route::apiResource('presenze', PresenzaController::class);
 });
