@@ -7,6 +7,8 @@ import DipendenteDashboard from './pages/Dipendente/Dashboard'
 import Dipendenti from './pages/Admin/Dipendenti'
 import NuovoDipendente from './pages/Admin/NuovoDipendente'
 import Timesheet from './pages/Dipendente/Timesheet'
+import Approvazioni from './pages/Admin/Approvazioni'
+import DettaglioMese from './pages/Admin/DettaglioMese'
 
 function App() {
   return (
@@ -24,6 +26,18 @@ function App() {
           <Route path="/admin/dipendenti" element={
             <ProtectedRoute role="admin">
               <Dipendenti />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/approvazioni" element={
+            <ProtectedRoute role="admin">
+              <Approvazioni />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/approvazioni/:dipendenteId/:mese/:anno" element={
+            <ProtectedRoute role="admin">
+              <DettaglioMese />
             </ProtectedRoute>
           } />
 

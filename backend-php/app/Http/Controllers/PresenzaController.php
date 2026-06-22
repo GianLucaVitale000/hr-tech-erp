@@ -87,4 +87,48 @@ class PresenzaController extends Controller
 
         return response()->json(['message' => 'Mese inviato per approvazione']);
     }
+
+    // Lista dei mesi inviati in attesa di approvazione (vista Admin)
+    public function inAttesa()
+    {
+        $mesi = Presenza::with('dipendente.user')
+            ->where('stato', 'inviato')
+            ->get()
+            ->groupBy(function ($p) {
+                return $p->dipendente_id . '-' . substr($p->data, 0, 7); // es. "1-2026-06"
+            })
+            ->map(function ($gruppo) {
+                $prima = $gruppo->first();
+                return [
+                    'dipendente_id' => $prima->dipendente_id,
+                    'dipendente_nome' => $prima->dipendente->user->name,
+                    'mese' => substr($prima->data, 5, 2),
+                    'anno' => substr($prima->data, 0, 4),
+                    'totale_giorni' => $gruppo->count(),
+                    'totale_ore_ordinarie' => $gruppo->sum('ore_ordinarie'),
+                    'totale_ore_straordinarie' => $gruppo->sum('ore_straordinarie'),
+                ];
+            })
+            ->values();
+
+        return $mesi;
+    }
+
+    // Approva o rifiuta un intero mese
+    public function aggiornaStatoMese(Request $request)
+    {
+        $validated = $request->validate([
+            'dipendente_id' => 'required|exists:dipendenti,id',
+            'mese' => 'required|integer|min:1|max:12',
+            'anno' => 'required|integer',
+            'stato' => 'required|in:approvato,rifiutato',
+        ]);
+
+        Presenza::where('dipendente_id', $validated['dipendente_id'])
+            ->whereMonth('data', $validated['mese'])
+            ->whereYear('data', $validated['anno'])
+            ->update(['stato' => $validated['stato']]);
+
+        return response()->json(['message' => 'Stato aggiornato con successo']);
+    }
 }
