@@ -33,6 +33,20 @@ function AdminDashboard() {
           Anagrafica Dipendenti
         </button>
 
+        <button
+          onClick={() => navigate('/admin/approvazioni')}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#7c3aed',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Approvazione Fogli Ore
+        </button>
+
         <button onClick={handleLogout} style={{
           padding: '0.5rem 1rem',
           backgroundColor: '#dc2626',
