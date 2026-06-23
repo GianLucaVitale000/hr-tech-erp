@@ -23,6 +23,7 @@ microservice-python/venv/
 microservice-python/__pycache__/
 microservice-python/*.pyc
 microservice-python/.env
+microservice-python/test-output/
 
 # ========================
 # VSC e sistema operativo
