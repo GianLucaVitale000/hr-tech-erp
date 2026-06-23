@@ -24,9 +24,39 @@ const caricaMesi = () => setRefreshKey((k) => k + 1)
     caricaMesi()
   }
 
+  const handleExport = async () => {
+    const oggi = new Date()
+    const mese = oggi.getMonth() + 1
+    const anno = oggi.getFullYear()
+
+    const response = await fetch(`http://localhost:8001/export/paghe?mese=${mese}&anno=${anno}`)
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `paghe_${mese}_${anno}.xlsx`
+    a.click()
+    window.URL.revokeObjectURL(url)
+}
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Approvazione Fogli Ore</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h1>Approvazione Fogli Ore</h1>
+        <button
+          onClick={handleExport}
+          style={{
+            padding: '0.6rem 1.2rem',
+            backgroundColor: '#059669',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          📊 Export Excel Paghe (Mese Corrente)
+        </button>
+      </div>
 
       {loading ? (
         <p>Caricamento...</p>
