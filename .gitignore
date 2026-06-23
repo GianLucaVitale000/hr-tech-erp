@@ -20,7 +20,7 @@ frontend-react/.env.local
 # Python (microservice-python)
 # ========================
 microservice-python/venv/
-microservice-python/__pycache__/
+microservice-python/**/__pycache__/
 microservice-python/*.pyc
 microservice-python/.env
 microservice-python/test-output/
