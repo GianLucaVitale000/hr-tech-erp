@@ -17,6 +17,8 @@ class Dipendente extends Model
         'livello',
         'mansione',
         'data_assunzione',
+        'percentuale_part_time',
+        'giorni_lavorativi_settimanali',
     ];
 
     public function user()

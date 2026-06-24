@@ -16,21 +16,37 @@ function Dipendenti() {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1>Anagrafica Dipendenti</h1>
+      <div style={{ marginBottom: '1.5rem' }}>
         <button
-          onClick={() => navigate('/admin/dipendenti/nuovo')}
+          onClick={() => navigate('/admin')}
           style={{
             padding: '0.5rem 1rem',
-            backgroundColor: '#2563eb',
+            backgroundColor: '#6b7280',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            marginBottom: '1rem'
           }}
         >
-          + Nuovo Dipendente
+          ← Dashboard
         </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ margin: 0 }}>Anagrafica Dipendenti</h1>
+          <button
+            onClick={() => navigate('/admin/dipendenti/nuovo')}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#2563eb',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            + Nuovo Dipendente
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -38,13 +54,17 @@ function Dipendenti() {
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
+            <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
               <th style={{ padding: '0.75rem' }}>Nome</th>
               <th style={{ padding: '0.75rem' }}>Email</th>
-              <th style={{ padding: '0.75rem' }}>Codice Fiscale</th>
+              <th style={{ padding: '0.75rem' }}>CF</th>
               <th style={{ padding: '0.75rem' }}>Mansione</th>
+              <th style={{ padding: '0.75rem' }}>Livello</th>
               <th style={{ padding: '0.75rem' }}>Contratto</th>
+              <th style={{ padding: '0.75rem' }}>% Part-Time</th>
+              <th style={{ padding: '0.75rem' }}>GG. Lav.</th>
               <th style={{ padding: '0.75rem' }}>Data Assunzione</th>
+              <th style={{ padding: '0.75rem' }}>Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -54,8 +74,31 @@ function Dipendenti() {
                 <td style={{ padding: '0.75rem' }}>{d.user?.email}</td>
                 <td style={{ padding: '0.75rem' }}>{d.codice_fiscale || '-'}</td>
                 <td style={{ padding: '0.75rem' }}>{d.mansione || '-'}</td>
+                <td style={{ padding: '0.75rem' }}>{d.livello || '-'}</td>
                 <td style={{ padding: '0.75rem' }}>{d.contratto?.nome_contratto || '-'}</td>
+                <td style={{ padding: '0.75rem' }}>
+                  {d.percentuale_part_time ? `${d.percentuale_part_time}%` : '100%'}
+                </td>
+                <td style={{ padding: '0.75rem' }}>
+                  {d.giorni_lavorativi_settimanali || '5'}
+                </td>
                 <td style={{ padding: '0.75rem' }}>{d.data_assunzione || '-'}</td>
+                <td style={{ padding: '0.75rem' }}>
+                  <button
+                    onClick={() => navigate(`/admin/dipendenti/${d.id}/edit`)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Modifica
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

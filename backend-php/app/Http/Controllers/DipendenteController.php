@@ -35,6 +35,8 @@ class DipendenteController extends Controller
             'livello' => 'nullable|string',
             'mansione' => 'nullable|string',
             'data_assunzione' => 'nullable|date',
+            'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
+            'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
         ]);
 
         $dipendente = Dipendente::create($validated);
@@ -56,6 +58,8 @@ class DipendenteController extends Controller
             'livello' => 'nullable|string',
             'mansione' => 'nullable|string',
             'data_assunzione' => 'nullable|date',
+            'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
+            'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
         ]);
 
         $dipendente->update($validated);

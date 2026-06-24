@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 /**
  * @method \Laravel\Sanctum\PersonalAccessToken createToken(string $name)
@@ -56,5 +57,10 @@ class AuthController extends Controller
             'email' => $user->email,
             'role' => $user->getRoleNames()->first(),
         ]);
+    }
+
+    public function index()
+    {
+        return User::select('id', 'name', 'email')->orderBy('name')->get();
     }
 }

@@ -53,7 +53,7 @@ function DettaglioMese() {
         ← Torna alla lista
       </button>
 
-      <h1>{nomeDipendente} — {mese}/{anno}</h1>
+      <h1 style={{ margin: '0 0 1rem 0' }}>{nomeDipendente} — {mese}/{anno}</h1>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>

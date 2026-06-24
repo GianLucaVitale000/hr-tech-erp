@@ -26,12 +26,33 @@ class PresenzaController extends Controller
 
     public function store(Request $request)
     {
+        // Recupera il dipendente per ottenere contratto e parametri
+        $dipendente = \App\Models\Dipendente::with('contratto')->find($request->dipendente_id);
+        
+        if (!$dipendente) {
+            return response()->json(['error' => 'Dipendente non trovato'], 404);
+        }
+        
+        // Calcola ore ordinarie massime giornaliere basate su:
+        // - ore_settimanali_teoriche del contratto
+        // - giorni_lavorativi_settimanali del dipendente
+        // - percentuale_part_time del dipendente
+        $oreGiornaliereContratto = $dipendente->contratto->ore_settimanali_teoriche / $dipendente->giorni_lavorativi_settimanali;
+        $oreOrdinarieMax = $oreGiornaliereContratto * ($dipendente->percentuale_part_time / 100);
+        
+        // Per ora manteniamo il limite di 4 ore straordinarie giornaliere
+        // (può essere reso configurabile in futuro)
+        $oreStraordinarieMax = 4;
+        
+        // Limite per ore_causale: stesso delle ore ordinarie
+        $oreCausaleMax = $oreOrdinarieMax;
+
         $validated = $request->validate([
             'dipendente_id' => 'required|exists:dipendenti,id',
             'data' => 'required|date',
-            'ore_ordinarie' => 'nullable|numeric|min:0|max:8',
-            'ore_straordinarie' => 'nullable|numeric|min:0|max:4',
-            'ore_causale' => 'nullable|numeric|min:0|max:8',
+            'ore_ordinarie' => "nullable|numeric|min:0|max:$oreOrdinarieMax",
+            'ore_straordinarie' => "nullable|numeric|min:0|max:$oreStraordinarieMax",
+            'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
@@ -54,10 +75,23 @@ class PresenzaController extends Controller
 
     public function update(Request $request, Presenza $presenza)
     {
+        // Recupera il dipendente per ottenere contratto e parametri
+        $dipendente = \App\Models\Dipendente::with('contratto')->find($presenza->dipendente_id);
+        
+        if (!$dipendente) {
+            return response()->json(['error' => 'Dipendente non trovato'], 404);
+        }
+        
+        // Calcola ore ordinarie massime giornaliere
+        $oreGiornaliereContratto = $dipendente->contratto->ore_settimanali_teoriche / $dipendente->giorni_lavorativi_settimanali;
+        $oreOrdinarieMax = $oreGiornaliereContratto * ($dipendente->percentuale_part_time / 100);
+        $oreStraordinarieMax = 4;
+        $oreCausaleMax = $oreOrdinarieMax;
+
         $validated = $request->validate([
-            'ore_ordinarie' => 'nullable|numeric|min:0|max:8',
-            'ore_straordinarie' => 'nullable|numeric|min:0|max:4',
-            'ore_causale' => 'nullable|numeric|min:0|max:8',
+            'ore_ordinarie' => "nullable|numeric|min:0|max:$oreOrdinarieMax",
+            'ore_straordinarie' => "nullable|numeric|min:0|max:$oreStraordinarieMax",
+            'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',

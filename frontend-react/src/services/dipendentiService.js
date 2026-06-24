@@ -1,12 +1,23 @@
 import api from './api'
 
+// === UTENTI ===
+export const getUsers = () => api.get('/users')
+export const getUser = (id) => api.get(`/users/${id}`)
+export const createUser = (data) => api.post('/users', data)
+export const updateUser = (id, data) => api.put(`/users/${id}`, data)
+export const deleteUser = (id) => api.delete(`/users/${id}`)
+
+// === DIPENDENTI ===
 export const getDipendenti = () => api.get('/dipendenti')
 export const getDipendente = (id) => api.get(`/dipendenti/${id}`)
 export const createDipendente = (data) => api.post('/dipendenti', data)
 export const updateDipendente = (id, data) => api.put(`/dipendenti/${id}`, data)
 export const deleteDipendente = (id) => api.delete(`/dipendenti/${id}`)
-
-export const getContratti = () => api.get('/contratti')
-export const createContratto = (data) => api.post('/contratti', data)
-
 export const getMioProfilo = () => api.get('/dipendenti/me')
+
+// === CONTRATTI ===
+export const getContratti = () => api.get('/contratti')
+export const getContratto = (id) => api.get(`/contratti/${id}`)
+export const createContratto = (data) => api.post('/contratti', data)
+export const updateContratto = (id, data) => api.put(`/contratti/${id}`, data)
+export const deleteContratto = (id) => api.delete(`/contratti/${id}`)
