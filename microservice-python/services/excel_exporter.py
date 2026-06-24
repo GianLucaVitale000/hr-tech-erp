@@ -1,8 +1,8 @@
 import pandas as pd
 from io import BytesIO
 from database import get_connection
+from openpyxl.styles import Font
 
-# Mappa le causali interne sui codici standard richiesti dal software paghe
 MAPPA_CODICI_PAGHE = {
     'lavoro': 'ORD',
     'ferie': 'FER',
@@ -12,6 +12,15 @@ MAPPA_CODICI_PAGHE = {
     'infortunio': 'INF',
     'assemblea': 'ASS',
 }
+
+MAPPA_MODALITA = {
+    'in_sede': 'In sede',
+    'smart_working': 'Smart Working',
+    'trasferta': 'Trasferta',
+}
+
+BASE_URL_STORAGE = "http://localhost:8000/storage/"
+
 
 def genera_report_mensile(mese: int, anno: int) -> BytesIO:
     conn = get_connection()
@@ -27,6 +36,12 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             p.ore_straordinarie,
             p.ore_causale,
             p.causale,
+            p.modalita_lavoro,
+            p.giustificativo_trasferta_path,
+            p.protocollo_malattia,
+            p.data_inizio_malattia,
+            p.data_fine_malattia,
+            p.giustificativo_infortunio_path,
             p.stato
         FROM presenze p
         JOIN dipendenti d ON d.id = p.dipendente_id
@@ -40,11 +55,15 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
     cursor.close()
     conn.close()
 
+    colonne_dettaglio = [
+        'Dipendente', 'Codice Fiscale', 'Data', 'Ore Ordinarie',
+        'Ore Straordinarie', 'Causale', 'Codice Paga', 'Modalità Lavoro',
+        'Giustificativo Trasferta', 'Protocollo Malattia',
+        'Giustificativo Infortunio'
+    ]
+
     if not righe:
-        df_dettaglio = pd.DataFrame(columns=[
-            'Dipendente', 'Codice Fiscale', 'Data', 'Ore Ordinarie',
-            'Ore Straordinarie', 'Causale', 'Codice Paga'
-        ])
+        df_dettaglio = pd.DataFrame(columns=colonne_dettaglio)
         df_riepilogo = pd.DataFrame(columns=[
             'Dipendente', 'Codice Fiscale', 'Periodo', 'Totale Ore Ordinarie',
             'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
@@ -53,22 +72,29 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
     else:
         df = pd.DataFrame(righe)
         df['codice_paga'] = df['causale'].map(MAPPA_CODICI_PAGHE)
+        df['modalita_label'] = df['modalita_lavoro'].map(MAPPA_MODALITA).fillna('')
 
-        # Foglio 1: Dettaglio giornaliero
+        def crea_link(path):
+            if isinstance(path, str) and path.strip():
+                return BASE_URL_STORAGE + path
+            return ''
+
+        df['link_trasferta'] = df['giustificativo_trasferta_path'].apply(crea_link)
+        df['link_infortunio'] = df['giustificativo_infortunio_path'].apply(crea_link)
+        
+        # Per le righe di malattia, svuota il giustificativo Trasferta
+        # (non dovrebbe esserci un allegato per la malattia)
+        df.loc[df['causale'] == 'malattia', 'giustificativo_trasferta_path'] = None
+        df.loc[df['causale'] == 'malattia', 'link_trasferta'] = ''
+
         df_dettaglio = df[[
             'nome_dipendente', 'codice_fiscale', 'data',
-            'ore_ordinarie', 'ore_straordinarie', 'causale', 'codice_paga'
-        ]].rename(columns={
-            'nome_dipendente': 'Dipendente',
-            'codice_fiscale': 'Codice Fiscale',
-            'data': 'Data',
-            'ore_ordinarie': 'Ore Ordinarie',
-            'ore_straordinarie': 'Ore Straordinarie',
-            'causale': 'Causale',
-            'codice_paga': 'Codice Paga'
-        })
+            'ore_ordinarie', 'ore_straordinarie', 'causale', 'codice_paga',
+            'modalita_label', 'link_trasferta', 'protocollo_malattia',
+            'link_infortunio'
+        ]].copy()
+        df_dettaglio.columns = colonne_dettaglio
 
-        # Foglio 2: Riepilogo per dipendente
         mesi_italiani = [
             '', 'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
             'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
@@ -89,11 +115,28 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             })
         df_riepilogo = pd.DataFrame(riepilogo)
 
-    # Scrive entrambi i fogli in un unico file Excel in memoria
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df_riepilogo.to_excel(writer, sheet_name='Riepilogo', index=False)
         df_dettaglio.to_excel(writer, sheet_name='Dettaglio Giornaliero', index=False)
+
+        # Trasforma i link in hyperlink cliccabili nel foglio Excel
+        sheet = writer.sheets['Dettaglio Giornaliero']
+        col_trasferta = colonne_dettaglio.index('Giustificativo Trasferta') + 1
+        col_infortunio = colonne_dettaglio.index('Giustificativo Infortunio') + 1
+
+        for row_idx in range(2, len(df_dettaglio) + 2):
+            cella_trasferta = sheet.cell(row=row_idx, column=col_trasferta)
+            if cella_trasferta.value:
+                cella_trasferta.hyperlink = cella_trasferta.value
+                cella_trasferta.value = "Apri allegato"
+                cella_trasferta.font = Font(color="0563C1", underline="single")
+
+            cella_infortunio = sheet.cell(row=row_idx, column=col_infortunio)
+            if cella_infortunio.value:
+                cella_infortunio.hyperlink = cella_infortunio.value
+                cella_infortunio.value = "Apri allegato"
+                cella_infortunio.font = Font(color="0563C1", underline="single")
 
     output.seek(0)
     return output
