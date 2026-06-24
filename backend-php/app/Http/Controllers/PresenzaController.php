@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Presenza;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class PresenzaController extends Controller
 {
@@ -32,6 +33,7 @@ class PresenzaController extends Controller
             'ore_straordinarie' => 'nullable|numeric|min:0|max:4',
             'ore_causale' => 'nullable|numeric|min:0|max:8',
             'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
+            'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
 
         $presenza = Presenza::updateOrCreate(
@@ -58,6 +60,7 @@ class PresenzaController extends Controller
             'ore_causale' => 'nullable|numeric|min:0|max:8',
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
+            'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
 
         $presenza->update($validated);
@@ -88,14 +91,13 @@ class PresenzaController extends Controller
         return response()->json(['message' => 'Mese inviato per approvazione']);
     }
 
-    // Lista dei mesi inviati in attesa di approvazione (vista Admin)
     public function inAttesa()
     {
         $mesi = Presenza::with('dipendente.user')
             ->where('stato', 'inviato')
             ->get()
             ->groupBy(function ($p) {
-                return $p->dipendente_id . '-' . substr($p->data, 0, 7); // es. "1-2026-06"
+                return $p->dipendente_id . '-' . substr($p->data, 0, 7);
             })
             ->map(function ($gruppo) {
                 $prima = $gruppo->first();
@@ -114,7 +116,6 @@ class PresenzaController extends Controller
         return $mesi;
     }
 
-    // Approva o rifiuta un intero mese
     public function aggiornaStatoMese(Request $request)
     {
         $validated = $request->validate([
@@ -130,5 +131,72 @@ class PresenzaController extends Controller
             ->update(['stato' => $validated['stato']]);
 
         return response()->json(['message' => 'Stato aggiornato con successo']);
+    }
+
+    // Registra un periodo di malattia su più giorni, anche a cavallo di mesi diversi
+    public function registraMalattia(Request $request)
+    {
+        $validated = $request->validate([
+            'dipendente_id' => 'required|exists:dipendenti,id',
+            'data_inizio' => 'required|date',
+            'data_fine' => 'required|date|after_or_equal:data_inizio',
+            'protocollo' => 'required|string|max:255',
+        ]);
+
+        $inizio = Carbon::parse($validated['data_inizio']);
+        $fine = Carbon::parse($validated['data_fine']);
+        $righeCreate = [];
+
+        for ($giorno = $inizio->copy(); $giorno->lte($fine); $giorno->addDay()) {
+            $presenza = Presenza::updateOrCreate(
+                [
+                    'dipendente_id' => $validated['dipendente_id'],
+                    'data' => $giorno->format('Y-m-d'),
+                ],
+                [
+                    'causale' => 'malattia',
+                    'ore_ordinarie' => 0,
+                    'ore_straordinarie' => 0,
+                    'ore_causale' => 8,
+                    'modalita_lavoro' => null,
+                    'protocollo_malattia' => $validated['protocollo'],
+                    'data_inizio_malattia' => $validated['data_inizio'],
+                    'data_fine_malattia' => $validated['data_fine'],
+                ]
+            );
+            $righeCreate[] = $presenza;
+        }
+
+        return response()->json([
+            'message' => 'Periodo di malattia registrato',
+            'giorni_creati' => count($righeCreate),
+            'presenze' => $righeCreate,
+        ]);
+    }
+
+    // Upload giustificativo trasferta
+    public function uploadGiustificativoTrasferta(Request $request, Presenza $presenza)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $path = $request->file('file')->store('giustificativi/trasferta', 'public');
+        $presenza->update(['giustificativo_trasferta_path' => $path]);
+
+        return $presenza;
+    }
+
+    // Upload giustificativo infortunio
+    public function uploadGiustificativoInfortunio(Request $request, Presenza $presenza)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ]);
+
+        $path = $request->file('file')->store('giustificativi/infortunio', 'public');
+        $presenza->update(['giustificativo_infortunio_path' => $path]);
+
+        return $presenza;
     }
 }

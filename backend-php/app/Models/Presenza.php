@@ -9,14 +9,20 @@ class Presenza extends Model
     protected $table = 'presenze';
 
     protected $fillable = [
-        'dipendente_id',
-        'data',
-        'ore_ordinarie',
-        'ore_straordinarie',
-        'ore_causale',
-        'causale',
-        'stato',
-    ];
+    'dipendente_id',
+    'data',
+    'ore_ordinarie',
+    'ore_straordinarie',
+    'ore_causale',
+    'causale',
+    'stato',
+    'modalita_lavoro',
+    'giustificativo_trasferta_path',
+    'protocollo_malattia',
+    'data_inizio_malattia',
+    'data_fine_malattia',
+    'giustificativo_infortunio_path',
+];
 
     public function dipendente()
     {

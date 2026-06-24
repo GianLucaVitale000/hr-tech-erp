@@ -10,10 +10,8 @@ Route::get('/ping', function () {
     return response()->json(['message' => 'Laravel API attiva!']);
 });
 
-// Rotte pubbliche
 Route::post('/login', [AuthController::class, 'login']);
 
-// Rotte protette (richiedono autenticazione)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
@@ -22,9 +20,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('contratti', ContrattoController::class);
     Route::apiResource('dipendenti', DipendenteController::class);
 
-    // Rotte specifiche PRIMA di apiResource, altrimenti vengono "mangiate" da /presenze/{presenza}
+    // Rotte specifiche PRIMA di apiResource
     Route::post('/presenze/invia-mese', [PresenzaController::class, 'inviaMese']);
     Route::get('/presenze/in-attesa', [PresenzaController::class, 'inAttesa']);
     Route::post('/presenze/aggiorna-stato-mese', [PresenzaController::class, 'aggiornaStatoMese']);
+    Route::post('/presenze/registra-malattia', [PresenzaController::class, 'registraMalattia']);
+    Route::post('/presenze/{presenza}/giustificativo-trasferta', [PresenzaController::class, 'uploadGiustificativoTrasferta']);
+    Route::post('/presenze/{presenza}/giustificativo-infortunio', [PresenzaController::class, 'uploadGiustificativoInfortunio']);
     Route::apiResource('presenze', PresenzaController::class);
 });
