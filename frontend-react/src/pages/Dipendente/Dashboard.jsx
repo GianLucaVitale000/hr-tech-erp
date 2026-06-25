@@ -14,7 +14,7 @@ function DipendenteDashboard() {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ margin: '0 0 0.5rem 0' }}>Dashboard Dipendente</h1>
+      <h1 style={{ margin: '0 0 2rem 0' }}>Dashboard Dipendente</h1>
       <p>Benvenuto, <strong>{user?.name}</strong></p>
       <p>Ruolo: <strong>{user?.role}</strong></p>
 

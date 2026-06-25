@@ -57,7 +57,7 @@ function Login() {
           <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
           <div style={{ marginBottom: '1rem' }}>
             <label>Email</label>
             <input
@@ -84,8 +84,9 @@ function Login() {
             type="submit"
             disabled={loading}
             style={{
-              width: '100%',
-              padding: '0.75rem',
+              display: 'block',
+              margin: '0 auto',
+              padding: '0.75rem 1.5rem',
               backgroundColor: '#2563eb',
               color: 'white',
               border: 'none',

@@ -167,6 +167,31 @@ class PresenzaController extends Controller
         return response()->json(['message' => 'Stato aggiornato con successo']);
     }
 
+    public function mesiApprovati()
+    {
+        $mesi = Presenza::with('dipendente.user')
+            ->where('stato', 'approvato')
+            ->get()
+            ->groupBy(function ($p) {
+                return $p->dipendente_id . '-' . substr($p->data, 0, 7);
+            })
+            ->map(function ($gruppo) {
+                $prima = $gruppo->first();
+                return [
+                    'dipendente_id' => $prima->dipendente_id,
+                    'dipendente_nome' => $prima->dipendente->user->name,
+                    'mese' => (int) substr($prima->data, 5, 2),
+                    'anno' => (int) substr($prima->data, 0, 4),
+                ];
+            })
+            ->values()
+            ->unique(function ($item) {
+                return $item['mese'] . '-' . $item['anno'];
+            });
+
+        return $mesi;
+    }
+
     // Registra un periodo di malattia su più giorni, anche a cavallo di mesi diversi
     public function registraMalattia(Request $request)
     {

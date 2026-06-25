@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getMioProfilo } from '../../services/dipendentiService'
 import {
   getPresenze,
@@ -254,15 +255,18 @@ function ModaleMalattia({ dataInizio, onConferma, onAnnulla }) {
 }
 
 function Timesheet() {
+  const navigate = useNavigate()
   const oggi = new Date()
-  const [mese] = useState(oggi.getMonth() + 1)
-  const [anno] = useState(oggi.getFullYear())
+  const [mese, setMese] = useState(oggi.getMonth() + 1)
+  const [anno, setAnno] = useState(oggi.getFullYear())
   const [dipendente, setDipendente] = useState(null)
   const [righe, setRighe] = useState({})
   const [statoSalvataggio, setStatoSalvataggio] = useState({})
   const [loading, setLoading] = useState(true)
   const [messaggio, setMessaggio] = useState('')
   const [modaleMalattiaGiorno, setModaleMalattiaGiorno] = useState(null)
+
+  const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
   const normalizzaRiga = (p = {}) => ({
   ore_ordinarie: p.ore_ordinarie || 0,
@@ -281,17 +285,24 @@ function Timesheet() {
 useEffect(() => {
   getMioProfilo().then((res) => {
     setDipendente(res.data)
-    getPresenze(res.data.id, mese, anno).then((res2) => {
+  })
+}, [])
+
+useEffect(() => {
+  if (dipendente) {
+    const fetchPresenze = async () => {
+      setLoading(true)
+      const res = await getPresenze(dipendente.id, mese, anno)
       const mappa = {}
-      res2.data.forEach((p) => {
+      res.data.forEach((p) => {
         mappa[p.data] = normalizzaRiga(p)
       })
       setRighe(mappa)
       setLoading(false)
-    })
-  })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [])
+    }
+    fetchPresenze()
+  }
+}, [dipendente, mese, anno])
 
   const giorni = Array.from(
     { length: getGiorniDelMese(mese, anno) },
@@ -383,9 +394,64 @@ useEffect(() => {
     (acc, r) => acc + (parseInt(r.ore_straordinarie) || 0), 0
   )
 
+  const handleMeseCorrente = () => {
+    setMese(oggi.getMonth() + 1)
+    setAnno(oggi.getFullYear())
+  }
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ margin: '0 0 1rem 0' }}>Foglio Presenze - {mese}/{anno}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 style={{ margin: 0 }}>Foglio Presenze - {NOMI_MESI[mese - 1]} {anno}</h1>
+        <button
+          onClick={() => navigate('/dipendente')}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Dashboard
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+        <select
+          value={mese}
+          onChange={(e) => setMese(parseInt(e.target.value))}
+          style={{ padding: '0.5rem', borderRadius: '4px' }}
+        >
+          {Array.from({ length: 12 }, (_, i) => (
+            <option key={i + 1} value={i + 1}>{NOMI_MESI[i]}</option>
+          ))}
+        </select>
+        <select
+          value={anno}
+          onChange={(e) => setAnno(parseInt(e.target.value))}
+          style={{ padding: '0.5rem', borderRadius: '4px' }}
+        >
+          {Array.from({ length: 5 }, (_, i) => {
+            const y = oggi.getFullYear() - 2 + i
+            return <option key={y} value={y}>{y}</option>
+          })}
+        </select>
+        <button
+          onClick={handleMeseCorrente}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#6b7280',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Mese corrente
+        </button>
+      </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>

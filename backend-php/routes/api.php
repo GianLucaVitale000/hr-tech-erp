@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Rotte specifiche PRIMA di apiResource
     Route::post('/presenze/invia-mese', [PresenzaController::class, 'inviaMese']);
     Route::get('/presenze/in-attesa', [PresenzaController::class, 'inAttesa']);
+    Route::get('/presenze/mesi-approvati', [PresenzaController::class, 'mesiApprovati']);
     Route::post('/presenze/aggiorna-stato-mese', [PresenzaController::class, 'aggiornaStatoMese']);
     Route::post('/presenze/registra-malattia', [PresenzaController::class, 'registraMalattia']);
     Route::post('/presenze/{presenza}/giustificativo-trasferta', [PresenzaController::class, 'uploadGiustificativoTrasferta']);

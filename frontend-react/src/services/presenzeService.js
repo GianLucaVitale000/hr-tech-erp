@@ -10,6 +10,8 @@ export const inviaMese = (dipendenteId, mese, anno) =>
 
 export const getPresenzeInAttesa = () => api.get('/presenze/in-attesa')
 
+export const getMesiApprovati = () => api.get('/presenze/mesi-approvati')
+
 export const aggiornaStatoMese = (dipendenteId, mese, anno, stato) =>
   api.post('/presenze/aggiorna-stato-mese', {
     dipendente_id: dipendenteId,

@@ -12,6 +12,14 @@ const CAUSALI_LABEL = {
   assemblea: 'Assemblea',
 }
 
+const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+
+function formattaData(dataIso) {
+  if (!dataIso) return ''
+  const [anno, mese, giorno] = dataIso.split('-')
+  return `${giorno}-${mese}-${anno}`
+}
+
 function DettaglioMese() {
   const { dipendenteId, mese, anno } = useParams()
   const navigate = useNavigate()
@@ -53,7 +61,7 @@ function DettaglioMese() {
         ← Torna alla lista
       </button>
 
-      <h1 style={{ margin: '0 0 1rem 0' }}>{nomeDipendente} — {mese}/{anno}</h1>
+      <h1 style={{ margin: '0 0 1rem 0' }}>{nomeDipendente} — {NOMI_MESI[parseInt(mese) - 1]}-{anno}</h1>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>
@@ -80,7 +88,7 @@ function DettaglioMese() {
         <tbody>
           {presenze.map((p) => (
             <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-              <td style={{ padding: '0.5rem' }}>{p.data}</td>
+              <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
               <td style={{ padding: '0.5rem' }}>{p.ore_ordinarie}</td>
               <td style={{ padding: '0.5rem' }}>{p.ore_straordinarie}</td>
               <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
