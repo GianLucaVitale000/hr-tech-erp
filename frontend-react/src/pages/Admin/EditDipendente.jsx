@@ -605,7 +605,7 @@ function EditDipendente() {
                           fontSize: '0.75rem',
                           width: '50px',
                           textAlign: 'center',
-                          color: (giorno.turno1.dalle && giorno.turno1.dalle !== '00:00') ? '#16a34a' : '#374151'
+                          color: (giorno.turno1.dalle && giorno.turno1.dalle !== '00:00') ? '#7cfc00' : '#9ca3af'
                         }}
                       />
                     </td>
@@ -623,7 +623,7 @@ function EditDipendente() {
                           fontSize: '0.75rem',
                           width: '50px',
                           textAlign: 'center',
-                          color: (giorno.turno1.alle && giorno.turno1.alle !== '00:00') ? '#16a34a' : '#374151'
+                          color: (giorno.turno1.alle && giorno.turno1.alle !== '00:00') ? '#7cfc00' : '#9ca3af'
                         }}
                       />
                     </td>
@@ -641,7 +641,7 @@ function EditDipendente() {
                           fontSize: '0.75rem',
                           width: '50px',
                           textAlign: 'center',
-                          color: (giorno.turno2.dalle && giorno.turno2.dalle !== '00:00') ? '#16a34a' : '#374151'
+                          color: (giorno.turno2.dalle && giorno.turno2.dalle !== '00:00') ? '#7cfc00' : '#9ca3af'
                         }}
                       />
                     </td>
@@ -659,7 +659,7 @@ function EditDipendente() {
                           fontSize: '0.75rem',
                           width: '50px',
                           textAlign: 'center',
-                          color: (giorno.turno2.alle && giorno.turno2.alle !== '00:00') ? '#16a34a' : '#374151'
+                          color: (giorno.turno2.alle && giorno.turno2.alle !== '00:00') ? '#7cfc00' : '#9ca3af'
                         }}
                       />
                     </td>
