@@ -31,18 +31,7 @@ const calcolaOreDaTempo = (dalle, alle) => {
   }
 }
 
-// Funzione per formattare il tempo (ore decimali a HH:MM)
-const formatTempo = (ore) => {
-  if (ore === null || ore === undefined || ore === '') return ''
-  
-  if (typeof ore === 'number') {
-    const oreIntere = Math.floor(ore)
-    const minuti = Math.round((ore - oreIntere) * 60)
-    return `${String(oreIntere).padStart(2, '0')}:${String(minuti).padStart(2, '0')}`
-  }
-  
-  return ore
-}
+
 
 function EditDipendente() {
   const { id } = useParams()
@@ -588,12 +577,12 @@ function EditDipendente() {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f3f4f6' }}>
-                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Giorno</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 1 - Dalle</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 1 - Alle</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 2 - Dalle</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 2 - Alle</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Totale (h)</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Giorno</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 1 - Dalle</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 1 - Alle</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 2 - Dalle</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 2 - Alle</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Totale Giorno (h)</th>
                 </tr>
               </thead>
               <tbody>
@@ -612,7 +601,7 @@ function EditDipendente() {
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '80px'
+                          width: '50px'
                         }}
                       />
                     </td>
@@ -626,7 +615,7 @@ function EditDipendente() {
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '80px'
+                          width: '50px'
                         }}
                       />
                     </td>
@@ -640,7 +629,7 @@ function EditDipendente() {
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '80px'
+                          width: '50px'
                         }}
                       />
                     </td>
@@ -654,7 +643,7 @@ function EditDipendente() {
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '80px'
+                          width: '50px'
                         }}
                       />
                     </td>
