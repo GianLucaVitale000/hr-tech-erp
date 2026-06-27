@@ -339,7 +339,7 @@ function EditDipendente() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '600px' }}>
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '1200px' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <button
           onClick={() => navigate('/admin')}
@@ -520,7 +520,10 @@ function EditDipendente() {
             padding: '1.5rem', 
             border: '1px solid #f59e0b', 
             borderRadius: '8px',
-            backgroundColor: '#fef3c7'
+            backgroundColor: '#fef3c7',
+            width: '100%',
+            maxWidth: '2000px',
+            overflowX: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontWeight: '600', color: '#92400e' }}>
