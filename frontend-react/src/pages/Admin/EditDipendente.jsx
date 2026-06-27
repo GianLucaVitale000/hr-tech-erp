@@ -400,6 +400,20 @@ function EditDipendente() {
           />
         </div>
 
+        <div style={{ marginBottom: '2rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Data Assunzione
+          </label>
+          <input
+            type="date"
+            name="data_assunzione"
+            value={form.data_assunzione}
+            onChange={handleChange}
+            placeholder="Seleziona data"
+            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+        </div>
+
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
             Mansione
@@ -712,20 +726,6 @@ function EditDipendente() {
             </div>
           </div>
         )}
-
-        <div style={{ marginBottom: '2rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-            Data Assunzione
-          </label>
-          <input
-            type="date"
-            name="data_assunzione"
-            value={form.data_assunzione}
-            onChange={handleChange}
-            placeholder="Seleziona data"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-          />
-        </div>
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button
