@@ -593,57 +593,73 @@ function EditDipendente() {
                     </td>
                     <td style={{ padding: '0.5rem' }}>
                       <input
-                        type="time"
-                        value={giorno.turno1.dalle}
+                        type="text"
+                        value={giorno.turno1.dalle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno1', 'dalle', e.target.value)}
+                        placeholder="--:--"
+                        maxLength={5}
                         style={{
                           padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '50px'
+                          width: '50px',
+                          textAlign: 'center',
+                          color: (giorno.turno1.dalle && giorno.turno1.dalle !== '00:00') ? '#16a34a' : '#374151'
                         }}
                       />
                     </td>
                     <td style={{ padding: '0.5rem' }}>
                       <input
-                        type="time"
-                        value={giorno.turno1.alle}
+                        type="text"
+                        value={giorno.turno1.alle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno1', 'alle', e.target.value)}
+                        placeholder="--:--"
+                        maxLength={5}
                         style={{
                           padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '50px'
+                          width: '50px',
+                          textAlign: 'center',
+                          color: (giorno.turno1.alle && giorno.turno1.alle !== '00:00') ? '#16a34a' : '#374151'
                         }}
                       />
                     </td>
                     <td style={{ padding: '0.5rem' }}>
                       <input
-                        type="time"
-                        value={giorno.turno2.dalle}
+                        type="text"
+                        value={giorno.turno2.dalle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno2', 'dalle', e.target.value)}
+                        placeholder="--:--"
+                        maxLength={5}
                         style={{
                           padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '50px'
+                          width: '50px',
+                          textAlign: 'center',
+                          color: (giorno.turno2.dalle && giorno.turno2.dalle !== '00:00') ? '#16a34a' : '#374151'
                         }}
                       />
                     </td>
                     <td style={{ padding: '0.5rem' }}>
                       <input
-                        type="time"
-                        value={giorno.turno2.alle}
+                        type="text"
+                        value={giorno.turno2.alle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno2', 'alle', e.target.value)}
+                        placeholder="--:--"
+                        maxLength={5}
                         style={{
                           padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
-                          width: '50px'
+                          width: '50px',
+                          textAlign: 'center',
+                          color: (giorno.turno2.alle && giorno.turno2.alle !== '00:00') ? '#16a34a' : '#374151'
                         }}
                       />
                     </td>
