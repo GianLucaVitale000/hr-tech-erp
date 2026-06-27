@@ -339,7 +339,7 @@ function EditDipendente() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '1200px' }}>
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '600px' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <button
           onClick={() => navigate('/admin')}
@@ -517,13 +517,10 @@ function EditDipendente() {
         {(form.percentuale_part_time ?? 100) < 100 && (
           <div style={{ 
             marginBottom: '1.5rem', 
-            padding: '1.5rem', 
+            padding: '1rem', 
             border: '1px solid #f59e0b', 
             borderRadius: '8px',
-            backgroundColor: '#fef3c7',
-            width: '100%',
-            maxWidth: '2000px',
-            overflowX: 'auto'
+            backgroundColor: '#fef3c7'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontWeight: '600', color: '#92400e' }}>
@@ -546,27 +543,28 @@ function EditDipendente() {
             {/* Dati contrattuali */}
             <div style={{
               backgroundColor: '#f0f9ff',
-              padding: '1rem',
+              padding: '0.75rem',
               borderRadius: '4px',
               marginBottom: '1rem',
-              border: '1px solid #bae6fd'
+              border: '1px solid #bae6fd',
+              fontSize: '0.75rem'
             }}>
               <p style={{ margin: 0, color: '#0c4a6e' }}>
                 <strong>Dati Contrattuali:</strong>
               </p>
-              <p style={{ margin: '0.5rem 0 0 0', color: '#1e40af' }}>
+              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
                 Ore settimanali (full-time): {dipendente?.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40} h
               </p>
-              <p style={{ margin: '0.5rem 0 0 0', color: '#1e40af' }}>
+              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
                 % Part-Time: {dipendente?.percentuale_part_time || form.percentuale_part_time || 100}%
               </p>
-              <p style={{ margin: '0.5rem 0 0 0', color: '#1e40af' }}>
+              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
                 Ore settimanali part-time: <strong>{oreSettimanaliPartTime} h</strong>
               </p>
-              <p style={{ margin: '0.5rem 0 0 0', color: '#1e40af' }}>
+              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
                 Ore attualmente configurate: <strong>{Math.round(totaleSettimanale * 100) / 100} h</strong>
               </p>
-              <p style={{ margin: '0.5rem 0 0 0', color: totaleSettimanale <= oreSettimanaliPartTime ? '#059669' : '#dc2626' }}>
+              <p style={{ margin: '0.25rem 0 0 0', color: totaleSettimanale <= oreSettimanaliPartTime ? '#059669' : '#dc2626' }}>
                 {totaleSettimanale <= oreSettimanaliPartTime 
                   ? '✓ Totale nel limite' 
                   : `✗ Supera di ${Math.round((totaleSettimanale - oreSettimanaliPartTime) * 100) / 100} ore`}
@@ -590,77 +588,77 @@ function EditDipendente() {
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f3f4f6' }}>
-                  <th style={{ padding: '0.75rem', textAlign: 'left' }}>Giorno</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left' }}>Turno 1 - Dalle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left' }}>Turno 1 - Alle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left' }}>Turno 2 - Dalle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left' }}>Turno 2 - Alle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left' }}>Totale Giorno (h)</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Giorno</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 1 - Dalle</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 1 - Alle</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 2 - Dalle</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Turno 2 - Alle</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left', fontSize: '0.75rem' }}>Totale (h)</th>
                 </tr>
               </thead>
               <tbody>
                 {orariSettimanali.map((giorno, index) => (
                   <tr key={giorno.giorno_settimana} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '0.75rem', fontWeight: '500' }}>
+                    <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '500' }}>
                       {giorno.name}
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td style={{ padding: '0.5rem' }}>
                       <input
                         type="time"
                         value={giorno.turno1.dalle}
                         onChange={(e) => handleTurnoChange(index, 'turno1', 'dalle', e.target.value)}
                         style={{
-                          padding: '0.5rem',
+                          padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
-                          fontSize: '0.875rem',
-                          width: '100px'
+                          fontSize: '0.75rem',
+                          width: '80px'
                         }}
                       />
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td style={{ padding: '0.5rem' }}>
                       <input
                         type="time"
                         value={giorno.turno1.alle}
                         onChange={(e) => handleTurnoChange(index, 'turno1', 'alle', e.target.value)}
                         style={{
-                          padding: '0.5rem',
+                          padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
-                          fontSize: '0.875rem',
-                          width: '100px'
+                          fontSize: '0.75rem',
+                          width: '80px'
                         }}
                       />
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td style={{ padding: '0.5rem' }}>
                       <input
                         type="time"
                         value={giorno.turno2.dalle}
                         onChange={(e) => handleTurnoChange(index, 'turno2', 'dalle', e.target.value)}
                         style={{
-                          padding: '0.5rem',
+                          padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
-                          fontSize: '0.875rem',
-                          width: '100px'
+                          fontSize: '0.75rem',
+                          width: '80px'
                         }}
                       />
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    <td style={{ padding: '0.5rem' }}>
                       <input
                         type="time"
                         value={giorno.turno2.alle}
                         onChange={(e) => handleTurnoChange(index, 'turno2', 'alle', e.target.value)}
                         style={{
-                          padding: '0.5rem',
+                          padding: '0.375rem',
                           border: '1px solid #d1d5db',
                           borderRadius: '4px',
-                          fontSize: '0.875rem',
-                          width: '100px'
+                          fontSize: '0.75rem',
+                          width: '80px'
                         }}
                       />
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: '600', color: '#1e40af' }}>
+                    <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '600', color: '#1e40af' }}>
                       {giorno.totaleGiorno.toFixed(2)}
                     </td>
                   </tr>
@@ -668,20 +666,19 @@ function EditDipendente() {
               </tbody>
               <tfoot>
                 <tr style={{ backgroundColor: '#f9fafb' }}>
-                  <td style={{ padding: '0.75rem', fontWeight: '600' }} colSpan={5}>
+                  <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '600' }} colSpan={5}>
                     <strong>Totale Settimanale:</strong>
                   </td>
-                  <td style={{ padding: '0.75rem', fontWeight: '600', color: totaleSettimanale <= oreSettimanaliPartTime ? '#059669' : '#dc2626' }}>
+                  <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '600', color: totaleSettimanale <= oreSettimanaliPartTime ? '#059669' : '#dc2626' }}>
                     <strong>{Math.round(totaleSettimanale * 100) / 100} h</strong>
                   </td>
                 </tr>
               </tfoot>
             </table>
 
-            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
-              <strong>Istruzioni:</strong> Inserisci gli orari di lavoro per ogni giorno usando il formato HH:MM.
-              Puoi configurare fino a due turni per ogni giorno. Il totale settimanale non può superare
-              le ore settimanali part-time calcolate automaticamente dal contratto.
+            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
+              <strong>Istruzioni:</strong> Inserisci gli orari per ogni giorno (formato HH:MM).
+              Puoi configurare due turni per giorno. Il totale non può superare le ore part-time.
             </p>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
