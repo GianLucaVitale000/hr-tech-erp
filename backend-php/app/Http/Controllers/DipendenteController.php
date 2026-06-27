@@ -9,12 +9,12 @@ class DipendenteController extends Controller
 {
     public function index()
     {
-        return Dipendente::with(['user', 'contratto'])->get();
+        return Dipendente::with(['user', 'contratto', 'orariSettimanali'])->get();
     }
 
     public function me(Request $request)
     {
-        $dipendente = \App\Models\Dipendente::with('contratto')
+        $dipendente = \App\Models\Dipendente::with(['contratto', 'contratto.regoleCalcolo', 'orariSettimanali'])
             ->where('user_id', $request->user()->id)
             ->first();
 
@@ -46,7 +46,7 @@ class DipendenteController extends Controller
 
     public function show(Dipendente $dipendente)
     {
-        return $dipendente->load(['user', 'contratto']);
+        return $dipendente->load(['user', 'contratto', 'contratto.regoleCalcolo', 'orariSettimanali']);
     }
 
     public function update(Request $request, Dipendente $dipendente)
@@ -64,7 +64,7 @@ class DipendenteController extends Controller
 
         $dipendente->update($validated);
 
-        return $dipendente->load(['user', 'contratto']);
+        return $dipendente->load(['user', 'contratto', 'contratto.regoleCalcolo', 'orariSettimanali']);
     }
 
     public function destroy(Dipendente $dipendente)

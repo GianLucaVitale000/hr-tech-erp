@@ -15,6 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Esegui il seeding dei contratti CNEL
+        $this->call([
+            CnelContractsSeeder::class,
+            RegoleCalcoloContrattoSeeder::class,
+        ]);
+
         // User::factory(10)->create();
 
         User::factory()->create([

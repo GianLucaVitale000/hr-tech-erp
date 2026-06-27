@@ -26,36 +26,73 @@ class PresenzaController extends Controller
 
     public function store(Request $request)
     {
-        // Recupera il dipendente per ottenere contratto e parametri
-        $dipendente = \App\Models\Dipendente::with('contratto')->find($request->dipendente_id);
+        // Recupera il dipendente con eager loading
+        $dipendente = \App\Models\Dipendente::with(['contratto.regoleCalcolo', 'orariSettimanali'])->find($request->dipendente_id);
         
         if (!$dipendente) {
             return response()->json(['error' => 'Dipendente non trovato'], 404);
         }
         
-        // Calcola ore ordinarie massime giornaliere basate su:
-        // - ore_settimanali_teoriche del contratto
-        // - giorni_lavorativi_settimanali del dipendente
-        // - percentuale_part_time del dipendente
-        $oreGiornaliereContratto = $dipendente->contratto->ore_settimanali_teoriche / $dipendente->giorni_lavorativi_settimanali;
-        $oreOrdinarieMax = $oreGiornaliereContratto * ($dipendente->percentuale_part_time / 100);
+        // BLOCCO: Per dipendenti part-time, serve la configurazione orari settimanali
+        if (!$dipendente->has_orari_settimanali_configurati && (float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            return response()->json([
+                'error' => 'Impossibile inserire presenze: il dipendente part-time non ha la configurazione orari settimanali completata'
+            ], 403);
+        }
+        
+        // Calcola il giorno della settimana per la data
+        $data = \Carbon\Carbon::parse($request->data);
+        $giornoSettimana = $data->dayOfWeek; // 0=Dom, 1=Lun, etc.
+        
+        // Ottieni le ore previste per questo giorno specifico
+        $oreOrdinarieMax = $dipendente->getOrePrevistePerGiorno($giornoSettimana);
         
         // Per ora manteniamo il limite di 4 ore straordinarie giornaliere
         // (può essere reso configurabile in futuro)
         $oreStraordinarieMax = 4;
         
-        // Limite per ore_causale: stesso delle ore ordinarie
+        // Per causali come ferie/malattia, le ore_causale devono corrispondere alle ore previste per quel giorno
+        // Non un valore fisso di 8 ore
         $oreCausaleMax = $oreOrdinarieMax;
 
         $validated = $request->validate([
             'dipendente_id' => 'required|exists:dipendenti,id',
             'data' => 'required|date',
-            'ore_ordinarie' => "nullable|numeric|min:0|max:$oreOrdinarieMax",
+            'ore_ordinarie' => "nullable|numeric|min:0",
             'ore_straordinarie' => "nullable|numeric|min:0|max:$oreStraordinarieMax",
+            'ore_supplementari' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
+        
+        // GESTIONE SUPPLEMENTARI:
+        // Per i dipendenti part-time con configurazione orari settimanali,
+        // le ore che superano il limite ordinario del giorno diventano supplementari
+        if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            $oreInserite = (float)($validated['ore_ordinarie'] ?? 0);
+            
+            if ($oreInserite > $oreOrdinarieMax) {
+                // Sposta l'eccedenza in supplementari
+                $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = $oreOrdinarieMax;
+            }
+            
+            // Per causali diverse da lavoro (ferie, malattia, etc.), 
+            // le ore_causale devono essere uguali alle ore previste per quel giorno
+            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
+                // Imposta automaticamente ore_causale alle ore previste per quel giorno
+                $validated['ore_causale'] = $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = 0;
+                $validated['ore_supplementari'] = 0;
+            }
+        } else {
+            // Per full-time, gestione classica
+            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
+                $validated['ore_causale'] = $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = 0;
+            }
+        }
 
         $presenza = Presenza::updateOrCreate(
             [
@@ -75,27 +112,67 @@ class PresenzaController extends Controller
 
     public function update(Request $request, Presenza $presenza)
     {
-        // Recupera il dipendente per ottenere contratto e parametri
-        $dipendente = \App\Models\Dipendente::with('contratto')->find($presenza->dipendente_id);
+        // Recupera il dipendente con eager loading
+        $dipendente = \App\Models\Dipendente::with(['contratto.regoleCalcolo', 'orariSettimanali'])->find($presenza->dipendente_id);
         
         if (!$dipendente) {
             return response()->json(['error' => 'Dipendente non trovato'], 404);
         }
         
-        // Calcola ore ordinarie massime giornaliere
-        $oreGiornaliereContratto = $dipendente->contratto->ore_settimanali_teoriche / $dipendente->giorni_lavorativi_settimanali;
-        $oreOrdinarieMax = $oreGiornaliereContratto * ($dipendente->percentuale_part_time / 100);
+        // BLOCCO: Per dipendenti part-time, serve la configurazione orari settimanali
+        if (!$dipendente->has_orari_settimanali_configurati && (float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            return response()->json([
+                'error' => 'Impossibile aggiornare presenze: il dipendente part-time non ha la configurazione orari settimanali completata'
+            ], 403);
+        }
+        
+        // Calcola il giorno della settimana per la data
+        $data = \Carbon\Carbon::parse($presenza->data);
+        $giornoSettimana = $data->dayOfWeek;
+        
+        // Ottieni le ore previste per questo giorno specifico
+        $oreOrdinarieMax = $dipendente->getOrePrevistePerGiorno($giornoSettimana);
         $oreStraordinarieMax = 4;
         $oreCausaleMax = $oreOrdinarieMax;
 
         $validated = $request->validate([
-            'ore_ordinarie' => "nullable|numeric|min:0|max:$oreOrdinarieMax",
+            'ore_ordinarie' => "nullable|numeric|min:0",
             'ore_straordinarie' => "nullable|numeric|min:0|max:$oreStraordinarieMax",
+            'ore_supplementari' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
+        
+        // GESTIONE SUPPLEMENTARI:
+        if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            $oreInserite = (float)($validated['ore_ordinarie'] ?? ($presenza->ore_ordinarie ?? 0));
+            
+            if ($oreInserite > $oreOrdinarieMax) {
+                $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = $oreOrdinarieMax;
+            }
+            
+            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
+                $validated['ore_causale'] = $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = 0;
+                $validated['ore_supplementari'] = 0;
+            } elseif (!isset($validated['causale']) && $presenza->causale !== 'lavoro') {
+                // Se la causale non cambia ma è già una causale non-lavoro
+                $validated['ore_causale'] = $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = 0;
+                $validated['ore_supplementari'] = 0;
+            }
+        } else {
+            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
+                $validated['ore_causale'] = $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = 0;
+            } elseif (!isset($validated['causale']) && $presenza->causale !== 'lavoro') {
+                $validated['ore_causale'] = $oreOrdinarieMax;
+                $validated['ore_ordinarie'] = 0;
+            }
+        }
 
         $presenza->update($validated);
 
@@ -202,11 +279,29 @@ class PresenzaController extends Controller
             'protocollo' => 'required|string|max:255',
         ]);
 
+        // Recupera il dipendente con gli orari settimanali
+        $dipendente = \App\Models\Dipendente::with(['contratto.regoleCalcolo', 'orariSettimanali'])->find($validated['dipendente_id']);
+        
+        if (!$dipendente) {
+            return response()->json(['error' => 'Dipendente non trovato'], 404);
+        }
+        
+        // BLOCCO: Per dipendenti part-time, serve la configurazione orari settimanali
+        if (!$dipendente->has_orari_settimanali_configurati && (float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            return response()->json([
+                'error' => 'Impossibile registrare malattia: il dipendente part-time non ha la configurazione orari settimanali completata'
+            ], 403);
+        }
+
         $inizio = Carbon::parse($validated['data_inizio']);
         $fine = Carbon::parse($validated['data_fine']);
         $righeCreate = [];
 
         for ($giorno = $inizio->copy(); $giorno->lte($fine); $giorno->addDay()) {
+            // Calcola le ore previste per questo giorno specifico
+            $giornoSettimana = $giorno->dayOfWeek;
+            $orePreviste = $dipendente->getOrePrevistePerGiorno($giornoSettimana);
+            
             $presenza = Presenza::updateOrCreate(
                 [
                     'dipendente_id' => $validated['dipendente_id'],
@@ -216,7 +311,8 @@ class PresenzaController extends Controller
                     'causale' => 'malattia',
                     'ore_ordinarie' => 0,
                     'ore_straordinarie' => 0,
-                    'ore_causale' => 8,
+                    'ore_supplementari' => 0,
+                    'ore_causale' => $orePreviste,
                     'modalita_lavoro' => null,
                     'protocollo_malattia' => $validated['protocollo'],
                     'data_inizio_malattia' => $validated['data_inizio'],

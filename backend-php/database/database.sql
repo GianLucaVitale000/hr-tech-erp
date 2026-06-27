@@ -57,11 +57,12 @@ DROP TABLE IF EXISTS `contratti`;
 CREATE TABLE `contratti` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `codice_cnel` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nome_contratto` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ore_settimanali_teoriche` decimal(5,2) NOT NULL DEFAULT '40.00',
-  `limite_straordinario_mensile` decimal(5,2) DEFAULT NULL,
-  `soglia_maggiorazione_1` decimal(5,2) DEFAULT NULL,
-  `soglia_maggiorazione_2` decimal(5,2) DEFAULT NULL,
+  `nome_contratto` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `partiDatorialiFirmatarie` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `partiSindacaliFirmatarie` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `data_decorrenza` date DEFAULT NULL,
+  `data_scadenza` date DEFAULT NULL,
+  `ultimo_accordo_vigente` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -280,6 +281,7 @@ CREATE TABLE `presenze` (
   `data` date NOT NULL,
   `ore_ordinarie` decimal(4,2) NOT NULL DEFAULT '0.00',
   `ore_straordinarie` decimal(4,2) NOT NULL DEFAULT '0.00',
+  `ore_supplementari` decimal(5,2) DEFAULT NULL,
   `ore_causale` decimal(4,2) NOT NULL DEFAULT '0.00',
   `causale` enum('lavoro','ferie','permesso_rol','malattia','maternita','infortunio','assemblea') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'lavoro',
   `modalita_lavoro` enum('in_sede','smart_working','trasferta') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -295,6 +297,47 @@ CREATE TABLE `presenze` (
   UNIQUE KEY `presenze_dipendente_id_data_unique` (`dipendente_id`,`data`),
   CONSTRAINT `presenze_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dipendente_orari_settimanali`
+--
+
+DROP TABLE IF EXISTS `dipendente_orari_settimanali`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dipendente_orari_settimanali` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `dipendente_id` bigint unsigned NOT NULL,
+  `giorno_settimana` tinyint NOT NULL COMMENT '0=Domenica, 1=Lunedì, 2=Martedì, 3=Mercoledì, 4=Giovedì, 5=Venerdì, 6=Sabato',
+  `ore_giornaliere_previste` decimal(5,2) NOT NULL COMMENT 'Ore lavorative previste per questo giorno secondo il contratto individuale',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `dip_orari_unique` (`dipendente_id`,`giorno_settimana`),
+  KEY `dipendente_orari_settimanali_dipendente_id_index` (`dipendente_id`),
+  CONSTRAINT `dipendente_orari_settimanali_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `regole_calcolo_contratto`
+--
+
+DROP TABLE IF EXISTS `regole_calcolo_contratto`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `regole_calcolo_contratto` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `contratto_id` bigint unsigned NOT NULL,
+  `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
+  `limite_straordinario_mensile` decimal(5,2) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `regole_calcolo_contratto_contratto_id_index` (`contratto_id`),
+  CONSTRAINT `regole_calcolo_contratto_contratto_id_foreign` FOREIGN KEY (`contratto_id`) REFERENCES `contratti` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -382,4 +425,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-26  9:37:22
+-- Dump completed on 2026-06-27 12:00:00

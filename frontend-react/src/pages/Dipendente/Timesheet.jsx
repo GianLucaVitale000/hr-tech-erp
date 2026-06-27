@@ -66,8 +66,7 @@ function RigaGiorno({
         <input
           type="number"
           min="0"
-          max="8"
-          step="1"
+          step="0.25"
           value={riga.ore_ordinarie}
           onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value })}
           style={{ width: '60px', padding: '0.25rem' }}
@@ -78,8 +77,20 @@ function RigaGiorno({
         <input
           type="number"
           min="0"
+          step="0.25"
+          value={riga.ore_supplementari}
+          onChange={(e) => onChange({ ...riga, ore_supplementari: e.target.value })}
+          style={{ width: '60px', padding: '0.25rem', backgroundColor: '#fef3c7' }}
+          title="Ore supplementari (oltre il limite ordinario)"
+        />
+      </td>
+
+      <td style={{ padding: '0.5rem' }}>
+        <input
+          type="number"
+          min="0"
           max="4"
-          step="1"
+          step="0.25"
           value={riga.ore_straordinarie}
           onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value })}
           style={{ width: '60px', padding: '0.25rem' }}
@@ -264,12 +275,14 @@ function Timesheet() {
   const [statoSalvataggio, setStatoSalvataggio] = useState({})
   const [loading, setLoading] = useState(true)
   const [messaggio, setMessaggio] = useState('')
+  const [errore, setErrore] = useState('')
   const [modaleMalattiaGiorno, setModaleMalattiaGiorno] = useState(null)
 
   const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
   const normalizzaRiga = (p = {}) => ({
   ore_ordinarie: p.ore_ordinarie || 0,
+  ore_supplementari: p.ore_supplementari || 0,
   ore_straordinarie: p.ore_straordinarie || 0,
   ore_causale: p.ore_causale || 0,
   causale: p.causale || 'lavoro',
@@ -320,25 +333,36 @@ useEffect(() => {
 
   const handleSalva = async (dataStr) => {
     setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: 'salvando' }))
+    setErrore('')
 
-    const riga = getRiga(dataStr)
-    const payload = {
-      dipendente_id: dipendente.id,
-      data: dataStr,
-      ore_ordinarie: parseInt(riga.ore_ordinarie) || 0,
-      ore_straordinarie: parseInt(riga.ore_straordinarie) || 0,
-      ore_causale: parseInt(riga.ore_causale) || 0,
-      causale: riga.causale,
-      modalita_lavoro: riga.modalita_lavoro,
-    }
+    try {
+      const riga = getRiga(dataStr)
+      const payload = {
+        dipendente_id: dipendente.id,
+        data: dataStr,
+        ore_ordinarie: parseInt(riga.ore_ordinarie) || 0,
+        ore_supplementari: parseInt(riga.ore_supplementari) || 0,
+        ore_straordinarie: parseInt(riga.ore_straordinarie) || 0,
+        ore_causale: parseInt(riga.ore_causale) || 0,
+        causale: riga.causale,
+        modalita_lavoro: riga.modalita_lavoro,
+      }
 
-    const res = await salvaPresenza(payload)
-    setRighe((prev) => ({ ...prev, [dataStr]: normalizzaRiga(res.data) }))
+      const res = await salvaPresenza(payload)
+      setRighe((prev) => ({ ...prev, [dataStr]: normalizzaRiga(res.data) }))
 
-    setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: 'salvato' }))
-    setTimeout(() => {
+      setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: 'salvato' }))
+      setTimeout(() => {
+        setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: null }))
+      }, 1500)
+    } catch (error) {
       setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: null }))
-    }, 1500)
+      const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error ||
+                           'Errore nel salvataggio. Verifica i dati inseriti.'
+      setErrore(errorMessage)
+      setTimeout(() => setErrore(''), 5000)
+    }
   }
 
   const handleApriModaleMalattia = (giorno) => {
@@ -389,6 +413,9 @@ useEffect(() => {
 
   const totaleOrdinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_ordinarie) || 0), 0
+  )
+  const totaleSupplementari = Object.values(righe).reduce(
+    (acc, r) => acc + (parseInt(r.ore_supplementari) || 0), 0
   )
   const totaleStraordinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_straordinarie) || 0), 0
@@ -458,17 +485,22 @@ useEffect(() => {
           <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
         </div>
         <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
+          <strong>Ore Supplementari:</strong> {totaleSupplementari}
+        </div>
+        <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
           <strong>Straordinari:</strong> {totaleStraordinarie}
         </div>
       </div>
 
       {messaggio && <p style={{ color: 'green' }}>{messaggio}</p>}
+      {errore && <p style={{ color: 'red' }}>{errore}</p>}
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
             <th style={{ padding: '0.5rem' }}>Giorno</th>
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
+            <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>
             <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>
             <th style={{ padding: '0.5rem' }}>Causale</th>
             <th style={{ padding: '0.5rem' }}>Altro</th>

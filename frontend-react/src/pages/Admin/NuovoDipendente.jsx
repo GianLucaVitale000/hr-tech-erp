@@ -6,6 +6,7 @@ function NuovoDipendente() {
   const [contratti, setContratti] = useState([])
   const [users, setUsers] = useState([])
   const [selectedUserEmail, setSelectedUserEmail] = useState('')
+  const [contrattiFilter, setContrattiFilter] = useState('')
   const [form, setForm] = useState({
     user_id: '',
     contratto_id: '',
@@ -45,8 +46,15 @@ function NuovoDipendente() {
     setError('')
 
     try {
-      await createDipendente(form)
-      navigate('/admin/dipendenti')
+      const response = await createDipendente(form)
+      const newDipendenteId = response.data.id
+      
+      // Se è part-time, reindirizza direttamente alla modifica per configurare gli orari
+      if ((form.percentuale_part_time ?? 100) < 100) {
+        navigate(`/admin/dipendenti/${newDipendenteId}/edit`)
+      } else {
+        navigate('/admin/dipendenti')
+      }
     } catch {
       setError('Errore durante il salvataggio. Controlla i dati inseriti.')
     }
@@ -155,18 +163,44 @@ function NuovoDipendente() {
 
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-            Contratto
+            CCNL applicato
           </label>
+          <input
+            type="text"
+            placeholder="Cerca per codice CNEL o nome (es: C011, Metalmeccanica...)"
+            value={contrattiFilter}
+            onChange={(e) => setContrattiFilter(e.target.value)}
+            style={{ 
+              display: 'block', 
+              width: '100%', 
+              padding: '0.5rem', 
+              border: '1px solid #d1d5db', 
+              borderRadius: '4px',
+              marginBottom: '0.5rem'
+            }}
+          />
           <select
             name="contratto_id"
             value={form.contratto_id}
             onChange={handleChange}
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            size={Math.min(10, contratti.filter(c => 
+              c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
+              c.codice_cnel?.toLowerCase().includes(contrattiFilter.toLowerCase())
+            ).length + 1)}
           >
             <option value="">-- Seleziona contratto --</option>
-            {contratti.map((c) => (
-              <option key={c.id} value={c.id}>{c.nome_contratto}</option>
-            ))}
+            {contratti
+              .filter(c => 
+                contrattiFilter === '' ||
+                c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
+                (c.codice_cnel && c.codice_cnel.toLowerCase().includes(contrattiFilter.toLowerCase()))
+              )
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  [{c.codice_cnel || 'N/D'}] {c.nome_contratto}
+                </option>
+              ))}
           </select>
         </div>
 

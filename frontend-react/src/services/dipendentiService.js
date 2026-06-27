@@ -16,8 +16,15 @@ export const deleteDipendente = (id) => api.delete(`/dipendenti/${id}`)
 export const getMioProfilo = () => api.get('/dipendenti/me')
 
 // === CONTRATTI ===
-export const getContratti = () => api.get('/contratti')
+export const getContratti = () => api.get('/contratti', { params: { all: true } })
 export const getContratto = (id) => api.get(`/contratti/${id}`)
 export const createContratto = (data) => api.post('/contratti', data)
 export const updateContratto = (id, data) => api.put(`/contratti/${id}`, data)
 export const deleteContratto = (id) => api.delete(`/contratti/${id}`)
+
+// === REGOLE DI CALCOLO ===
+export const getRegoleCalcolo = () => api.get('/regole-calcolo')
+export const getRegolaCalcolo = (id) => api.get(`/regole-calcolo/${id}`)
+export const createRegolaCalcolo = (data) => api.post('/regole-calcolo', data)
+export const updateRegolaCalcolo = (id, data) => api.put(`/regole-calcolo/${id}`, data)
+export const deleteRegolaCalcolo = (id) => api.delete(`/regole-calcolo/${id}`)

@@ -5,6 +5,7 @@ import { getUser, updateUser, getContratti } from '../../services/dipendentiServ
 function EditUtente() {
   const { id } = useParams()
   const [contratti, setContratti] = useState([])
+  const [contrattiFilter, setContrattiFilter] = useState('')
   const [form, setForm] = useState({
     name: '',
     email: '',
