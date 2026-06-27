@@ -174,16 +174,27 @@ function EditDipendente() {
         
         // Inizializza gli orari settimanali con i dati esistenti
         if (d.orari_settimanali && d.orari_settimanali.length > 0) {
-          const orariMap = new Map(d.orari_settimanali.map(o => [o.giorno_settimana, parseFloat(o.ore_giornaliere_previste) || 0]))
+          // Crea una mappa per giorno con tutti i dati
+          const orariMap = new Map()
+          d.orari_settimanali.forEach(o => {
+            orariMap.set(o.giorno_settimana, o)
+          })
+          
           setOrariSettimanali(
             GIORNI_SETTIMANA.map(g => {
-              const totale = orariMap.get(g.id) || 0
-              // Per default, distribuisci su un solo turno (turno1)
+              const orario = orariMap.get(g.id) || {}
+              const totale = parseFloat(orario.ore_giornaliere_previste) || 0
               return {
                 giorno_settimana: g.id,
                 name: g.name,
-                turno1: { dalle: '', alle: totale > 0 ? formatTempo(totale) : '' },
-                turno2: { dalle: '', alle: '' },
+                turno1: {
+                  dalle: orario.turno1_dalle || '',
+                  alle: orario.turno1_alle || ''
+                },
+                turno2: {
+                  dalle: orario.turno2_dalle || '',
+                  alle: orario.turno2_alle || ''
+                },
                 totaleGiorno: totale
               }
             })
@@ -245,10 +256,14 @@ function EditDipendente() {
     setOrariError('')
     
     try {
-      // Prepara i dati per l'API (solo totale per giorno)
+      // Prepara i dati per l'API (inclusi i turni)
       const orariDaSalvare = orariSettimanali.map(g => ({
         giorno_settimana: g.giorno_settimana,
-        ore_giornaliere_previste: g.totaleGiorno
+        ore_giornaliere_previste: g.totaleGiorno,
+        turno1_dalle: g.turno1.dalle || null,
+        turno1_alle: g.turno1.alle || null,
+        turno2_dalle: g.turno2.dalle || null,
+        turno2_alle: g.turno2.alle || null
       }))
       
       console.log('Salvataggio orari:', orariDaSalvare, 'per dipendente:', id)

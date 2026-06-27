@@ -12,11 +12,19 @@ class DipendenteOrarioSettimanale extends Model
         'dipendente_id',
         'giorno_settimana',
         'ore_giornaliere_previste',
+        'turno1_dalle',
+        'turno1_alle',
+        'turno2_dalle',
+        'turno2_alle',
     ];
 
     protected $casts = [
         'ore_giornaliere_previste' => 'decimal:2',
         'giorno_settimana' => 'integer',
+        'turno1_dalle' => 'datetime:H:i',
+        'turno1_alle' => 'datetime:H:i',
+        'turno2_dalle' => 'datetime:H:i',
+        'turno2_alle' => 'datetime:H:i',
     ];
 
     public function dipendente()

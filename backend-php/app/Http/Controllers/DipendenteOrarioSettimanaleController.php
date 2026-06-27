@@ -19,11 +19,22 @@ class DipendenteOrarioSettimanaleController extends Controller
         
         $orari = $dipendente->orariSettimanali
             ->sortBy('giorno_settimana')
-            ->values();
+            ->values()
+            ->map(function($orario) {
+                return [
+                    'id' => $orario->id,
+                    'giorno_settimana' => $orario->giorno_settimana,
+                    'ore_giornaliere_previste' => $orario->ore_giornaliere_previste,
+                    'turno1_dalle' => $orario->turno1_dalle ? $orario->turno1_dalle->format('H:i') : null,
+                    'turno1_alle' => $orario->turno1_alle ? $orario->turno1_alle->format('H:i') : null,
+                    'turno2_dalle' => $orario->turno2_dalle ? $orario->turno2_dalle->format('H:i') : null,
+                    'turno2_alle' => $orario->turno2_alle ? $orario->turno2_alle->format('H:i') : null,
+                ];
+            });
         
         // Calcola le ore settimanali totali previste per il part-time
         $oreSettimanaliPartTime = $dipendente->ore_settimanali_part_time;
-        $oreConfigurate = $orari->sum('ore_giornaliere_previste');
+        $oreConfigurate = array_sum(array_column($orari->toArray(), 'ore_giornaliere_previste'));
         
         // Se il dipendente è part-time ma non ha una regola valida, restituisci ore_settimanali_part_time come 0
         // e un messaggio di errore nel frontend
@@ -72,6 +83,10 @@ class DipendenteOrarioSettimanaleController extends Controller
             'orari' => 'required|array',
             'orari.*.giorno_settimana' => 'required|integer|min:0|max:6',
             'orari.*.ore_giornaliere_previste' => 'required|numeric|min:0|max:24',
+            'orari.*.turno1_dalle' => 'nullable|date_format:H:i',
+            'orari.*.turno1_alle' => 'nullable|date_format:H:i',
+            'orari.*.turno2_dalle' => 'nullable|date_format:H:i',
+            'orari.*.turno2_alle' => 'nullable|date_format:H:i',
         ]);
 
         $oreSettimanaliPartTime = $dipendente->ore_settimanali_part_time;
@@ -102,6 +117,11 @@ class DipendenteOrarioSettimanaleController extends Controller
                     ],
                     [
                         'ore_giornaliere_previste' => $orarioData['ore_giornaliere_previste'],
+                        // Salva anche i turni se presenti
+                        'turno1_dalle' => $orarioData['turno1_dalle'] ?? null,
+                        'turno1_alle' => $orarioData['turno1_alle'] ?? null,
+                        'turno2_dalle' => $orarioData['turno2_dalle'] ?? null,
+                        'turno2_alle' => $orarioData['turno2_alle'] ?? null,
                     ]
                 );
             }
