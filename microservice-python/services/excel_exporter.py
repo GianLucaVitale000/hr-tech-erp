@@ -31,8 +31,10 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             d.id AS dipendente_id,
             u.name AS nome_dipendente,
             d.codice_fiscale,
+            d.percentuale_part_time,
             DATE_FORMAT(p.data, '%d/%m/%Y') AS data,
             p.ore_ordinarie,
+            p.ore_supplementari,
             p.ore_straordinarie,
             p.ore_causale,
             p.causale,
@@ -57,7 +59,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
     colonne_dettaglio = [
         'Dipendente', 'Codice Fiscale', 'Data', 'Ore Ordinarie',
-        'Ore Straordinarie', 'Causale', 'Codice Paga', 'Modalità Lavoro',
+        'Ore Supplementari', 'Ore Straordinarie', 'Causale', 'Codice Paga', 'Modalità Lavoro',
         'Giustificativo Trasferta', 'Protocollo Malattia',
         'Giustificativo Infortunio'
     ]
@@ -66,7 +68,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
         df_dettaglio = pd.DataFrame(columns=colonne_dettaglio)
         df_riepilogo = pd.DataFrame(columns=[
             'Dipendente', 'Codice Fiscale', 'Periodo', 'Totale Ore Ordinarie',
-            'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
+            'Totale Ore Supplementari', 'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
             'Totale Malattia'
         ])
     else:
@@ -89,7 +91,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
         df_dettaglio = df[[
             'nome_dipendente', 'codice_fiscale', 'data',
-            'ore_ordinarie', 'ore_straordinarie', 'causale', 'codice_paga',
+            'ore_ordinarie', 'ore_supplementari', 'ore_straordinarie', 'causale', 'codice_paga',
             'modalita_label', 'link_trasferta', 'protocollo_malattia',
             'link_infortunio'
         ]].copy()
@@ -102,12 +104,16 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
         periodo = f"{mesi_italiani[mese]} {anno}"
 
         riepilogo = []
-        for (nome, cf), gruppo in df.groupby(['nome_dipendente', 'codice_fiscale']):
+        for (nome, cf, pt), gruppo in df.groupby(['nome_dipendente', 'codice_fiscale', 'percentuale_part_time']):
+            # Calcola totale ore supplementari solo per part-time
+            totale_supplementari = gruppo['ore_supplementari'].astype(float).sum() if float(pt) < 100 else 0
+            
             riepilogo.append({
                 'Dipendente': nome,
                 'Codice Fiscale': cf,
                 'Periodo': periodo,
                 'Totale Ore Ordinarie': gruppo['ore_ordinarie'].astype(float).sum(),
+                'Totale Ore Supplementari': totale_supplementari,
                 'Totale Ore Straordinarie': gruppo['ore_straordinarie'].astype(float).sum(),
                 'Totale Ferie': gruppo[gruppo['causale'] == 'ferie']['ore_causale'].astype(float).sum(),
                 'Totale Permessi': gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale'].astype(float).sum(),
