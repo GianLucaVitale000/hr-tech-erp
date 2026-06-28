@@ -55,6 +55,8 @@ function EditDipendente() {
   const [orariConfigurati, setOrariConfigurati] = useState(false)
   const [savingOrari, setSavingOrari] = useState(false)
   const [orariError, setOrariError] = useState('')
+  const [oreSettimanaliFullTime, setOreSettimanaliFullTime] = useState(40)
+  const [oreSettimanaliPartTimeCalcolato, setOreSettimanaliPartTimeCalcolato] = useState(0)
   
   // Stato per gli orari settimanali con due turni per ogni giorno
   const [orariSettimanali, setOrariSettimanali] = useState(
@@ -72,10 +74,8 @@ function EditDipendente() {
   // Calcola il totale settimanale
   const totaleSettimanale = orariSettimanali.reduce((sum, giorno) => sum + (giorno.totaleGiorno || 0), 0)
   
-  // Calcola ore settimanali part-time dal backend
-  const oreSettimanaliPartTime = dipendente 
-    ? (dipendente.ore_settimanali_part_time || 0) 
-    : 0
+  // Usa il valore calcolato in tempo reale in base a contratto e percentuale
+  const oreSettimanaliPartTime = oreSettimanaliPartTimeCalcolato
 
   useEffect(() => {
     Promise.all([
@@ -161,6 +161,13 @@ function EditDipendente() {
         // Controlla se gli orari settimanali sono configurati (almeno un giorno con ore > 0)
         setOrariConfigurati(d.has_orari_settimanali_configurati || (d.orari_settimanali && d.orari_settimanali.some(o => (o.ore_giornaliere_previste || 0) > 0)))
         
+        // Inizializza ore full-time e part-time dal contratto del dipendente
+        const oreFullTimeIniziali = d.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40
+        const percentualeIniziale = d.percentuale_part_time || 100
+        const orePartTimeIniziali = Math.round(oreFullTimeIniziali * percentualeIniziale / 100 * 100) / 100
+        setOreSettimanaliFullTime(oreFullTimeIniziali)
+        setOreSettimanaliPartTimeCalcolato(orePartTimeIniziali)
+        
         // Inizializza gli orari settimanali con i dati esistenti
         if (d.orari_settimanali && d.orari_settimanali.length > 0) {
           // Crea una mappa per giorno con tutti i dati
@@ -206,6 +213,17 @@ function EditDipendente() {
       })
       .finally(() => setLoading(false))
   }, [id, navigate])
+
+  // Calcola ore settimanali full-time e part-time in base al contratto selezionato
+  useEffect(() => {
+    const contrattoSelezionato = contratti.find(c => String(c.id) === String(form.contratto_id))
+    const oreFullTime = contrattoSelezionato?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40
+    const percentuale = form.percentuale_part_time || 100
+    const orePartTime = Math.round(oreFullTime * percentuale / 100 * 100) / 100
+    
+    setOreSettimanaliFullTime(oreFullTime)
+    setOreSettimanaliPartTimeCalcolato(orePartTime)
+  }, [form.contratto_id, form.percentuale_part_time, contratti])
 
   // Aggiorna il totale del giorno quando cambiano i turni
   const handleTurnoChange = (giornoIndex, turno, campo, valore) => {
@@ -556,10 +574,10 @@ function EditDipendente() {
                 <strong>Dati Contrattuali:</strong>
               </p>
               <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
-                Ore settimanali (full-time): {dipendente?.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40} h
+                Ore settimanali (full-time): {oreSettimanaliFullTime} h
               </p>
               <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
-                % Part-Time: {dipendente?.percentuale_part_time || form.percentuale_part_time || 100}%
+                % Part-Time: {form.percentuale_part_time || 100}%
               </p>
               <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
                 Ore settimanali part-time: <strong>{oreSettimanaliPartTime} h</strong>
