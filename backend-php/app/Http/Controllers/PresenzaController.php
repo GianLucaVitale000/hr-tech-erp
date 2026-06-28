@@ -77,20 +77,16 @@ class PresenzaController extends Controller
                 $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
                 $validated['ore_ordinarie'] = $oreOrdinarieMax;
             }
-            
-            // Per causali diverse da lavoro (ferie, malattia, etc.), 
-            // le ore_causale devono essere uguali alle ore previste per quel giorno
-            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
-                // Imposta automaticamente ore_causale alle ore previste per quel giorno
-                $validated['ore_causale'] = $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = 0;
-                $validated['ore_supplementari'] = 0;
-            }
-        } else {
-            // Per full-time, gestione classica
-            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
-                $validated['ore_causale'] = $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = 0;
+        }
+        
+        // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
+        // (per causali diverse da lavoro come assemblea, ferie, permesso, ecc.)
+        if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
+            $totaleOre = (float)($validated['ore_ordinarie'] ?? 0) + (float)($validated['ore_causale'] ?? 0);
+            if ($totaleOre > $oreOrdinarieMax) {
+                return response()->json([
+                    'error' => 'La somma tra ore ordinarie e ore di causale supera il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore)'
+                ], 422);
             }
         }
 
@@ -153,24 +149,18 @@ class PresenzaController extends Controller
                 $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
                 $validated['ore_ordinarie'] = $oreOrdinarieMax;
             }
-            
-            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
-                $validated['ore_causale'] = $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = 0;
-                $validated['ore_supplementari'] = 0;
-            } elseif (!isset($validated['causale']) && $presenza->causale !== 'lavoro') {
-                // Se la causale non cambia ma è già una causale non-lavoro
-                $validated['ore_causale'] = $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = 0;
-                $validated['ore_supplementari'] = 0;
-            }
-        } else {
-            if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
-                $validated['ore_causale'] = $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = 0;
-            } elseif (!isset($validated['causale']) && $presenza->causale !== 'lavoro') {
-                $validated['ore_causale'] = $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = 0;
+        }
+        
+        // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
+        // (per causali diverse da lavoro come assemblea, ferie, permesso, ecc.)
+        $causaleCorrente = isset($validated['causale']) ? $validated['causale'] : $presenza->causale;
+        if ($causaleCorrente !== 'lavoro') {
+            $totaleOre = (float)($validated['ore_ordinarie'] ?? $presenza->ore_ordinarie ?? 0) + 
+                        (float)($validated['ore_causale'] ?? $presenza->ore_causale ?? 0);
+            if ($totaleOre > $oreOrdinarieMax) {
+                return response()->json([
+                    'error' => 'La somma tra ore ordinarie e ore di causale supera il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore)'
+                ], 422);
             }
         }
 
