@@ -300,11 +300,6 @@ function EditDipendente() {
       setSelectedUserEmail(selectedUser ? selectedUser.email : '')
     }
     
-    // Debug per contratto
-    if (name === 'contratto_id') {
-      console.log('Contratto selezionato:', value, 'Tipo:', typeof value)
-    }
-    
     setForm(prev => {
       const newForm = { ...prev, [name]: value }
       if (name === 'contratto_id') {
