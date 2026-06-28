@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getContratti, getRegoleCalcolo, createRegolaCalcolo, updateRegolaCalcolo } from '../../services/dipendentiService'
+import { getContrattiAllVersions, getRegoleCalcolo, createRegolaCalcolo, updateRegolaCalcolo } from '../../services/dipendentiService'
 
 function Contratti() {
   const [contratti, setContratti] = useState([])
@@ -15,12 +15,100 @@ function Contratti() {
   const [modalLoading, setModalLoading] = useState(false)
   const [regoleMap, setRegoleMap] = useState({})
   const [searchTerm, setSearchTerm] = useState('')
+  const [onlyMainUnions, setOnlyMainUnions] = useState(false)
+  const [expandedCodes, setExpandedCodes] = useState({}) // { codice_cnel: true/false }
   const navigate = useNavigate()
+
+  // Funzione per determinare il record principale di un gruppo
+  const getMainContratto = (gruppo) => {
+    const ordinati = [...gruppo].sort((a, b) => {
+      if (!a.data_decorrenza && !b.data_decorrenza) return 0;
+      if (!a.data_decorrenza) return 1;
+      if (!b.data_decorrenza) return -1;
+      return new Date(b.data_decorrenza) - new Date(a.data_decorrenza);
+    });
+    
+    // Cerca il primo con Confcommercio + almeno una di CGIL/CISL/UIL
+    const conSindacatiPrincipali = ordinati.find(c => {
+      const datoriali = c.partiDatorialiFirmatarie || [];
+      const sindacati = c.partiSindacaliFirmatarie || [];
+      
+      const datorialiStr = typeof datoriali === 'string' ? datoriali : JSON.stringify(datoriali);
+      const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
+      
+      const haConfcommercio = datorialiStr.toUpperCase().includes('CONFCOMMERCIO');
+      const haSindacatoPrincipale = sindacatiStr.toLowerCase().includes('cgil') ||
+                                        sindacatiStr.toLowerCase().includes('cisl') ||
+                                        sindacatiStr.toLowerCase().includes('uil');
+      
+      return haConfcommercio && haSindacatoPrincipale;
+    });
+    
+    return conSindacatiPrincipali || ordinati[0];
+  };
+
+  const toggleExpand = (codice) => {
+    setExpandedCodes(prev => ({
+      ...prev,
+      [codice]: !prev[codice]
+    }));
+  };
+
+  // Funzione helper per formattare parti firmatarie
+  const formatFirmatari = (firmatari) => {
+    if (!firmatari) return '-';
+    if (typeof firmatari === 'string') {
+      if (firmatari.startsWith('[')) {
+        try {
+          return JSON.parse(firmatari).join(', ');
+        } catch {
+          return firmatari;
+        }
+      }
+      return firmatari;
+    }
+    if (Array.isArray(firmatari)) {
+      return firmatari.join(', ');
+    }
+    return '-';
+  };
+
+  // Funzione helper per ottenere il colore della tipologia
+  const getTipologiaColor = (tipologia) => {
+    const colors = {
+      'Accordo di rinnovo': '#3b82f6',
+      'Verbale Integrativo': '#10b981',
+      'Testo definitivo': '#8b5cf6',
+      'Accordo economico': '#f59e0b',
+      'Economico secondo biennio': '#ef4444'
+    };
+    return colors[tipologia] || '#6b7280';
+  };
+
+  // Funzione helper per formattare la data in gg/mm/aaaa
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      // Gestisce sia formato YYYY-MM-DD che ISO completo (YYYY-MM-DDTHH:MM:SS...)
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        // Fallback per formato YYYY-MM-DD non valido come data
+        const [year, month, day] = dateString.split('-');
+        return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+      }
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return dateString;
+    }
+  };
 
   const fetchContratti = () => {
     setLoading(true)
     Promise.all([
-      getContratti(),
+      getContrattiAllVersions(),
       getRegoleCalcolo()
     ]).then(([contrattiRes, regoleRes]) => {
       setContratti(contrattiRes.data)
@@ -112,21 +200,44 @@ function Contratti() {
         >
           ← Dashboard
         </button>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <h1 style={{ margin: 0 }}>Gestione CCNL</h1>
-          <input
-            type="text"
-            placeholder="Cerca per codice o nome..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              padding: '0.5rem 1rem',
-              border: '1px solid #d1d5db',
-              borderRadius: '4px',
-              fontSize: '0.875rem',
-              width: '300px'
-            }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <input
+              type="text"
+              placeholder="Cerca per codice o nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                padding: '0.5rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '0.875rem',
+                width: '300px'
+              }}
+            />
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={onlyMainUnions}
+                onChange={(e) => setOnlyMainUnions(e.target.checked)}
+                style={{ cursor: 'pointer' }}
+              />
+              Solo CGIL, CISL, UIL
+            </label>
+          </div>
+        </div>
+        
+        {/* Legenda tipologie contrattuali */}
+        <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+          <strong style={{ fontSize: '0.875rem', color: '#4b5563' }}>Legenda tipologie:</strong>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <span style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Accordo di rinnovo</span>
+            <span style={{ backgroundColor: '#10b981', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Verbale Integrativo</span>
+            <span style={{ backgroundColor: '#8b5cf6', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Testo definitivo</span>
+            <span style={{ backgroundColor: '#f59e0b', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Accordo economico</span>
+            <span style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Economico secondo biennio</span>
+          </div>
         </div>
       </div>
 
@@ -143,69 +254,201 @@ function Contratti() {
               <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Nome Contratto</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Codice CNEL</th>
+                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Tipologia</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Datoriale</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Sindacale</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Ore Settimanali</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Limite Straord. Mensile</th>
+                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Data Decorrenza</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Azioni</th>
               </tr>
             </thead>
             <tbody>
-              {contratti
-                .filter(c => 
-                  c.nome_contratto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  (c.codice_cnel || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  JSON.stringify(c.partiDatorialiFirmatarie || []).toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  JSON.stringify(c.partiSindacaliFirmatarie || []).toLowerCase().includes(searchTerm.toLowerCase())
-                )
-                .map((c) => {
-                  const regola = regoleMap[c.id]
+              {Object.entries(
+                contratti
+                  // Raggruppa per codice CNEL
+                  .reduce((acc, c) => {
+                    if (!acc[c.codice_cnel]) acc[c.codice_cnel] = [];
+                    acc[c.codice_cnel].push(c);
+                    return acc;
+                  }, {})
+              )
+                // Filtra i gruppi
+                .filter(([, gruppo]) => {
+                  // Filtro sindacati maggiori (se flag attivo)
+                  if (onlyMainUnions) {
+                    const haSindacatoPrincipale = gruppo.some(c => {
+                      const sindacati = c.partiSindacaliFirmatarie || [];
+                      const sindacatiStr = typeof sindacati === 'string' 
+                        ? sindacati 
+                        : JSON.stringify(sindacati);
+                      return sindacatiStr.toLowerCase().includes('cgil') ||
+                             sindacatiStr.toLowerCase().includes('cisl') ||
+                             sindacatiStr.toLowerCase().includes('uil');
+                    });
+                    if (!haSindacatoPrincipale) return false;
+                  }
+                  
+                  // Filtro di ricerca: almeno un contratto nel gruppo deve matchare
+                  if (searchTerm) {
+                    const matchesSearch = gruppo.some(c =>
+                      c.nome_contratto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      (c.codice_cnel || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      JSON.stringify(c.partiDatorialiFirmatarie || []).toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      JSON.stringify(c.partiSindacaliFirmatarie || []).toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                    if (!matchesSearch) return false;
+                  }
+                  
+                  return true;
+                })
+                .map(([codice, gruppo]) => {
+                  const main = getMainContratto(gruppo);
+                  const isExpanded = expandedCodes[codice] || false;
+                  const mainRegola = regoleMap[main.id];
+                  
                   return (
-                    <tr key={c.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}><strong>{c.nome_contratto}</strong></td>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                        {c.partiDatorialiFirmatarie ? 
-                          (typeof c.partiDatorialiFirmatarie === 'string' 
-                            ? (c.partiDatorialiFirmatarie.startsWith('[') 
-                              ? JSON.parse(c.partiDatorialiFirmatarie).join(', ') 
-                              : c.partiDatorialiFirmatarie)
-                            : Array.isArray(c.partiDatorialiFirmatarie) 
-                              ? c.partiDatorialiFirmatarie.join(', ') 
-                              : c.partiDatorialiFirmatarie) 
-                          : '-'}
-                      </td>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                        {c.partiSindacaliFirmatarie ? 
-                          (typeof c.partiSindacaliFirmatarie === 'string' 
-                            ? (c.partiSindacaliFirmatarie.startsWith('[') 
-                              ? JSON.parse(c.partiSindacaliFirmatarie).join(', ') 
-                              : c.partiSindacaliFirmatarie)
-                            : Array.isArray(c.partiSindacaliFirmatarie) 
-                              ? c.partiSindacaliFirmatarie.join(', ') 
-                              : c.partiSindacaliFirmatarie) 
-                          : '-'}
-                      </td>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche) === 0 ? '-' : (regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche ?? '-')}</td>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(regola?.limite_straordinario_mensile ?? c.limite_straordinario_mensile) === 0 ? '-' : (regola?.limite_straordinario_mensile ?? c.limite_straordinario_mensile ?? '-')}</td>
-                      <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                        <button
-                          onClick={() => openRegoleModal(c)}
-                          style={{
-                            padding: '0.15rem 0.3rem',
-                            backgroundColor: '#2563eb',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.65rem'
-                          }}
-                        >
-                          Regole
-                        </button>
-                      </td>
-                    </tr>
-                  )
+                    <Fragment key={codice}>
+                      {/* Riga principale */}
+                      <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}><strong>{main.nome_contratto}</strong></td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{codice || '-'}</td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
+                          {main.tipologia_contratto && (
+                            <span style={{
+                              display: 'inline-block',
+                              width: '12px',
+                              height: '12px',
+                              borderRadius: '50%',
+                              backgroundColor: getTipologiaColor(main.tipologia_contratto),
+                              cursor: 'help'
+                            }} title={main.tipologia_contratto} />
+                          )}
+                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                          {formatFirmatari(main.partiDatorialiFirmatarie)}
+                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                          {formatFirmatari(main.partiSindacaliFirmatarie)}
+                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                          {Number(mainRegola?.ore_settimanali_teoriche ?? main.ore_settimanali_teoriche) === 0 ? '-' : (mainRegola?.ore_settimanali_teoriche ?? main.ore_settimanali_teoriche ?? '-')}
+                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                          {Number(mainRegola?.limite_straordinario_mensile ?? main.limite_straordinario_mensile) === 0 ? '-' : (mainRegola?.limite_straordinario_mensile ?? main.limite_straordinario_mensile ?? '-')}
+                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                          {main.data_decorrenza && (
+                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                              {formatDate(main.data_decorrenza)}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <button
+                              onClick={() => toggleExpand(codice)}
+                              style={{
+                                padding: '0.15rem 0.3rem',
+                                backgroundColor: '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.65rem'
+                              }}
+                            >
+                              {isExpanded ? '▲' : '▼'}
+                            </button>
+                            <button
+                              onClick={() => openRegoleModal(main)}
+                              style={{
+                                padding: '0.15rem 0.3rem',
+                                backgroundColor: '#2563eb',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.65rem'
+                              }}
+                            >
+                              Regole
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      
+                      {/* Righe espanse */}
+                      {isExpanded && gruppo
+                        .filter(c => c.id !== main.id)
+                        .filter(c => {
+                          if (!onlyMainUnions) return true;
+                          const sindacati = c.partiSindacaliFirmatarie || [];
+                          const sindacatiStr = typeof sindacati === 'string' 
+                            ? sindacati 
+                            : JSON.stringify(sindacati);
+                          return sindacatiStr.toLowerCase().includes('cgil') ||
+                                 sindacatiStr.toLowerCase().includes('cisl') ||
+                                 sindacatiStr.toLowerCase().includes('uil');
+                        })
+                        .map((c) => {
+                        const regola = regoleMap[c.id];
+                        return (
+                          <tr key={c.id} style={{ backgroundColor: '#16171d', borderBottom: '1px solid #e5e7eb' }}>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem' }}>{c.nome_contratto}</td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
+                              {c.tipologia_contratto && (
+                                <span style={{
+                                  display: 'inline-block',
+                                  width: '12px',
+                                  height: '12px',
+                                  borderRadius: '50%',
+                                  backgroundColor: getTipologiaColor(c.tipologia_contratto),
+                                  cursor: 'help'
+                                }} title={c.tipologia_contratto} />
+                              )}
+                            </td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                              {formatFirmatari(c.partiDatorialiFirmatarie)}
+                            </td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                              {formatFirmatari(c.partiSindacaliFirmatarie)}
+                            </td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                              {Number(regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche) === 0 ? '-' : (regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche ?? '-')}
+                            </td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                              {Number(regola?.limite_straordinario_mensile ?? c.limite_straordinario_mensile) === 0 ? '-' : (regola?.limite_straordinario_mensile ?? c.limite_straordinario_mensile ?? '-')}
+                            </td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                              {c.data_decorrenza && (
+                                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                  {formatDate(c.data_decorrenza)}
+                                </span>
+                              )}
+                            </td>
+                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
+                              <button
+                                onClick={() => openRegoleModal(c)}
+                                style={{
+                                  padding: '0.15rem 0.3rem',
+                                  backgroundColor: '#2563eb',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.65rem'
+                                }}
+                              >
+                                Regole
+                              </button>
+                            </td>
+                          </tr>
+                      );
+                      })}
+                    </Fragment>
+                  );
                 })}
             </tbody>
           </table>

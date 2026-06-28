@@ -17,6 +17,7 @@ export const getMioProfilo = () => api.get('/dipendenti/me')
 
 // === CONTRATTI ===
 export const getContratti = () => api.get('/contratti', { params: { all: true } })
+export const getContrattiAllVersions = () => api.get('/contratti', { params: { all: true, grouped: false } })
 export const getContratto = (id) => api.get(`/contratti/${id}`)
 export const createContratto = (data) => api.post('/contratti', data)
 export const updateContratto = (id, data) => api.put(`/contratti/${id}`, data)

@@ -20,16 +20,65 @@ class ContrattoController extends Controller
         
         $contratti = $query->get();
         
-        // Rimuovi duplicati: per ogni codice_cnel, mantieni solo il piu recente
+        // Se grouped=false, restituisci tutti i contratti senza raggruppamento
+        if ($request->has('grouped') && $request->input('grouped') === 'false') {
+            return $this->formatContrattiWithRegole($contratti);
+        }
+
+        // Rimuovi duplicati: per ogni codice_cnel, mantieni solo il piu rappresentativo
         // I dati CNEL possono avere piu accordi per lo stesso CCNL
         $contrattiUnici = $contratti->groupBy('codice_cnel')->map(function ($gruppo) {
-            // Ordina per data_decorrenza (piu recente primo) e prendi il primo
-            return $gruppo->sortByDesc('data_decorrenza')->first();
+            // 1. Ordina per data decorrenza DESC
+            $ordinati = $gruppo->sortByDesc('data_decorrenza');
+            
+            // 3. Cerca il primo con Confcommercio + CGIL/CISL/UIL
+            $conSindacatiPrincipali = $ordinati->first(function($c) {
+                $datoriali = json_decode($c->partiDatorialiFirmatarie ?: '[]', true);
+                $sindacati = json_decode($c->partiSindacaliFirmatarie ?: '[]', true);
+                
+                // Controlla parte datoriale (Confcommercio)
+                $haConfcommercio = false;
+                if (is_array($datoriali)) {
+                    foreach ($datoriali as $d) {
+                        if (str_contains(strtoupper($d), 'CONFCOMMERCIO')) {
+                            $haConfcommercio = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Controlla parti sindacali (almeno una di CGIL, CISL, UIL)
+                $haSindacatoPrincipale = false;
+                if (is_array($sindacati)) {
+                    foreach ($sindacati as $s) {
+                        $sUpper = strtoupper($s);
+                        if (str_contains($sUpper, 'CGIL') || 
+                            str_contains($sUpper, 'CISL') || 
+                            str_contains($sUpper, 'UIL')) {
+                            $haSindacatoPrincipale = true;
+                            break;
+                        }
+                    }
+                }
+                
+                return $haConfcommercio && $haSindacatoPrincipale;
+            });
+            
+            // 4. Se trovato, usa quello. Altrimenti prendi il più recente
+            return $conSindacatiPrincipali ?: $ordinati->first();
         })->values();
         
         // Aggiungi i campi delle regole al contratto per retrocompatibilita con il frontend
         // Se un contratto ha regole, prendi la prima (tipicamente ce n'e' una per contratto)
-        return $contrattiUnici->map(function ($contratto) {
+        return $this->formatContrattiWithRegole($contrattiUnici);
+    }
+
+    /**
+     * Formatta i contratti aggiungendo i campi delle regole di calcolo
+     */
+    private function formatContrattiWithRegole($contratti)
+    {
+        return $contratti->map(function ($contratto) {
             if ($contratto->regoleCalcolo->isNotEmpty()) {
                 $regola = $contratto->regoleCalcolo->first();
                 $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
@@ -111,10 +160,47 @@ class ContrattoController extends Controller
             }])
             ->get();
         
-        // Rimuovi duplicati: per ogni codice_cnel, mantieni solo il piu recente
+        // Rimuovi duplicati: per ogni codice_cnel, mantieni solo il piu rappresentativo
         // I dati CNEL possono avere piu accordi per lo stesso CCNL
         $contrattiUnici = $contratti->groupBy('codice_cnel')->map(function ($gruppo) {
-            return $gruppo->sortByDesc('data_decorrenza')->first();
+            // 1. Ordina per data decorrenza DESC
+            $ordinati = $gruppo->sortByDesc('data_decorrenza');
+            
+            // 3. Cerca il primo con Confcommercio + CGIL/CISL/UIL
+            $conSindacatiPrincipali = $ordinati->first(function($c) {
+                $datoriali = json_decode($c->partiDatorialiFirmatarie ?: '[]', true);
+                $sindacati = json_decode($c->partiSindacaliFirmatarie ?: '[]', true);
+                
+                // Controlla parte datoriale (Confcommercio)
+                $haConfcommercio = false;
+                if (is_array($datoriali)) {
+                    foreach ($datoriali as $d) {
+                        if (str_contains(strtoupper($d), 'CONFCOMMERCIO')) {
+                            $haConfcommercio = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Controlla parti sindacali (almeno una di CGIL, CISL, UIL)
+                $haSindacatoPrincipale = false;
+                if (is_array($sindacati)) {
+                    foreach ($sindacati as $s) {
+                        $sUpper = strtoupper($s);
+                        if (str_contains($sUpper, 'CGIL') || 
+                            str_contains($sUpper, 'CISL') || 
+                            str_contains($sUpper, 'UIL')) {
+                            $haSindacatoPrincipale = true;
+                            break;
+                        }
+                    }
+                }
+                
+                return $haConfcommercio && $haSindacatoPrincipale;
+            });
+            
+            // 4. Se trovato, usa quello. Altrimenti prendi il più recente
+            return $conSindacatiPrincipali ?: $ordinati->first();
         })->values();
         
         return $contrattiUnici->map(function ($contratto) {

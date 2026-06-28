@@ -16,6 +16,7 @@ class Contratto extends Model
         'data_decorrenza',
         'data_scadenza',
         'ultimo_accordo_vigente',
+        'tipologia_contratto',
     ];
 
     protected $casts = [
