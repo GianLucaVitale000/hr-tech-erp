@@ -413,8 +413,8 @@ useEffect(() => {
 
   if (loading) return <p style={{ padding: '2rem' }}>Caricamento...</p>
 
-  // Determina se il dipendente è full-time
-  const isFullTime = dipendente?.percentuale_part_time === 100;
+  // Determina se il dipendente è full-time (gestisce sia numero che stringa)
+  const isFullTime = Number(dipendente?.percentuale_part_time) === 100;
 
   const totaleOrdinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_ordinarie) || 0), 0
