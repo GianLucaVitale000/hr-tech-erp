@@ -41,7 +41,7 @@ function formattaData(dataIso) {
 
 function RigaGiorno({
   giorno, nomeGiorno, riga, onChange, onSalva, salvando, salvato,
-  onApriModaleMalattia, onUploadTrasferta, onUploadInfortunio
+  onApriModaleMalattia, onUploadTrasferta, onUploadInfortunio, isFullTime = false
 }) {
   const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale)
   const isMalattia = riga.causale === 'malattia'
@@ -73,17 +73,19 @@ function RigaGiorno({
         />
       </td>
 
-      <td style={{ padding: '0.5rem' }}>
-        <input
-          type="number"
-          min="0"
-          step="0.25"
-          value={riga.ore_supplementari}
-          onChange={(e) => onChange({ ...riga, ore_supplementari: e.target.value })}
-          style={{ width: '60px', padding: '0.25rem', backgroundColor: '#fef3c7' }}
-          title="Ore supplementari (oltre il limite ordinario)"
-        />
-      </td>
+      {!isFullTime && (
+        <td style={{ padding: '0.5rem' }}>
+          <input
+            type="number"
+            min="0"
+            step="0.25"
+            value={riga.ore_supplementari}
+            onChange={(e) => onChange({ ...riga, ore_supplementari: e.target.value })}
+            style={{ width: '60px', padding: '0.25rem' }}
+            title="Ore supplementari (oltre il limite ordinario)"
+          />
+        </td>
+      )}
 
       <td style={{ padding: '0.5rem' }}>
         <input
@@ -159,7 +161,7 @@ function RigaGiorno({
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'smart_working'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'smart_working' })}
-              /> Smart Working
+              /> SW
             </label>
             <label>
               <input
@@ -411,6 +413,9 @@ useEffect(() => {
 
   if (loading) return <p style={{ padding: '2rem' }}>Caricamento...</p>
 
+  // Determina se il dipendente è full-time
+  const isFullTime = dipendente?.percentuale_part_time === 100;
+
   const totaleOrdinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_ordinarie) || 0), 0
   )
@@ -419,6 +424,17 @@ useEffect(() => {
   )
   const totaleStraordinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_straordinarie) || 0), 0
+  )
+  
+  // Nuovi contatori
+  const totaleFeriePermessi = Object.values(righe).reduce(
+    (acc, r) => acc + (r.causale === 'ferie' || r.causale === 'permesso_rol' ? (parseInt(r.ore_causale) || 0) : 0), 0
+  )
+  const totaleOreINPS = Object.values(righe).reduce(
+    (acc, r) => acc + (r.causale === 'malattia' || r.causale === 'maternita' ? (parseInt(r.ore_causale) || 0) : 0), 0
+  )
+  const totaleOreINAIL = Object.values(righe).reduce(
+    (acc, r) => acc + (r.causale === 'infortunio' ? (parseInt(r.ore_causale) || 0) : 0), 0
   )
 
   const handleMeseCorrente = () => {
@@ -480,16 +496,46 @@ useEffect(() => {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#eff6ff', borderRadius: '6px', fontSize: '0.85rem' }}>
           <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
         </div>
-        <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-          <strong>Ore Supplementari:</strong> {totaleSupplementari}
-        </div>
-        <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
+        {!isFullTime && (
+          <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
+            <strong>Ore Supplementari:</strong> {totaleSupplementari}
+          </div>
+        )}
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
           <strong>Straordinari:</strong> {totaleStraordinarie}
         </div>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
+        </div>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fde68a', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <strong>Ore INPS:</strong> {totaleOreINPS}
+        </div>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fca5a5', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <strong>Ore INAIL:</strong> {totaleOreINAIL}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '1.5rem' }}>
+        <button
+          onClick={handleInvia}
+          style={{
+            padding: '0.75rem 1.5rem',
+            backgroundColor: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            display: 'block',
+            margin: '0 auto'
+          }}
+        >
+          Invia al Manager
+        </button>
       </div>
 
       {messaggio && <p style={{ color: 'green' }}>{messaggio}</p>}
@@ -497,10 +543,10 @@ useEffect(() => {
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
+          <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
             <th style={{ padding: '0.5rem' }}>Giorno</th>
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-            <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>
+            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>}
             <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>
             <th style={{ padding: '0.5rem' }}>Causale</th>
             <th style={{ padding: '0.5rem' }}>Altro</th>
@@ -527,26 +573,12 @@ useEffect(() => {
                 onApriModaleMalattia={handleApriModaleMalattia}
                 onUploadTrasferta={handleUploadTrasferta}
                 onUploadInfortunio={handleUploadInfortunio}
+                isFullTime={isFullTime}
               />
             )
           })}
         </tbody>
       </table>
-
-      <button
-        onClick={handleInvia}
-        style={{
-          marginTop: '1.5rem',
-          padding: '0.75rem 1.5rem',
-          backgroundColor: '#2563eb',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Invia al Manager
-      </button>
 
       {modaleMalattiaGiorno && (
         <ModaleMalattia
