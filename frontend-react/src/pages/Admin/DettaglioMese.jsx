@@ -40,6 +40,9 @@ function DettaglioMese() {
   if (loading) return <p style={{ padding: '2rem' }}>Caricamento...</p>
 
   const nomeDipendente = presenze[0]?.dipendente?.user?.name || ''
+  const percentualePartTime = presenze[0]?.dipendente?.percentuale_part_time || 0
+  const isFullTime = Number(percentualePartTime) === 100
+
   const totaleOrdinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_ordinarie || 0), 0)
   const totaleSupplementari = presenze.reduce((acc, p) => acc + parseFloat(p.ore_supplementari || 0), 0)
   const totaleStraordinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_straordinarie || 0), 0)
@@ -68,9 +71,11 @@ function DettaglioMese() {
         <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>
           <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
         </div>
-        <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-          <strong>Ore Supplementari:</strong> {totaleSupplementari}
-        </div>
+        {!isFullTime && (
+          <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
+            <strong>Ore Supplementari:</strong> {totaleSupplementari}
+          </div>
+        )}
         <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
           <strong>Straordinari:</strong> {totaleStraordinarie}
         </div>
@@ -84,7 +89,7 @@ function DettaglioMese() {
           <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
             <th style={{ padding: '0.5rem' }}>Data</th>
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-            <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>
+            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>}
             <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>
             <th style={{ padding: '0.5rem' }}>Causale</th>
             <th style={{ padding: '0.5rem' }}>Altro</th>
@@ -95,7 +100,7 @@ function DettaglioMese() {
             <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
               <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
               <td style={{ padding: '0.5rem' }}>{p.ore_ordinarie}</td>
-              <td style={{ padding: '0.5rem' }}>{p.ore_supplementari || 0}</td>
+              {!isFullTime && <td style={{ padding: '0.5rem' }}>{p.ore_supplementari || 0}</td>}
               <td style={{ padding: '0.5rem' }}>{p.ore_straordinarie}</td>
               <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
               <td style={{ padding: '0.5rem' }}>{p.ore_causale}</td>
