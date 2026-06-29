@@ -453,24 +453,24 @@ useEffect(() => {
   const isFullTime = Number(dipendente?.percentuale_part_time) === 100;
 
   const totaleOrdinarie = Object.values(righe).reduce(
-    (acc, r) => acc + (parseInt(r.ore_ordinarie) || 0), 0
+    (acc, r) => acc + (parseFloat(r.ore_ordinarie) || 0), 0
   )
   const totaleEccedenti = Object.values(righe).reduce(
-    (acc, r) => acc + (parseInt(r.ore_eccedenti) || 0), 0
+    (acc, r) => acc + (parseFloat(r.ore_eccedenti) || 0), 0
   )
   const totaleStraordinarie = Object.values(righe).reduce(
-    (acc, r) => acc + (parseInt(r.ore_straordinarie) || 0), 0
+    (acc, r) => acc + (parseFloat(r.ore_straordinarie) || 0), 0
   )
   
   // Nuovi contatori
   const totaleFeriePermessi = Object.values(righe).reduce(
-    (acc, r) => acc + (r.causale === 'ferie' || r.causale === 'permesso_rol' ? (parseInt(r.ore_causale) || 0) : 0), 0
+    (acc, r) => acc + (r.causale === 'ferie' || r.causale === 'permesso_rol' ? (parseFloat(r.ore_causale) || 0) : 0), 0
   )
   const totaleOreINPS = Object.values(righe).reduce(
-    (acc, r) => acc + (r.causale === 'malattia' || r.causale === 'maternita' ? (parseInt(r.ore_causale) || 0) : 0), 0
+    (acc, r) => acc + (r.causale === 'malattia' || r.causale === 'maternita' ? (parseFloat(r.ore_causale) || 0) : 0), 0
   )
   const totaleOreINAIL = Object.values(righe).reduce(
-    (acc, r) => acc + (r.causale === 'infortunio' ? (parseInt(r.ore_causale) || 0) : 0), 0
+    (acc, r) => acc + (r.causale === 'infortunio' ? (parseFloat(r.ore_causale) || 0) : 0), 0
   )
 
   const handleMeseCorrente = () => {
