@@ -91,12 +91,16 @@ function RigaGiorno({
         <input
           type="number"
           min="0"
-          max="4"
           step="0.25"
           value={riga.ore_straordinarie}
           onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value })}
           style={{ width: '60px', padding: '0.25rem' }}
         />
+        {riga.ore_straordinarie > 4 && (
+          <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.25rem' }}>
+            Attenzione: superato limite consigliato di straordinario giornaliero
+          </div>
+        )}
       </td>
 
       <td style={{ padding: '0.5rem' }}>
@@ -296,6 +300,7 @@ function Timesheet() {
   data_inizio_malattia: p.data_inizio_malattia || null,
   data_fine_malattia: p.data_fine_malattia || null,
   id: p.id || null,
+  warning: p.warning || null,
 })
 
 useEffect(() => {
