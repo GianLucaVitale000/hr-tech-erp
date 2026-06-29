@@ -281,7 +281,7 @@ CREATE TABLE `presenze` (
   `data` date NOT NULL,
   `ore_ordinarie` decimal(4,2) NOT NULL DEFAULT '0.00',
   `ore_straordinarie` decimal(4,2) NOT NULL DEFAULT '0.00',
-  `ore_supplementari` decimal(5,2) DEFAULT NULL,
+  `ore_eccedenti` decimal(5,2) DEFAULT NULL,
   `ore_causale` decimal(4,2) NOT NULL DEFAULT '0.00',
   `causale` enum('lavoro','ferie','permesso_rol','malattia','maternita','infortunio','assemblea') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'lavoro',
   `modalita_lavoro` enum('in_sede','smart_working','trasferta') COLLATE utf8mb4_unicode_ci DEFAULT NULL,

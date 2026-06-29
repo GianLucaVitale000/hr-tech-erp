@@ -33,8 +33,9 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             d.codice_fiscale,
             d.percentuale_part_time,
             DATE_FORMAT(p.data, '%d/%m/%Y') AS data,
+            DAYOFWEEK(p.data) - 1 AS giorno_settimana,  -- 0=Dom, 1=Lun, etc.
             p.ore_ordinarie,
-            p.ore_supplementari,
+            p.ore_eccedenti,
             p.ore_straordinarie,
             p.ore_causale,
             p.causale,
@@ -54,12 +55,28 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
     cursor.execute(query, (mese, anno))
     righe = cursor.fetchall()
+    
+    # Ottieni le ore settimanali previste per ogni dipendente
+    orari_query = """
+        SELECT 
+            d.id AS dipendente_id,
+            d.percentuale_part_time,
+            COALESCE(d.ore_settimanali_teoriche, 40) AS ore_settimanali_teoriche
+        FROM dipendenti d
+    """
+    cursor.execute(orari_query)
+    orari_dipendenti = cursor.fetchall()
+    orari_map = {str(row['dipendente_id']): {
+        'percentuale_part_time': float(row['percentuale_part_time']),
+        'ore_settimanali_teoriche': float(row['ore_settimanali_teoriche'])
+    } for row in orari_dipendenti}
+    
     cursor.close()
     conn.close()
 
     colonne_dettaglio = [
         'Dipendente', 'Codice Fiscale', 'Data', 'Ore Ordinarie',
-        'Ore Supplementari', 'Ore Straordinarie', 'Causale', 'Codice Paga', 'Modalità Lavoro',
+        'Ore Eccedenti', 'Ore Straordinarie', 'Causale', 'Codice Paga', 'Modalità Lavoro',
         'Giustificativo Trasferta', 'Protocollo Malattia',
         'Giustificativo Infortunio'
     ]
@@ -91,7 +108,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
         df_dettaglio = df[[
             'nome_dipendente', 'codice_fiscale', 'data',
-            'ore_ordinarie', 'ore_supplementari', 'ore_straordinarie', 'causale', 'codice_paga',
+            'ore_ordinarie', 'ore_eccedenti', 'ore_straordinarie', 'causale', 'codice_paga',
             'modalita_label', 'link_trasferta', 'protocollo_malattia',
             'link_infortunio'
         ]].copy()
@@ -105,16 +122,52 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
         riepilogo = []
         for (nome, cf, pt), gruppo in df.groupby(['nome_dipendente', 'codice_fiscale', 'percentuale_part_time']):
-            # Calcola totale ore supplementari solo per part-time
-            totale_supplementari = gruppo['ore_supplementari'].astype(float).sum() if float(pt) < 100 else 0
+            # Calcola totali per il dipendente
+            totale_ordinarie = gruppo['ore_ordinarie'].astype(float).sum()
+            totale_eccedenti = gruppo['ore_eccedenti'].astype(float).sum()
+            totale_straordinarie_dirette = gruppo['ore_straordinarie'].astype(float).sum()
+            
+            # Per part-time: calcola settimanale
+            if float(pt) < 100:
+                # Ottieni ore settimanali previste per il dipendente
+                dipendente_id = gruppo['dipendente_id'].iloc[0]
+                orari_info = orari_map.get(str(dipendente_id), {})
+                ore_settimanali_pt = orari_info.get('ore_settimanali_teoriche', 0)
+                
+                # Calcola totale ore (ordinarie + eccedenti)
+                totale_ore_lavorate = totale_ordinarie + totale_eccedenti
+                
+                # Ore settimanali full-time (standard 40)
+                ore_settimanali_full_time = 40.0
+                
+                # Logica di suddivisione:
+                # - Fino a ore_settimanali_pt: sono ore ordinarie (già conteggiate)
+                # - Da ore_settimanali_pt a ore_settimanali_full_time: sono supplementari
+                # - Oltre ore_settimanali_full_time: sono straordinarie
+                if totale_ore_lavorate <= ore_settimanali_pt:
+                    # Tutto è ordinario, nessuna eccedenza
+                    totale_supplementari = 0
+                    totale_straordinarie = 0
+                elif totale_ore_lavorate <= ore_settimanali_full_time:
+                    # Le eccedenze sono supplementari
+                    totale_supplementari = totale_ore_lavorate - ore_settimanali_pt
+                    totale_straordinarie = 0
+                else:
+                    # Parte supplementari, parte straordinarie
+                    totale_supplementari = ore_settimanali_full_time - ore_settimanali_pt
+                    totale_straordinarie = totale_ore_lavorate - ore_settimanali_full_time
+            else:
+                # Per full-time: le ore eccedenti non esistono, le straordinarie sono già separate
+                totale_supplementari = 0
+                totale_straordinarie = totale_straordinarie_dirette
             
             riepilogo.append({
                 'Dipendente': nome,
                 'Codice Fiscale': cf,
                 'Periodo': periodo,
-                'Totale Ore Ordinarie': gruppo['ore_ordinarie'].astype(float).sum(),
+                'Totale Ore Ordinarie': totale_ordinarie,
                 'Totale Ore Supplementari': totale_supplementari,
-                'Totale Ore Straordinarie': gruppo['ore_straordinarie'].astype(float).sum(),
+                'Totale Ore Straordinarie': totale_straordinarie + totale_straordinarie_dirette,
                 'Totale Ferie': gruppo[gruppo['causale'] == 'ferie']['ore_causale'].astype(float).sum(),
                 'Totale Permessi': gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale'].astype(float).sum(),
                 'Totale Malattia': gruppo[gruppo['causale'] == 'malattia']['ore_causale'].astype(float).sum(),

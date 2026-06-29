@@ -79,29 +79,31 @@ function RigaGiorno({
             type="number"
             min="0"
             step="0.25"
-            value={riga.ore_supplementari}
-            onChange={(e) => onChange({ ...riga, ore_supplementari: e.target.value })}
+            value={riga.ore_eccedenti}
+            onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value })}
             style={{ width: '60px', padding: '0.25rem' }}
-            title="Ore supplementari (oltre il limite ordinario)"
+            title="Ore eccedenti (oltre il limite ordinario del giorno)"
           />
         </td>
       )}
 
-      <td style={{ padding: '0.5rem' }}>
-        <input
-          type="number"
-          min="0"
-          step="0.25"
-          value={riga.ore_straordinarie}
-          onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value })}
-          style={{ width: '60px', padding: '0.25rem' }}
-        />
-        {riga.ore_straordinarie > 4 && (
-          <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.25rem' }}>
-            Attenzione: superato limite consigliato di straordinario giornaliero
-          </div>
-        )}
-      </td>
+      {isFullTime && (
+        <td style={{ padding: '0.5rem' }}>
+          <input
+            type="number"
+            min="0"
+            step="0.25"
+            value={riga.ore_straordinarie}
+            onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value })}
+            style={{ width: '60px', padding: '0.25rem' }}
+          />
+          {riga.ore_straordinarie > 4 && (
+            <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.25rem' }}>
+              Attenzione: superato limite consigliato di straordinario giornaliero
+            </div>
+          )}
+        </td>
+      )}
 
       <td style={{ padding: '0.5rem' }}>
         <select
@@ -289,7 +291,7 @@ function Timesheet() {
 
   const normalizzaRiga = (p = {}) => ({
   ore_ordinarie: p.ore_ordinarie || 0,
-  ore_supplementari: p.ore_supplementari || 0,
+  ore_eccedenti: p.ore_eccedenti || 0,
   ore_straordinarie: p.ore_straordinarie || 0,
   ore_causale: p.ore_causale || 0,
   causale: p.causale || 'lavoro',
@@ -350,7 +352,7 @@ useEffect(() => {
 
     try {
       const riga = getRiga(dataStr)
-      // Per part-time, non inviare ore_supplementari in modo che il backend possa calcolarlo
+      // Per part-time, non inviare ore_eccedenti in modo che il backend possa calcolarlo
       const payload = {
         dipendente_id: dipendente.id,
         data: dataStr,
@@ -362,7 +364,7 @@ useEffect(() => {
       }
       // Invia anche supplementari, ma il backend per part-time lo sovrascriverà
       if (isFullTime) {
-        payload.ore_supplementari = parseFloat(riga.ore_supplementari) || 0;
+        payload.ore_eccedenti = parseFloat(riga.ore_eccedenti) || 0;
       }
 
       const res = await salvaPresenza(payload)
@@ -453,8 +455,8 @@ useEffect(() => {
   const totaleOrdinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_ordinarie) || 0), 0
   )
-  const totaleSupplementari = Object.values(righe).reduce(
-    (acc, r) => acc + (parseInt(r.ore_supplementari) || 0), 0
+  const totaleEccedenti = Object.values(righe).reduce(
+    (acc, r) => acc + (parseInt(r.ore_eccedenti) || 0), 0
   )
   const totaleStraordinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseInt(r.ore_straordinarie) || 0), 0
@@ -536,12 +538,14 @@ useEffect(() => {
         </div>
         {!isFullTime && (
           <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
-            <strong>Ore Supplementari:</strong> {totaleSupplementari}
+            <strong>Ore Eccedenti:</strong> {totaleEccedenti}
           </div>
         )}
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
-          <strong>Straordinari:</strong> {totaleStraordinarie}
-        </div>
+        {isFullTime && (
+          <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
+            <strong>Straordinari:</strong> {totaleStraordinarie}
+          </div>
+        )}
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
           <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
         </div>
@@ -584,8 +588,8 @@ useEffect(() => {
           <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
             <th style={{ padding: '0.5rem' }}>Giorno</th>
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>}
-            <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>
+            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
+            {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
             <th style={{ padding: '0.5rem' }}>Causale</th>
             <th style={{ padding: '0.5rem' }}>Altro</th>
             <th style={{ padding: '0.5rem' }}>Modalità</th>

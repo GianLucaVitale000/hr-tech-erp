@@ -59,7 +59,7 @@ class PresenzaController extends Controller
             'data' => 'required|date',
             'ore_ordinarie' => "nullable|numeric|min:0",
             'ore_straordinarie' => "nullable|numeric|min:0",
-            'ore_supplementari' => "nullable|numeric|min:0",
+            'ore_eccedenti' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
@@ -70,20 +70,21 @@ class PresenzaController extends Controller
             $validated['warning'] = 'Attenzione: superato limite consigliato di straordinario giornaliero';
         }
         
-        // GESTIONE SUPPLEMENTARI:
+        // GESTIONE ORE ECCEDENTI (per part-time):
         // Per i dipendenti part-time con configurazione orari settimanali,
-        // le ore che superano il limite ordinario del giorno diventano supplementari
+        // le ore che superano il limite ordinario del giorno diventano ore eccedenti
+        // (verranno qualificate come supplementari o straordinarie solo in esportazione settimanale)
         if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
             $oreInserite = (float)($validated['ore_ordinarie'] ?? 0);
             
             if ($oreInserite > $oreOrdinarieMax) {
-                // Sposta l'eccedenza in supplementari
-                $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
+                // Sposta l'eccedenza in ore_eccedenti
+                $validated['ore_eccedenti'] = $oreInserite - $oreOrdinarieMax;
                 $validated['ore_ordinarie'] = $oreOrdinarieMax;
             } else {
-                // Se le ore ordinarie sono <= al limite, azzera le supplementari
+                // Se le ore ordinarie sono <= al limite, azzera le ore_eccedenti
                 // per evitare valori persistiti da modifiche precedenti
-                $validated['ore_supplementari'] = 0;
+                $validated['ore_eccedenti'] = 0;
             }
         }
         
@@ -145,7 +146,7 @@ class PresenzaController extends Controller
         $validated = $request->validate([
             'ore_ordinarie' => "nullable|numeric|min:0",
             'ore_straordinarie' => "nullable|numeric|min:0",
-            'ore_supplementari' => "nullable|numeric|min:0",
+            'ore_eccedenti' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
@@ -162,12 +163,12 @@ class PresenzaController extends Controller
             $oreInserite = (float)($validated['ore_ordinarie'] ?? ($presenza->ore_ordinarie ?? 0));
             
             if ($oreInserite > $oreOrdinarieMax) {
-                $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
+                $validated['ore_eccedenti'] = $oreInserite - $oreOrdinarieMax;
                 $validated['ore_ordinarie'] = $oreOrdinarieMax;
             } else {
                 // Se le ore ordinarie sono <= al limite, azzera le supplementari
                 // per evitare valori persistiti da modifiche precedenti
-                $validated['ore_supplementari'] = 0;
+                $validated['ore_eccedenti'] = 0;
             }
         }
         
@@ -251,7 +252,7 @@ class PresenzaController extends Controller
                     'totale_giorni' => $gruppo->count(),
                     'totale_ore_ordinarie' => $gruppo->sum('ore_ordinarie'),
                     'totale_ore_straordinarie' => $gruppo->sum('ore_straordinarie'),
-                    'totale_ore_supplementari' => $gruppo->sum('ore_supplementari'),
+                    'totale_ore_eccedenti' => $gruppo->sum('ore_eccedenti'),
                     'percentuale_part_time' => $prima->dipendente->percentuale_part_time ?? 100,
                     'stato' => $prima->stato,
                 ];
@@ -345,7 +346,7 @@ class PresenzaController extends Controller
                     'causale' => 'malattia',
                     'ore_ordinarie' => 0,
                     'ore_straordinarie' => 0,
-                    'ore_supplementari' => 0,
+                    'ore_eccedenti' => 0,
                     'ore_causale' => $orePreviste,
                     'modalita_lavoro' => null,
                     'protocollo_malattia' => $validated['protocollo'],
