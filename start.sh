@@ -2,18 +2,24 @@
 
 echo "🚀 Avvio HR-Tech ERP..."
 
-# Laravel
+# Laravel (porta 8000)
 cd ~/hr-tech-erp/backend-php
-php artisan serve &
+php artisan serve --port=8000 &
 
-# Python
+# Aspetta che Laravel parta
+sleep 3
+
+# Python (porta 8001)
 cd ~/hr-tech-erp/microservice-python
 source venv/bin/activate
-uvicorn main:app --reload --port 8001 &
+uvicorn main:app --reload --port=8001 &
 
-# React
+# Aspetta che Python parta
+sleep 2
+
+# React (porta 5173)
 cd ~/hr-tech-erp/frontend-react
-npm run dev &
+npm run dev -- --port=5173 &
 
 echo "✅ Tutti i server sono avviati!"
 echo "   Laravel  → http://localhost:8000"

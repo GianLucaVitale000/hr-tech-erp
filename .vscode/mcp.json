@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "laravel-boost": {
+      "command": "php",
+      "args": ["artisan", "boost:mcp"],
+      "cwd": "/home/gianluca/hr-tech-erp/backend-php"
+    }
+  }
+}
