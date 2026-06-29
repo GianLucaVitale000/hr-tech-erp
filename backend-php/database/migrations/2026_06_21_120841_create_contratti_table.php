@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('codice_cnel')->nullable();
             $table->string('nome_contratto');
             $table->decimal('ore_settimanali_teoriche', 5, 2)->default(40);
-            $table->decimal('limite_straordinario_mensile', 5, 2)->nullable();
             $table->decimal('soglia_maggiorazione_1', 5, 2)->nullable();
             $table->decimal('soglia_maggiorazione_2', 5, 2)->nullable();
             $table->timestamps();

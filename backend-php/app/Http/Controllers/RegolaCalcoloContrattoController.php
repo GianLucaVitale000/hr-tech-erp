@@ -15,9 +15,6 @@ class RegolaCalcoloContrattoController extends Controller
             if ((float)$regola->ore_settimanali_teoriche === 0.0 || $regola->ore_settimanali_teoriche === null) {
                 $regola->ore_settimanali_teoriche = null;
             }
-            if ((float)$regola->limite_straordinario_mensile === 0.0 || $regola->limite_straordinario_mensile === null) {
-                $regola->limite_straordinario_mensile = null;
-            }
             return $regola;
         });
     }
@@ -27,7 +24,6 @@ class RegolaCalcoloContrattoController extends Controller
         $validated = $request->validate([
             'contratto_id' => 'required|exists:contratti,id',
             'ore_settimanali_teoriche' => 'nullable|numeric',
-            'limite_straordinario_mensile' => 'nullable|numeric',
         ]);
 
         $regola = RegolaCalcoloContratto::create($validated);
@@ -35,9 +31,6 @@ class RegolaCalcoloContrattoController extends Controller
         // Applica la conversione 0->null anche al risultato creato
         if ((float)$regola->ore_settimanali_teoriche === 0.0) {
             $regola->ore_settimanali_teoriche = null;
-        }
-        if ((float)$regola->limite_straordinario_mensile === 0.0) {
-            $regola->limite_straordinario_mensile = null;
         }
         
         return $regola;
@@ -50,9 +43,6 @@ class RegolaCalcoloContrattoController extends Controller
         if ((float)$regola->ore_settimanali_teoriche === 0.0 || $regola->ore_settimanali_teoriche === null) {
             $regola->ore_settimanali_teoriche = null;
         }
-        if ((float)$regola->limite_straordinario_mensile === 0.0 || $regola->limite_straordinario_mensile === null) {
-            $regola->limite_straordinario_mensile = null;
-        }
         return $regola;
     }
 
@@ -61,7 +51,6 @@ class RegolaCalcoloContrattoController extends Controller
         $validated = $request->validate([
             'contratto_id' => 'sometimes|exists:contratti,id',
             'ore_settimanali_teoriche' => 'nullable|numeric',
-            'limite_straordinario_mensile' => 'nullable|numeric',
         ]);
 
         $regolaCalcoloContratto->update($validated);
@@ -72,9 +61,6 @@ class RegolaCalcoloContrattoController extends Controller
         // Applica la conversione 0->null prima di restituire
         if ((float)$regolaCalcoloContratto->ore_settimanali_teoriche === 0.0) {
             $regolaCalcoloContratto->ore_settimanali_teoriche = null;
-        }
-        if ((float)$regolaCalcoloContratto->limite_straordinario_mensile === 0.0) {
-            $regolaCalcoloContratto->limite_straordinario_mensile = null;
         }
 
         return $regolaCalcoloContratto;
@@ -93,9 +79,6 @@ class RegolaCalcoloContrattoController extends Controller
             // Converti 0 (in qualsiasi formato) in null per coerenza con il frontend
             if ((float)$regola->ore_settimanali_teoriche === 0.0 || $regola->ore_settimanali_teoriche === null) {
                 $regola->ore_settimanali_teoriche = null;
-            }
-            if ((float)$regola->limite_straordinario_mensile === 0.0 || $regola->limite_straordinario_mensile === null) {
-                $regola->limite_straordinario_mensile = null;
             }
             return $regola;
         });

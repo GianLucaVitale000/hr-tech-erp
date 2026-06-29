@@ -9,8 +9,7 @@ function Contratti() {
   const [modalOpen, setModalOpen] = useState(false)
   const [currentContratto, setCurrentContratto] = useState(null)
   const [regolaForm, setRegolaForm] = useState({
-    ore_settimanali_teoriche: 40,
-    limite_straordinario_mensile: null
+    ore_settimanali_teoriche: 40
   })
   const [modalLoading, setModalLoading] = useState(false)
   const [regoleMap, setRegoleMap] = useState({})
@@ -131,10 +130,8 @@ function Contratti() {
     const existingRegola = regoleMap[contratto?.id]
     // Converti 0 in null per coerenza
     const ore = existingRegola?.ore_settimanali_teoriche
-    const limite = existingRegola?.limite_straordinario_mensile
     setRegolaForm({
-      ore_settimanali_teoriche: !ore || parseFloat(ore) === 0 ? null : ore,
-      limite_straordinario_mensile: !limite || parseFloat(limite) === 0 ? null : limite
+      ore_settimanali_teoriche: !ore || parseFloat(ore) === 0 ? null : ore
     })
     setModalOpen(true)
   }
@@ -258,7 +255,6 @@ function Contratti() {
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Datoriale</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Sindacale</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Ore Settimanali</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Limite Straord. Mensile</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Data Decorrenza</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Azioni</th>
               </tr>
@@ -333,9 +329,6 @@ function Contratti() {
                         </td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                           {Number(mainRegola?.ore_settimanali_teoriche ?? main.ore_settimanali_teoriche) === 0 ? '-' : (mainRegola?.ore_settimanali_teoriche ?? main.ore_settimanali_teoriche ?? '-')}
-                        </td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          {Number(mainRegola?.limite_straordinario_mensile ?? main.limite_straordinario_mensile) === 0 ? '-' : (mainRegola?.limite_straordinario_mensile ?? main.limite_straordinario_mensile ?? '-')}
                         </td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                           {main.data_decorrenza && (
@@ -417,9 +410,6 @@ function Contratti() {
                             </td>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                               {Number(regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche) === 0 ? '-' : (regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche ?? '-')}
-                            </td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              {Number(regola?.limite_straordinario_mensile ?? c.limite_straordinario_mensile) === 0 ? '-' : (regola?.limite_straordinario_mensile ?? c.limite_straordinario_mensile ?? '-')}
                             </td>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                               {c.data_decorrenza && (
@@ -519,33 +509,6 @@ function Contratti() {
                   color: 'white'
                 }}
               />
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
-                Limite Straordinario Mensile (ore)
-              </label>
-              <input
-                type="number"
-                name="limite_straordinario_mensile"
-                value={!regolaForm.limite_straordinario_mensile ? '' : regolaForm.limite_straordinario_mensile}
-                onChange={handleRegolaChange}
-                step="0.01"
-                min="0"
-                placeholder="Lascia vuoto per nessun limite"
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #4b5563',
-                  borderRadius: '4px',
-                  backgroundColor: '#374151',
-                  color: 'white'
-                }}
-              />
-              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
-                Lascia vuoto per nessun limite
-              </p>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>

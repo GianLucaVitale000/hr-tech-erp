@@ -15,13 +15,12 @@ class RegoleCalcoloContrattoSeeder extends Seeder
     public function run(): void
     {
         // Metalmeccanica - Industria (C05A, Federmeccanica)
-        // Standard: 40 ore settimanali, limite straordinario mensile variabile
+        // Standard: 40 ore settimanali
         $contrattoMetalmeccanica = Contratto::where('codice_cnel', 'C05A')->first();
         if ($contrattoMetalmeccanica && !RegolaCalcoloContratto::where('contratto_id', $contrattoMetalmeccanica->id)->exists()) {
             RegolaCalcoloContratto::create([
                 'contratto_id' => $contrattoMetalmeccanica->id,
                 'ore_settimanali_teoriche' => 40.00,
-                'limite_straordinario_mensile' => 32.00, // 8 ore settimanali * 4 settimane
             ]);
         }
 
@@ -31,7 +30,6 @@ class RegoleCalcoloContrattoSeeder extends Seeder
             RegolaCalcoloContratto::create([
                 'contratto_id' => $contrattoMetalmeccanicaPMI->id,
                 'ore_settimanali_teoriche' => 40.00,
-                'limite_straordinario_mensile' => 32.00,
             ]);
         }
 
@@ -41,7 +39,6 @@ class RegoleCalcoloContrattoSeeder extends Seeder
             RegolaCalcoloContratto::create([
                 'contratto_id' => $contrattoCommercio->id,
                 'ore_settimanali_teoriche' => 39.00, // 39 ore per il commercio
-                'limite_straordinario_mensile' => 30.00,
             ]);
         }
 
@@ -51,7 +48,6 @@ class RegoleCalcoloContrattoSeeder extends Seeder
             RegolaCalcoloContratto::create([
                 'contratto_id' => $contrattoAutoferrotranvieri->id,
                 'ore_settimanali_teoriche' => 38.50, // 38,5 ore settimanali
-                'limite_straordinario_mensile' => 28.00,
             ]);
         }
 
@@ -61,7 +57,6 @@ class RegoleCalcoloContrattoSeeder extends Seeder
             RegolaCalcoloContratto::create([
                 'contratto_id' => $contrattoEdilizia->id,
                 'ore_settimanali_teoriche' => 40.00,
-                'limite_straordinario_mensile' => 40.00,
             ]);
         }
 
@@ -71,7 +66,6 @@ class RegoleCalcoloContrattoSeeder extends Seeder
             RegolaCalcoloContratto::create([
                 'contratto_id' => $contrattoLogistica->id,
                 'ore_settimanali_teoriche' => 39.00,
-                'limite_straordinario_mensile' => 30.00,
             ]);
         }
     }

@@ -11,25 +11,14 @@ class RegolaCalcoloContratto extends Model
     protected $fillable = [
         'contratto_id',
         'ore_settimanali_teoriche',
-        'limite_straordinario_mensile',
     ];
 
     protected $casts = [
         'ore_settimanali_teoriche' => 'decimal:2',
-        'limite_straordinario_mensile' => 'decimal:2',
     ];
 
     // Accessor per convertire solo null in null (0 è un valore valido)
     public function getOreSettimanaliTeoricheAttribute($value)
-    {
-        if ($value === null) {
-            return null;
-        }
-        return (float)$value;
-    }
-
-    // Accessor per convertire solo null in null (0 è un valore valido)
-    public function getLimiteStraordinarioMensileAttribute($value)
     {
         if ($value === null) {
             return null;

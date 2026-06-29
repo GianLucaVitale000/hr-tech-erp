@@ -331,7 +331,6 @@ CREATE TABLE `regole_calcolo_contratto` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `contratto_id` bigint unsigned NOT NULL,
   `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
-  `limite_straordinario_mensile` decimal(5,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
