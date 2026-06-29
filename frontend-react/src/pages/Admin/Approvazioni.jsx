@@ -189,8 +189,7 @@ useEffect(() => {
                 <th style={{ padding: '0.75rem', minWidth: '80px' }}>Mese</th>
                 <th style={{ padding: '0.75rem', minWidth: '100px' }}>Giorni Inviati</th>
                 <th style={{ padding: '0.75rem', minWidth: '100px' }}>Ore Ordinarie</th>
-                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Supplementari</th>
-                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Straordinari</th>
+                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Ore Eccedenti</th>
                 <th style={{ padding: '0.75rem', minWidth: '120px' }}>Stato</th>
               </tr>
             </thead>
@@ -241,8 +240,7 @@ useEffect(() => {
                   <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
                   <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
                   <td style={{ padding: '0.75rem' }}>{m.totale_ore_ordinarie}</td>
-                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_supplementari || 0}</td>
-                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_straordinarie}</td>
+                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_eccedenti || 0}</td>
                   <td style={{ padding: '0.75rem' }}>
                     <span style={{
                       padding: '0.25rem 0.6rem',
