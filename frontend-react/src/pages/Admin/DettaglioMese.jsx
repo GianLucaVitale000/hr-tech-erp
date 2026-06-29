@@ -44,7 +44,7 @@ function DettaglioMese() {
   const isFullTime = Number(percentualePartTime) === 100
 
   const totaleOrdinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_ordinarie || 0), 0)
-  const totaleSupplementari = presenze.reduce((acc, p) => acc + parseFloat(p.ore_supplementari || 0), 0)
+  const totaleEccedenti = presenze.reduce((acc, p) => acc + parseFloat(p.ore_eccedenti || 0), 0)
   const totaleStraordinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_straordinarie || 0), 0)
   const stato = presenze[0]?.stato || ''
 
@@ -101,12 +101,14 @@ function DettaglioMese() {
         </div>
         {!isFullTime && (
           <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-            <strong>Ore Supplementari:</strong> {totaleSupplementari}
+            <strong>Ore Eccedenti:</strong> {totaleEccedenti}
           </div>
         )}
-        <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-          <strong>Straordinari:</strong> {totaleStraordinarie}
-        </div>
+        {isFullTime && (
+          <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
+            <strong>Straordinari:</strong> {totaleStraordinarie}
+          </div>
+        )}
         <div style={{ padding: '1rem', backgroundColor: getStatoColor(), borderRadius: '6px' }}>
           <strong>Stato:</strong> {getStatoLabel()}
         </div>
@@ -114,11 +116,11 @@ function DettaglioMese() {
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
-          <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
+          <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
             <th style={{ padding: '0.5rem' }}>Data</th>
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Supplementari</th>}
-            <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>
+            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
+            {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
             <th style={{ padding: '0.5rem' }}>Causale</th>
             <th style={{ padding: '0.5rem' }}>Altro</th>
           </tr>
@@ -128,8 +130,8 @@ function DettaglioMese() {
             <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
               <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
               <td style={{ padding: '0.5rem' }}>{p.ore_ordinarie}</td>
-              {!isFullTime && <td style={{ padding: '0.5rem' }}>{p.ore_supplementari || 0}</td>}
-              <td style={{ padding: '0.5rem' }}>{p.ore_straordinarie}</td>
+              {!isFullTime && <td style={{ padding: '0.5rem' }}>{p.ore_eccedenti || 0}</td>}
+              {isFullTime && <td style={{ padding: '0.5rem' }}>{p.ore_straordinarie || 0}</td>}
               <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
               <td style={{ padding: '0.5rem' }}>{p.ore_causale}</td>
             </tr>
