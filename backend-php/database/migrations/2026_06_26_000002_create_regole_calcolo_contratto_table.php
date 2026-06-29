@@ -16,8 +16,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('contratto_id')->constrained('contratti')->onDelete('cascade');
             $table->decimal('ore_settimanali_teoriche', 5, 2)->default(40);
-            $table->decimal('soglia_maggiorazione_1', 5, 2)->nullable();
-            $table->decimal('soglia_maggiorazione_2', 5, 2)->nullable();
             $table->timestamps();
             
             // Indice per ottimizzare le query

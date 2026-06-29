@@ -82,13 +82,9 @@ class ContrattoController extends Controller
             if ($contratto->regoleCalcolo->isNotEmpty()) {
                 $regola = $contratto->regoleCalcolo->first();
                 $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
-                $contratto->soglia_maggiorazione_1 = $regola->soglia_maggiorazione_1;
-                $contratto->soglia_maggiorazione_2 = $regola->soglia_maggiorazione_2;
             } else {
                 // Se non ci sono regole, imposta a null per retrocompatibilita
                 $contratto->ore_settimanali_teoriche = null;
-                $contratto->soglia_maggiorazione_1 = null;
-                $contratto->soglia_maggiorazione_2 = null;
             }
             return $contratto;
         });
@@ -115,12 +111,8 @@ class ContrattoController extends Controller
         if ($contratto->regoleCalcolo->isNotEmpty()) {
             $regola = $contratto->regoleCalcolo->first();
             $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
-            $contratto->soglia_maggiorazione_1 = $regola->soglia_maggiorazione_1;
-            $contratto->soglia_maggiorazione_2 = $regola->soglia_maggiorazione_2;
         } else {
             $contratto->ore_settimanali_teoriche = null;
-            $contratto->soglia_maggiorazione_1 = null;
-            $contratto->soglia_maggiorazione_2 = null;
         }
         
         return $contratto;
@@ -204,13 +196,9 @@ class ContrattoController extends Controller
             if ($contratto->regoleCalcolo->isNotEmpty()) {
                 $regola = $contratto->regoleCalcolo->first();
                 $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
-                $contratto->soglia_maggiorazione_1 = $regola->soglia_maggiorazione_1;
-                $contratto->soglia_maggiorazione_2 = $regola->soglia_maggiorazione_2;
             } else {
                 // Valori default se non ci sono regole configurate
                 $contratto->ore_settimanali_teoriche = 40;
-                $contratto->soglia_maggiorazione_1 = 15;
-                $contratto->soglia_maggiorazione_2 = 30;
             }
             return $contratto;
         });

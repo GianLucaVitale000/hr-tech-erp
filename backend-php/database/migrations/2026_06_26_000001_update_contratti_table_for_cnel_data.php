@@ -20,9 +20,7 @@ return new class extends Migration
             
             // Rimuovi i campi aziendali (verranno spostati in regole_calcolo_contratto)
             $table->dropColumn([
-                'ore_settimanali_teoriche',
-                'soglia_maggiorazione_1',
-                'soglia_maggiorazione_2'
+                'ore_settimanali_teoriche'
             ]);
         });
     }
@@ -32,8 +30,6 @@ return new class extends Migration
         Schema::table('contratti', function (Blueprint $table) {
             // Revert: ricrea i campi aziendali
             $table->decimal('ore_settimanali_teoriche', 5, 2)->default(40);
-            $table->decimal('soglia_maggiorazione_1', 5, 2)->nullable();
-            $table->decimal('soglia_maggiorazione_2', 5, 2)->nullable();
             
             // Rimuovi i campi CNEL
             $table->dropColumn([
