@@ -279,6 +279,7 @@ function Timesheet() {
   const [messaggio, setMessaggio] = useState('')
   const [errore, setErrore] = useState('')
   const [modaleMalattiaGiorno, setModaleMalattiaGiorno] = useState(null)
+  const [statoFoglio, setStatoFoglio] = useState(null)
 
   const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
@@ -309,10 +310,15 @@ useEffect(() => {
       setLoading(true)
       const res = await getPresenze(dipendente.id, mese, anno)
       const mappa = {}
+      let statoDelMese = null
       res.data.forEach((p) => {
         mappa[p.data] = normalizzaRiga(p)
+        if (p.stato) {
+          statoDelMese = p.stato
+        }
       })
       setRighe(mappa)
+      setStatoFoglio(statoDelMese)
       setLoading(false)
     }
     fetchPresenze()
@@ -407,8 +413,21 @@ useEffect(() => {
   }
 
   const handleInvia = async () => {
-    await inviaMese(dipendente.id, mese, anno)
-    setMessaggio('✅ Mese inviato per approvazione!')
+    try {
+      await inviaMese(dipendente.id, mese, anno)
+      // Ricarica le presenze per ottenere lo stato aggiornato (inviato o reinviato)
+      const res = await getPresenze(dipendente.id, mese, anno)
+      const nuovoStato = res.data[0]?.stato || 'inviato'
+      setStatoFoglio(nuovoStato)
+      setMessaggio('✅ Mese inviato per approvazione!')
+      setErrore('')
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message ||
+                          'Errore durante l\'invio. Riprova.'
+      setErrore(errorMessage)
+      setTimeout(() => setErrore(''), 8000)
+    }
   }
 
   if (loading) return <p style={{ padding: '2rem' }}>Caricamento...</p>
@@ -522,17 +541,21 @@ useEffect(() => {
       <div style={{ marginBottom: '1.5rem' }}>
         <button
           onClick={handleInvia}
+          disabled={statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato'}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: '#2563eb',
+            backgroundColor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato') ? '#93c5fd' : '#2563eb',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer',
+            cursor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato') ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem',
             display: 'block',
             margin: '0 auto'
           }}
+          title={statoFoglio === 'approvato' ? 'Foglio già approvato. Non è possibile reinviare.' : 
+                statoFoglio === 'reinviato' ? 'Foglio già reinviato. Attendere l\'approvazione.' :
+                statoFoglio === 'inviato' ? 'Foglio già inviato. Attendere l\'approvazione.' : ''}
         >
           Invia al Manager
         </button>

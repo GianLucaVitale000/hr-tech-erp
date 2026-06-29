@@ -48,6 +48,34 @@ function DettaglioMese() {
   const totaleStraordinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_straordinarie || 0), 0)
   const stato = presenze[0]?.stato || ''
 
+  const getStatoLabel = () => {
+    switch(stato) {
+      case 'inviato':
+      case 'rifiutato':
+        return 'Da approvare';
+      case 'reinviato':
+        return 'Da approvare (Reinviato)';
+      case 'approvato':
+        return 'Approvato';
+      default:
+        return stato || 'Sconosciuto';
+    }
+  };
+
+  const getStatoColor = () => {
+    switch(stato) {
+      case 'inviato':
+      case 'rifiutato':
+        return '#f3e8ff';
+      case 'reinviato':
+        return '#fde68a';
+      case 'approvato':
+        return '#dcfce7';
+      default:
+        return '#f3e8ff';
+    }
+  };
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <button
@@ -79,8 +107,8 @@ function DettaglioMese() {
         <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
           <strong>Straordinari:</strong> {totaleStraordinarie}
         </div>
-        <div style={{ padding: '1rem', backgroundColor: '#f3e8ff', borderRadius: '6px' }}>
-          <strong>Stato:</strong> {stato}
+        <div style={{ padding: '1rem', backgroundColor: getStatoColor(), borderRadius: '6px' }}>
+          <strong>Stato:</strong> {getStatoLabel()}
         </div>
       </div>
 
@@ -109,7 +137,7 @@ function DettaglioMese() {
         </tbody>
       </table>
 
-      {stato === 'inviato' && (
+      {(stato === 'inviato' || stato === 'rifiutato' || stato === 'reinviato') && (
         <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
           <button
             onClick={() => handleAzione('approvato')}

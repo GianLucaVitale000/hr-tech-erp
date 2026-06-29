@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getPresenzeInAttesa, getMesiApprovati, aggiornaStatoMese } from '../../services/presenzeService'
+import { getPresenzeInAttesa, getMesiApprovati } from '../../services/presenzeService'
 
 function Approvazioni() {
   const [mesi, setMesi] = useState([])
@@ -8,9 +8,10 @@ function Approvazioni() {
   const [loading, setLoading] = useState(true)
   const [loadingApprovati, setLoadingApprovati] = useState(true)
   const [meseSelezionato, setMeseSelezionato] = useState('')
+  const [filtroDipendente, setFiltroDipendente] = useState('')
+  const [filtroMese, setFiltroMese] = useState('')
+  const [filtroAnno, setFiltroAnno] = useState('')
   const navigate = useNavigate()
-
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
@@ -20,7 +21,7 @@ useEffect(() => {
   getPresenzeInAttesa()
     .then((res) => setMesi(res.data))
     .finally(() => setLoading(false))
-}, [refreshKey])
+}, [])
 
 useEffect(() => {
   const fetchMesiApprovati = async () => {
@@ -43,14 +44,7 @@ useEffect(() => {
     }
   }
   fetchMesiApprovati()
-}, [refreshKey])
-
-const caricaMesi = () => setRefreshKey((k) => k + 1)
-
-  const handleAzione = async (m, stato) => {
-    await aggiornaStatoMese(m.dipendente_id, m.mese, m.anno, stato)
-    caricaMesi()
-  }
+}, [])
 
   const handleExport = async (m, a) => {
     const response = await fetch(`http://localhost:8001/export/paghe?mese=${m}&anno=${a}`)
@@ -61,7 +55,7 @@ const caricaMesi = () => setRefreshKey((k) => k + 1)
     aElement.download = `paghe_${m}_${a}.xlsx`
     aElement.click()
     window.URL.revokeObjectURL(url)
-}
+  }
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
@@ -141,76 +135,130 @@ const caricaMesi = () => setRefreshKey((k) => k + 1)
       {loading ? (
         <p>Caricamento...</p>
       ) : mesi.length === 0 ? (
-        <p>Nessun mese in attesa di approvazione.</p>
+        <p>Nessun foglio ore da visualizzare.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
-              <th style={{ padding: '0.75rem' }}>Dipendente</th>
-              <th style={{ padding: '0.75rem' }}>Mese</th>
-              <th style={{ padding: '0.75rem' }}>Giorni Inviati</th>
-              <th style={{ padding: '0.75rem' }}>Ore Ordinarie</th>
-              <th style={{ padding: '0.75rem' }}>Straordinari</th>
-              <th style={{ padding: '0.75rem' }}>Stato</th>
-              <th style={{ padding: '0.75rem' }}>Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mesi.map((m, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td
-                  style={{ padding: '0.75rem', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
-                  onClick={() => navigate(`/admin/approvazioni/${m.dipendente_id}/${m.mese}/${m.anno}`)}
+        <>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '500' }}>Dipendente:</label>
+                <select
+                  value={filtroDipendente}
+                  onChange={(e) => setFiltroDipendente(e.target.value)}
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                 >
-                  {m.dipendente_nome}
-                </td>
-                <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
-                <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
-                <td style={{ padding: '0.75rem' }}>{m.totale_ore_ordinarie}</td>
-                <td style={{ padding: '0.75rem' }}>{m.totale_ore_straordinarie}</td>
-                <td style={{ padding: '0.75rem' }}>
-                  <span style={{
-                    padding: '0.25rem 0.6rem',
-                    borderRadius: '12px',
-                    backgroundColor: '#fef3c7',
-                    color: '#92400e',
-                    fontSize: '0.85rem'
-                  }}>
-                    Da approvare
-                  </span>
-                </td>
-                <td style={{ padding: '0.75rem', display: 'flex', gap: '0.5rem' }}>
-                  <button
-                    onClick={() => handleAzione(m, 'approvato')}
-                    style={{
-                      padding: '0.4rem 0.8rem',
-                      backgroundColor: '#16a34a',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ✓ Approva
-                  </button>
-                  <button
-                    onClick={() => handleAzione(m, 'rifiutato')}
-                    style={{
-                      padding: '0.4rem 0.8rem',
-                      backgroundColor: '#dc2626',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ✕ Rifiuta
-                  </button>
-                </td>
+                  <option value="">Tutti</option>
+                  {[...new Set(mesi.map(m => m.dipendente_nome))].sort().map(nome => (
+                    <option key={nome} value={nome}>{nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '500' }}>Mese:</label>
+                <select
+                  value={filtroMese}
+                  onChange={(e) => setFiltroMese(e.target.value)}
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                >
+                  <option value="">Tutti</option>
+                  {[...new Set(mesi.map(m => m.mese))].sort().map(mese => (
+                    <option key={mese} value={mese}>{NOMI_MESI[parseInt(mese) - 1]}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '500' }}>Anno:</label>
+                <select
+                  value={filtroAnno}
+                  onChange={(e) => setFiltroAnno(e.target.value)}
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                >
+                  <option value="">Tutti</option>
+                  {[...new Set(mesi.map(m => m.anno))].sort((a, b) => b - a).map(anno => (
+                    <option key={anno} value={anno}>{anno}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
+                <th style={{ padding: '0.75rem', minWidth: '150px' }}>Dipendente</th>
+                <th style={{ padding: '0.75rem', minWidth: '80px' }}>Mese</th>
+                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Giorni Inviati</th>
+                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Ore Ordinarie</th>
+                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Supplementari</th>
+                <th style={{ padding: '0.75rem', minWidth: '100px' }}>Straordinari</th>
+                <th style={{ padding: '0.75rem', minWidth: '120px' }}>Stato</th>
               </tr>
-            ))}
+            </thead>
+            <tbody>
+            {mesi
+              .filter(m => (
+                (filtroDipendente === '' || m.dipendente_nome === filtroDipendente) &&
+                (filtroMese === '' || m.mese === filtroMese) &&
+                (filtroAnno === '' || m.anno === filtroAnno)
+              ))
+              .map((m, i) => {
+              const getStatoLabel = () => {
+                switch(m.stato) {
+                  case 'inviato':
+                  case 'rifiutato':
+                    return 'Da approvare';
+                  case 'reinviato':
+                    return 'Da approvare (Reinviato)';
+                  case 'approvato':
+                    return 'Approvato';
+                  default:
+                    return m.stato || 'Sconosciuto';
+                }
+              };
+
+              const getStatoStyle = () => {
+                switch(m.stato) {
+                  case 'inviato':
+                  case 'rifiutato':
+                    return { backgroundColor: '#fef3c7', color: '#92400e' };
+                  case 'reinviato':
+                    return { backgroundColor: '#fde68a', color: '#854d0e' };
+                  case 'approvato':
+                    return { backgroundColor: '#dcfce7', color: '#166534' };
+                  default:
+                    return { backgroundColor: '#f3f4f6', color: '#374151' };
+                }
+              };
+
+              return (
+                <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <td
+                    style={{ padding: '0.75rem', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
+                    onClick={() => navigate(`/admin/approvazioni/${m.dipendente_id}/${m.mese}/${m.anno}`)}
+                  >
+                    {m.dipendente_nome}
+                  </td>
+                  <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
+                  <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
+                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_ordinarie}</td>
+                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_supplementari || 0}</td>
+                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_straordinarie}</td>
+                  <td style={{ padding: '0.75rem' }}>
+                    <span style={{
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: '12px',
+                      ...getStatoStyle()
+                    }}>
+                      {getStatoLabel()}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
-        </table>
+          </table>
+        </div>
+        </>
       )}
     </div>
   )

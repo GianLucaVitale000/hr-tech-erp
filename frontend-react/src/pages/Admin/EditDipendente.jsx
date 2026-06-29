@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getDipendente, updateDipendente, getContratti, getUsers } from '../../services/dipendentiService'
 import { saveOrariSettimanali } from '../../services/dipendenteOrariSettimanaliService'
@@ -51,12 +51,9 @@ function EditDipendente() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [dipendente, setDipendente] = useState(null)
   const [orariConfigurati, setOrariConfigurati] = useState(false)
   const [savingOrari, setSavingOrari] = useState(false)
   const [orariError, setOrariError] = useState('')
-  const [oreSettimanaliFullTime, setOreSettimanaliFullTime] = useState(40)
-  const [oreSettimanaliPartTimeCalcolato, setOreSettimanaliPartTimeCalcolato] = useState(0)
   
   // Stato per gli orari settimanali con due turni per ogni giorno
   const [orariSettimanali, setOrariSettimanali] = useState(
@@ -74,8 +71,14 @@ function EditDipendente() {
   // Calcola il totale settimanale
   const totaleSettimanale = orariSettimanali.reduce((sum, giorno) => sum + (giorno.totaleGiorno || 0), 0)
   
-  // Usa il valore calcolato in tempo reale in base a contratto e percentuale
-  const oreSettimanaliPartTime = oreSettimanaliPartTimeCalcolato
+  // Calcola ore settimanali full-time e part-time in base al contratto e percentuale
+  const { oreSettimanaliFullTime, oreSettimanaliPartTime } = useMemo(() => {
+    const contrattoSelezionato = contratti.find(c => String(c.id) === String(form.contratto_id))
+    const oreFullTime = contrattoSelezionato?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40
+    const percentuale = form.percentuale_part_time || 100
+    const orePartTime = Math.round(oreFullTime * percentuale / 100 * 100) / 100
+    return { oreSettimanaliFullTime: oreFullTime, oreSettimanaliPartTime: orePartTime }
+  }, [form.contratto_id, form.percentuale_part_time, contratti])
 
   useEffect(() => {
     Promise.all([
@@ -103,7 +106,6 @@ function EditDipendente() {
           percentuale_part_time: d.percentuale_part_time || 100,
           giorni_lavorativi_settimanali: d.giorni_lavorativi_settimanali || 5
         })
-        setDipendente(d)
         
         // Assicurati che il contratto del dipendente sia nella lista
         // anche se non è il più recente per il suo codice CNEL
@@ -161,13 +163,6 @@ function EditDipendente() {
         // Controlla se gli orari settimanali sono configurati (almeno un giorno con ore > 0)
         setOrariConfigurati(d.has_orari_settimanali_configurati || (d.orari_settimanali && d.orari_settimanali.some(o => (o.ore_giornaliere_previste || 0) > 0)))
         
-        // Inizializza ore full-time e part-time dal contratto del dipendente
-        const oreFullTimeIniziali = d.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40
-        const percentualeIniziale = d.percentuale_part_time || 100
-        const orePartTimeIniziali = Math.round(oreFullTimeIniziali * percentualeIniziale / 100 * 100) / 100
-        setOreSettimanaliFullTime(oreFullTimeIniziali)
-        setOreSettimanaliPartTimeCalcolato(orePartTimeIniziali)
-        
         // Inizializza gli orari settimanali con i dati esistenti
         if (d.orari_settimanali && d.orari_settimanali.length > 0) {
           // Crea una mappa per giorno con tutti i dati
@@ -213,17 +208,6 @@ function EditDipendente() {
       })
       .finally(() => setLoading(false))
   }, [id, navigate])
-
-  // Calcola ore settimanali full-time e part-time in base al contratto selezionato
-  useEffect(() => {
-    const contrattoSelezionato = contratti.find(c => String(c.id) === String(form.contratto_id))
-    const oreFullTime = contrattoSelezionato?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40
-    const percentuale = form.percentuale_part_time || 100
-    const orePartTime = Math.round(oreFullTime * percentuale / 100 * 100) / 100
-    
-    setOreSettimanaliFullTime(oreFullTime)
-    setOreSettimanaliPartTimeCalcolato(orePartTime)
-  }, [form.contratto_id, form.percentuale_part_time, contratti])
 
   // Aggiorna il totale del giorno quando cambiano i turni
   const handleTurnoChange = (giornoIndex, turno, campo, valore) => {
@@ -279,10 +263,6 @@ function EditDipendente() {
       
       // Aggiorna lo stato
       setOrariConfigurati(true)
-      
-      // Ricarica il dipendente per aggiornare lo stato
-      const res = await getDipendente(id)
-      setDipendente(res.data)
       
     } catch (err) {
       console.error('Errore salvataggio orari:', err)
@@ -524,8 +504,8 @@ function EditDipendente() {
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
           >
             <option value="4">4 giorni</option>
-            <option value="5">5 giorni (lun-ven)</option>
-            <option value="6">6 giorni (lun-sab)</option>
+            <option value="5">5 giorni</option>
+            <option value="6">6 giorni</option>
           </select>
         </div>
 
@@ -540,7 +520,7 @@ function EditDipendente() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontWeight: '600', color: '#92400e' }}>
-                Configurazione Orari Settimanali Part-Time
+                Configurazione Orario Settimanale Part-Time
               </label>
               <span style={{
                 fontSize: '0.875rem',
@@ -734,7 +714,7 @@ function EditDipendente() {
                 {savingOrari ? 'Salvataggio...' : 
                  (totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0) 
                    ? '⚠️ Dati non validi' 
-                   : 'Salva Configurazione Orari'}
+                   : 'Salva Configurazione'}
               </button>
             </div>
           </div>
