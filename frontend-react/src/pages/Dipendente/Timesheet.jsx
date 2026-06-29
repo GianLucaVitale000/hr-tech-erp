@@ -350,19 +350,29 @@ useEffect(() => {
 
     try {
       const riga = getRiga(dataStr)
+      // Per part-time, non inviare ore_supplementari in modo che il backend possa calcolarlo
       const payload = {
         dipendente_id: dipendente.id,
         data: dataStr,
         ore_ordinarie: parseInt(riga.ore_ordinarie) || 0,
-        ore_supplementari: parseInt(riga.ore_supplementari) || 0,
         ore_straordinarie: parseInt(riga.ore_straordinarie) || 0,
         ore_causale: parseInt(riga.ore_causale) || 0,
         causale: riga.causale,
         modalita_lavoro: riga.modalita_lavoro,
       }
+      // Invia anche supplementari, ma il backend per part-time lo sovrascriverà
+      if (isFullTime) {
+        payload.ore_supplementari = parseInt(riga.ore_supplementari) || 0;
+      }
 
       const res = await salvaPresenza(payload)
-      setRighe((prev) => ({ ...prev, [dataStr]: normalizzaRiga(res.data) }))
+      // Ricarica tutte le presenze per avere i dati aggiornati dal backend
+      const resPresenze = await getPresenze(dipendente.id, mese, anno)
+      const mappa = {}
+      resPresenze.data.forEach((p) => {
+        mappa[p.data] = normalizzaRiga(p)
+      })
+      setRighe(mappa)
 
       setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: 'salvato' }))
       setTimeout(() => {
