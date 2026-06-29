@@ -354,15 +354,15 @@ useEffect(() => {
       const payload = {
         dipendente_id: dipendente.id,
         data: dataStr,
-        ore_ordinarie: parseInt(riga.ore_ordinarie) || 0,
-        ore_straordinarie: parseInt(riga.ore_straordinarie) || 0,
-        ore_causale: parseInt(riga.ore_causale) || 0,
+        ore_ordinarie: parseFloat(riga.ore_ordinarie) || 0,
+        ore_straordinarie: parseFloat(riga.ore_straordinarie) || 0,
+        ore_causale: parseFloat(riga.ore_causale) || 0,
         causale: riga.causale,
         modalita_lavoro: riga.modalita_lavoro,
       }
       // Invia anche supplementari, ma il backend per part-time lo sovrascriverà
       if (isFullTime) {
-        payload.ore_supplementari = parseInt(riga.ore_supplementari) || 0;
+        payload.ore_supplementari = parseFloat(riga.ore_supplementari) || 0;
       }
 
       const res = await salvaPresenza(payload)

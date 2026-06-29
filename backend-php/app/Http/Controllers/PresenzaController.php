@@ -80,6 +80,10 @@ class PresenzaController extends Controller
                 // Sposta l'eccedenza in supplementari
                 $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
                 $validated['ore_ordinarie'] = $oreOrdinarieMax;
+            } else {
+                // Se le ore ordinarie sono <= al limite, azzera le supplementari
+                // per evitare valori persistiti da modifiche precedenti
+                $validated['ore_supplementari'] = 0;
             }
         }
         
@@ -160,6 +164,10 @@ class PresenzaController extends Controller
             if ($oreInserite > $oreOrdinarieMax) {
                 $validated['ore_supplementari'] = $oreInserite - $oreOrdinarieMax;
                 $validated['ore_ordinarie'] = $oreOrdinarieMax;
+            } else {
+                // Se le ore ordinarie sono <= al limite, azzera le supplementari
+                // per evitare valori persistiti da modifiche precedenti
+                $validated['ore_supplementari'] = 0;
             }
         }
         
