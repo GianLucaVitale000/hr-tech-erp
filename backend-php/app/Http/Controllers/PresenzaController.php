@@ -178,24 +178,45 @@ class PresenzaController extends Controller
 
     public function inviaMese(Request $request)
     {
-        $validated = $request->validate([
-            'dipendente_id' => 'required|exists:dipendenti,id',
-            'mese' => 'required|integer|min:1|max:12',
-            'anno' => 'required|integer',
-        ]);
+        try {
+            $validated = $request->validate([
+                'dipendente_id' => 'required|exists:dipendenti,id',
+                'mese' => 'required|integer|min:1|max:12',
+                'anno' => 'required|integer',
+            ]);
 
-        Presenza::where('dipendente_id', $validated['dipendente_id'])
-            ->whereMonth('data', $validated['mese'])
-            ->whereYear('data', $validated['anno'])
-            ->update(['stato' => 'inviato']);
+            // Controlla se ci sono presenze con stato 'rifiutato' o 'reinviato' per questo mese
+            $esisteRifiutatoOReinviato = Presenza::where('dipendente_id', $validated['dipendente_id'])
+                ->whereMonth('data', $validated['mese'])
+                ->whereYear('data', $validated['anno'])
+                ->whereIn('stato', ['rifiutato', 'reinviato'])
+                ->exists();
 
-        return response()->json(['message' => 'Mese inviato per approvazione']);
+            $nuovoStato = $esisteRifiutatoOReinviato ? 'reinviato' : 'inviato';
+
+            $updated = Presenza::where('dipendente_id', $validated['dipendente_id'])
+                ->whereMonth('data', $validated['mese'])
+                ->whereYear('data', $validated['anno'])
+                ->update(['stato' => $nuovoStato]);
+
+            if ($updated === 0) {
+                return response()->json([
+                    'error' => 'Nessuna presenza trovata per questo dipendente/mese/anno. Salva prima le presenze.'
+                ], 404);
+            }
+
+            return response()->json(['message' => 'Mese inviato per approvazione']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Errore durante l\'invio: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function inAttesa()
     {
         $mesi = Presenza::with('dipendente.user')
-            ->where('stato', 'inviato')
+            ->whereIn('stato', ['inviato', 'approvato', 'rifiutato', 'reinviato'])
             ->get()
             ->groupBy(function ($p) {
                 return $p->dipendente_id . '-' . substr($p->data, 0, 7);
@@ -210,6 +231,9 @@ class PresenzaController extends Controller
                     'totale_giorni' => $gruppo->count(),
                     'totale_ore_ordinarie' => $gruppo->sum('ore_ordinarie'),
                     'totale_ore_straordinarie' => $gruppo->sum('ore_straordinarie'),
+                    'totale_ore_supplementari' => $gruppo->sum('ore_supplementari'),
+                    'percentuale_part_time' => $prima->dipendente->percentuale_part_time ?? 100,
+                    'stato' => $prima->stato,
                 ];
             })
             ->values();
@@ -223,7 +247,7 @@ class PresenzaController extends Controller
             'dipendente_id' => 'required|exists:dipendenti,id',
             'mese' => 'required|integer|min:1|max:12',
             'anno' => 'required|integer',
-            'stato' => 'required|in:approvato,rifiutato',
+            'stato' => 'required|in:approvato,rifiutato,reinviato',
         ]);
 
         Presenza::where('dipendente_id', $validated['dipendente_id'])
@@ -240,7 +264,7 @@ class PresenzaController extends Controller
             ->where('stato', 'approvato')
             ->get()
             ->groupBy(function ($p) {
-                return $p->dipendente_id . '-' . substr($p->data, 0, 7);
+                return substr($p->data, 0, 7);
             })
             ->map(function ($gruppo) {
                 $prima = $gruppo->first();
