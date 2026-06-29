@@ -47,9 +47,8 @@ class PresenzaController extends Controller
         // Ottieni le ore previste per questo giorno specifico
         $oreOrdinarieMax = $dipendente->getOrePrevistePerGiorno($giornoSettimana);
         
-        // Per ora manteniamo il limite di 4 ore straordinarie giornaliere
-        // (può essere reso configurabile in futuro)
-        $oreStraordinarieMax = 4;
+        // Limite consigliato per ore straordinarie giornaliere
+        $oreStraordinarieLimiteConsigliato = 4;
         
         // Per causali come ferie/malattia, le ore_causale devono corrispondere alle ore previste per quel giorno
         // Non un valore fisso di 8 ore
@@ -59,12 +58,17 @@ class PresenzaController extends Controller
             'dipendente_id' => 'required|exists:dipendenti,id',
             'data' => 'required|date',
             'ore_ordinarie' => "nullable|numeric|min:0",
-            'ore_straordinarie' => "nullable|numeric|min:0|max:$oreStraordinarieMax",
+            'ore_straordinarie' => "nullable|numeric|min:0",
             'ore_supplementari' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
+
+        // Warning se ore straordinarie superano il limite consigliato
+        if (isset($validated['ore_straordinarie']) && (float)$validated['ore_straordinarie'] > $oreStraordinarieLimiteConsigliato) {
+            $validated['warning'] = 'Attenzione: superato limite consigliato di straordinario giornaliero';
+        }
         
         // GESTIONE SUPPLEMENTARI:
         // Per i dipendenti part-time con configurazione orari settimanali,
@@ -128,18 +132,26 @@ class PresenzaController extends Controller
         
         // Ottieni le ore previste per questo giorno specifico
         $oreOrdinarieMax = $dipendente->getOrePrevistePerGiorno($giornoSettimana);
-        $oreStraordinarieMax = 4;
+        
+        // Limite consigliato per ore straordinarie giornaliere
+        $oreStraordinarieLimiteConsigliato = 4;
+        
         $oreCausaleMax = $oreOrdinarieMax;
 
         $validated = $request->validate([
             'ore_ordinarie' => "nullable|numeric|min:0",
-            'ore_straordinarie' => "nullable|numeric|min:0|max:$oreStraordinarieMax",
+            'ore_straordinarie' => "nullable|numeric|min:0",
             'ore_supplementari' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
+
+        // Warning se ore straordinarie superano il limite consigliato
+        if (isset($validated['ore_straordinarie']) && (float)$validated['ore_straordinarie'] > $oreStraordinarieLimiteConsigliato) {
+            $validated['warning'] = 'Attenzione: superato limite consigliato di straordinario giornaliero';
+        }
         
         // GESTIONE SUPPLEMENTARI:
         if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {

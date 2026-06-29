@@ -293,6 +293,7 @@ CREATE TABLE `presenze` (
   `data_inizio_malattia` date DEFAULT NULL,
   `data_fine_malattia` date DEFAULT NULL,
   `giustificativo_infortunio_path` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `warning` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `presenze_dipendente_id_data_unique` (`dipendente_id`,`data`),
   CONSTRAINT `presenze_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE

@@ -23,6 +23,7 @@ class Presenza extends Model
     'data_inizio_malattia',
     'data_fine_malattia',
     'giustificativo_infortunio_path',
+    'warning',
 ];
 
     public function dipendente()
