@@ -61,8 +61,14 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
         SELECT 
             d.id AS dipendente_id,
             d.percentuale_part_time,
-            COALESCE(d.ore_settimanali_teoriche, 40) AS ore_settimanali_teoriche
+            COALESCE(rc.ore_settimanali_teoriche, 40) AS ore_settimanali_teoriche
         FROM dipendenti d
+        LEFT JOIN contratti c ON d.contratto_id = c.id
+        LEFT JOIN (
+            SELECT contratto_id, MAX(ore_settimanali_teoriche) as ore_settimanali_teoriche
+            FROM regole_calcolo_contratto
+            GROUP BY contratto_id
+        ) rc ON c.id = rc.contratto_id
     """
     cursor.execute(orari_query)
     orari_dipendenti = cursor.fetchall()
@@ -76,7 +82,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
     colonne_dettaglio = [
         'Dipendente', 'Codice Fiscale', 'Data', 'Ore Ordinarie',
-        'Ore Eccedenti', 'Ore Straordinarie', 'Causale', 'Codice Paga', 'Modalità Lavoro',
+        'Ore Eccedenti', 'Ore Straordinarie', 'Codice Paga', 'Ore Causale', 'Modalità Lavoro',
         'Giustificativo Trasferta', 'Protocollo Malattia',
         'Giustificativo Infortunio'
     ]
@@ -108,8 +114,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
         df_dettaglio = df[[
             'nome_dipendente', 'codice_fiscale', 'data',
-            'ore_ordinarie', 'ore_eccedenti', 'ore_straordinarie', 'causale', 'codice_paga',
-            'modalita_label', 'link_trasferta', 'protocollo_malattia',
+            'ore_ordinarie', 'ore_eccedenti', 'ore_straordinarie', 'codice_paga', 'ore_causale', 'modalita_label',
+            'link_trasferta', 'protocollo_malattia',
             'link_infortunio'
         ]].copy()
         df_dettaglio.columns = colonne_dettaglio
@@ -127,37 +133,39 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             totale_eccedenti = gruppo['ore_eccedenti'].astype(float).sum()
             totale_straordinarie_dirette = gruppo['ore_straordinarie'].astype(float).sum()
             
-            # Per part-time: calcola settimanale
+            # Ottieni ore settimanali previste per il dipendente (full-time del CCNL)
+            dipendente_id = gruppo['dipendente_id'].iloc[0]
+            orari_info = orari_map.get(str(dipendente_id), {})
+            ore_settimanali_full_time_ccnl = orari_info.get('ore_settimanali_teoriche', 40.0)
+            
+            # Calcola limite mensile: 52 settimane / 12 mesi = 4.333... settimane/mese
+            ore_mensili_full_time = ore_settimanali_full_time_ccnl * (52 / 12)
+            
+            # Per part-time: calcola supplementari mensili
             if float(pt) < 100:
-                # Ottieni ore settimanali previste per il dipendente
-                dipendente_id = gruppo['dipendente_id'].iloc[0]
-                orari_info = orari_map.get(str(dipendente_id), {})
-                ore_settimanali_pt = orari_info.get('ore_settimanali_teoriche', 0)
+                # Ore settimanali PT (già scontate dalla percentuale)
+                ore_settimanali_pt = ore_settimanali_full_time_ccnl * (float(pt) / 100)
+                ore_mensili_pt = ore_settimanali_pt * (52 / 12)
                 
-                # Calcola totale ore (ordinarie + eccedenti)
-                totale_ore_lavorate = totale_ordinarie + totale_eccedenti
+                # Calcola totale ore eccedenti mensili
+                # Note: per part-time le straordinarie dirette dovrebbero essere 0,
+                # ma le includiamo per retrocompatibilità con dati storici
+                totale_ore_eccedenti_mensile = totale_eccedenti + totale_straordinarie_dirette
                 
-                # Ore settimanali full-time (standard 40)
-                ore_settimanali_full_time = 40.0
+                # Logica di suddivisione MENSILE:
+                # - Fino a ore_mensili_pt: sono ore ordinarie (già conteggiate in totale_ordinarie)
+                # - Da ore_mensili_pt a ore_mensili_full_time: sono supplementari
+                # - Oltre ore_mensili_full_time: sono straordinarie
                 
-                # Logica di suddivisione:
-                # - Fino a ore_settimanali_pt: sono ore ordinarie (già conteggiate)
-                # - Da ore_settimanali_pt a ore_settimanali_full_time: sono supplementari
-                # - Oltre ore_settimanali_full_time: sono straordinarie
-                if totale_ore_lavorate <= ore_settimanali_pt:
-                    # Tutto è ordinario, nessuna eccedenza
-                    totale_supplementari = 0
-                    totale_straordinarie = 0
-                elif totale_ore_lavorate <= ore_settimanali_full_time:
-                    # Le eccedenze sono supplementari
-                    totale_supplementari = totale_ore_lavorate - ore_settimanali_pt
-                    totale_straordinarie = 0
-                else:
-                    # Parte supplementari, parte straordinarie
-                    totale_supplementari = ore_settimanali_full_time - ore_settimanali_pt
-                    totale_straordinarie = totale_ore_lavorate - ore_settimanali_full_time
+                # Supplementari: la parte di eccedenti che non supera il full-time mensile del CCNL
+                totale_supplementari = min(
+                    totale_ore_eccedenti_mensile,
+                    max(0, ore_mensili_full_time - ore_mensili_pt)
+                )
+                # Straordinarie: la parte che supera il full-time mensile del CCNL
+                totale_straordinarie = max(0, totale_ore_eccedenti_mensile - totale_supplementari)
             else:
-                # Per full-time: le ore eccedenti non esistono, le straordinarie sono già separate
+                # Per full-time: non ci sono supplementari
                 totale_supplementari = 0
                 totale_straordinarie = totale_straordinarie_dirette
             
@@ -167,7 +175,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
                 'Periodo': periodo,
                 'Totale Ore Ordinarie': totale_ordinarie,
                 'Totale Ore Supplementari': totale_supplementari,
-                'Totale Ore Straordinarie': totale_straordinarie + totale_straordinarie_dirette,
+                'Totale Ore Straordinarie': totale_straordinarie,
                 'Totale Ferie': gruppo[gruppo['causale'] == 'ferie']['ore_causale'].astype(float).sum(),
                 'Totale Permessi': gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale'].astype(float).sum(),
                 'Totale Malattia': gruppo[gruppo['causale'] == 'malattia']['ore_causale'].astype(float).sum(),
