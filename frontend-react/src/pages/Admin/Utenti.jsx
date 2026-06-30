@@ -79,7 +79,7 @@ function Utenti() {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'left' }}>
+              <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
                 <th style={{ padding: '0.75rem' }}>Nome</th>
                 <th style={{ padding: '0.75rem' }}>Email</th>
                 <th style={{ padding: '0.75rem' }}>Ruolo</th>

@@ -43,6 +43,7 @@ function EditDipendente() {
     user_id: '',
     contratto_id: '',
     codice_fiscale: '',
+    iban: '',
     livello: '',
     mansione: '',
     data_assunzione: '',
@@ -100,6 +101,7 @@ function EditDipendente() {
           // Converte in stringa per garantire compatibilità con il select HTML
           contratto_id: String(d.contratto?.id || d.contratto_id || '').toString(),
           codice_fiscale: d.codice_fiscale || '',
+          iban: d.iban || '',
           livello: d.livello || '',
           mansione: d.mansione || '',
           data_assunzione: d.data_assunzione || '',
@@ -389,6 +391,20 @@ function EditDipendente() {
             value={form.codice_fiscale}
             onChange={handleChange}
             placeholder="Es: RSSMRA90A01H501Z"
+            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            IBAN
+          </label>
+          <input
+            type="text"
+            name="iban"
+            value={form.iban}
+            onChange={handleChange}
+            placeholder="Es: IT60X0542811101000000123456"
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
           />
         </div>

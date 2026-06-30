@@ -31,7 +31,13 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             d.id AS dipendente_id,
             u.name AS nome_dipendente,
             d.codice_fiscale,
+            d.iban,
+            d.data_assunzione,
+            c.codice_cnel AS ccnl_codice,
+            d.livello,
+            d.mansione,
             d.percentuale_part_time,
+            d.giorni_lavorativi_settimanali,
             DATE_FORMAT(p.data, '%d/%m/%Y') AS data,
             DAYOFWEEK(p.data) - 1 AS giorno_settimana,  -- 0=Dom, 1=Lun, etc.
             p.ore_ordinarie,
@@ -49,6 +55,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
         FROM presenze p
         JOIN dipendenti d ON d.id = p.dipendente_id
         JOIN users u ON u.id = d.user_id
+        LEFT JOIN contratti c ON d.contratto_id = c.id
         WHERE MONTH(p.data) = %s AND YEAR(p.data) = %s AND p.stato = 'approvato'
         ORDER BY u.name, p.data
     """
@@ -90,12 +97,16 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
     if not righe:
         df_dettaglio = pd.DataFrame(columns=colonne_dettaglio)
         df_riepilogo = pd.DataFrame(columns=[
-            'Dipendente', 'Codice Fiscale', 'Periodo', 'Totale Ore Ordinarie',
+            'Dipendente', 'Codice Fiscale', 'IBAN',
+            'Data Assunzione', 'CCNL Applicato', 'Livello', 'Mansione', '% Part-Time', 'Gg. Lav. Sett.',
+            'Periodo', 'Totale Ore Ordinarie',
             'Totale Ore Supplementari', 'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
-            'Totale Malattia'
+            'Totale Malattia', 'Totale Infortunio', 'Totale Maternità'
         ])
     else:
         df = pd.DataFrame(righe)
+        # Assicurati che percentuale_part_time sia float per il groupby
+        df['percentuale_part_time'] = pd.to_numeric(df['percentuale_part_time'], errors='coerce').fillna(100)
         df['codice_paga'] = df['causale'].map(MAPPA_CODICI_PAGHE)
         df['modalita_label'] = df['modalita_lavoro'].map(MAPPA_MODALITA).fillna('')
 
@@ -128,6 +139,15 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
 
         riepilogo = []
         for (nome, cf, pt), gruppo in df.groupby(['nome_dipendente', 'codice_fiscale', 'percentuale_part_time']):
+            # Ottieni dati anagrafici dal primo record del gruppo
+            primo = gruppo.iloc[0]
+            iban = primo['iban'] if 'iban' in primo and primo['iban'] else None
+            data_assunzione = primo['data_assunzione'] if 'data_assunzione' in primo else None
+            ccnl = primo['ccnl_codice'] if 'ccnl_codice' in primo else None
+            livello = primo['livello'] if 'livello' in primo else None
+            mansione = primo['mansione'] if 'mansione' in primo else None
+            gg_lav_sett = primo['giorni_lavorativi_settimanali'] if 'giorni_lavorativi_settimanali' in primo else None
+            
             # Calcola totali per il dipendente
             totale_ordinarie = gruppo['ore_ordinarie'].astype(float).sum()
             totale_eccedenti = gruppo['ore_eccedenti'].astype(float).sum()
@@ -169,16 +189,29 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
                 totale_supplementari = 0
                 totale_straordinarie = totale_straordinarie_dirette
             
+            # Safely calculate sums, handling None/NaN values
+            def safe_sum(series):
+                return series.dropna().astype(float).sum()
+            
             riepilogo.append({
                 'Dipendente': nome,
                 'Codice Fiscale': cf,
+                'IBAN': iban or '',
+                'Data Assunzione': data_assunzione or '',
+                'CCNL Applicato': ccnl or '',
+                'Livello': livello or '',
+                'Mansione': mansione or '',
+                '% Part-Time': pt,
+                'Gg. Lav. Sett.': gg_lav_sett,
                 'Periodo': periodo,
                 'Totale Ore Ordinarie': totale_ordinarie,
                 'Totale Ore Supplementari': totale_supplementari,
                 'Totale Ore Straordinarie': totale_straordinarie,
-                'Totale Ferie': gruppo[gruppo['causale'] == 'ferie']['ore_causale'].astype(float).sum(),
-                'Totale Permessi': gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale'].astype(float).sum(),
-                'Totale Malattia': gruppo[gruppo['causale'] == 'malattia']['ore_causale'].astype(float).sum(),
+                'Totale Ferie': safe_sum(gruppo[gruppo['causale'] == 'ferie']['ore_causale']),
+                'Totale Permessi': safe_sum(gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale']),
+                'Totale Malattia': safe_sum(gruppo[gruppo['causale'] == 'malattia']['ore_causale']),
+                'Totale Infortunio': safe_sum(gruppo[gruppo['causale'] == 'infortunio']['ore_causale']),
+                'Totale Maternità': safe_sum(gruppo[gruppo['causale'] == 'maternita']['ore_causale']),
             })
         df_riepilogo = pd.DataFrame(riepilogo)
 
