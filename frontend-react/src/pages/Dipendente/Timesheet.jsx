@@ -367,7 +367,7 @@ useEffect(() => {
         payload.ore_eccedenti = parseFloat(riga.ore_eccedenti) || 0;
       }
 
-      const res = await salvaPresenza(payload)
+      await salvaPresenza(payload)
       // Ricarica tutte le presenze per avere i dati aggiornati dal backend
       const resPresenze = await getPresenze(dipendente.id, mese, anno)
       const mappa = {}

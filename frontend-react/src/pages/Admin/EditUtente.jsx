@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getUser, updateUser, getContratti } from '../../services/dipendentiService'
+import { getUser, updateUser } from '../../services/dipendentiService'
 
 function EditUtente() {
   const { id } = useParams()
-  const [contratti, setContratti] = useState([])
-  const [contrattiFilter, setContrattiFilter] = useState('')
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -19,10 +17,9 @@ function EditUtente() {
 
   useEffect(() => {
     Promise.all([
-      getUser(id).catch(() => null),
-      getContratti().catch(() => ({ data: [] }))
+      getUser(id).catch(() => null)
     ])
-      .then(([userRes, contrattiRes]) => {
+      .then(([userRes]) => {
         if (!userRes || !userRes.data) {
           setError('Utente non trovato')
           return
@@ -35,7 +32,6 @@ function EditUtente() {
           password_confirmation: '',
           role: u.roles?.length > 0 ? u.roles[0].name : 'dipendente'
         })
-        setContratti(contrattiRes?.data || [])
       })
       .catch(() => setError('Utente non trovato'))
       .finally(() => setLoading(false))

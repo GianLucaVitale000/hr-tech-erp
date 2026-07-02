@@ -1,4 +1,4 @@
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 
@@ -46,8 +46,14 @@ function AdminDashboard() {
               fontWeight: '500',
               borderBottom: '3px solid transparent'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#374151';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.color = '#374151';
+            }}
           >
             Gestione Utenti
           </button>
@@ -63,8 +69,14 @@ function AdminDashboard() {
               fontWeight: '500',
               borderBottom: '3px solid transparent'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#374151';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.color = '#374151';
+            }}
           >
             Gestione CCNL
           </button>
@@ -80,8 +92,14 @@ function AdminDashboard() {
               fontWeight: '500',
               borderBottom: '3px solid transparent'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#374151';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.color = '#374151';
+            }}
           >
             Anagrafica Dipendenti
           </button>
@@ -97,8 +115,14 @@ function AdminDashboard() {
               fontWeight: '500',
               borderBottom: '3px solid transparent'
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#e5e7eb'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = '#374151';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.color = '#374151';
+            }}
           >
             Approvazione Fogli Ore
           </button>

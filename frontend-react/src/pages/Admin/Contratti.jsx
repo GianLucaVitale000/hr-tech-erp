@@ -104,12 +104,17 @@ function Contratti() {
     }
   };
 
-  const fetchContratti = () => {
-    setLoading(true)
-    Promise.all([
-      getContrattiAllVersions(),
-      getRegoleCalcolo()
-    ]).then(([contrattiRes, regoleRes]) => {
+  const fetchContratti = async (showLoading = false) => {
+    if (showLoading) {
+      setLoading(true)
+    }
+
+    try {
+      const [contrattiRes, regoleRes] = await Promise.all([
+        getContrattiAllVersions(),
+        getRegoleCalcolo()
+      ])
+
       setContratti(contrattiRes.data)
       // Crea mappa contratto_id -> regola
       const map = {}
@@ -117,12 +122,51 @@ function Contratti() {
         map[r.contratto_id] = r
       })
       setRegoleMap(map)
-    }).catch(() => setError('Errore nel caricamento contratti'))
-      .finally(() => setLoading(false))
+    } catch {
+      setError('Errore nel caricamento contratti')
+    } finally {
+      if (showLoading) {
+        setLoading(false)
+      }
+    }
   }
 
   useEffect(() => {
-    fetchContratti()
+    let cancelled = false
+
+    const loadContratti = async () => {
+      try {
+        const [contrattiRes, regoleRes] = await Promise.all([
+          getContrattiAllVersions(),
+          getRegoleCalcolo()
+        ])
+
+        if (cancelled) {
+          return
+        }
+
+        setContratti(contrattiRes.data)
+        const map = {}
+        regoleRes.data.forEach(r => {
+          map[r.contratto_id] = r
+        })
+        setRegoleMap(map)
+      } catch {
+        if (!cancelled) {
+          setError('Errore nel caricamento contratti')
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadContratti()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const openRegoleModal = (contratto) => {
@@ -387,7 +431,7 @@ function Contratti() {
                         .map((c) => {
                         const regola = regoleMap[c.id];
                         return (
-                          <tr key={c.id} style={{ backgroundColor: '#16171d', borderBottom: '1px solid #e5e7eb' }}>
+                          <tr key={c.id} style={{ backgroundColor: '#374151', borderBottom: '1px solid #e5e7eb' }}>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem' }}>{c.nome_contratto}</td>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
