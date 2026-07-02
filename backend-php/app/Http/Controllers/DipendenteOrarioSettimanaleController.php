@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dipendente;
-use App\Models\DipendenteOrarioSettimanale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -90,16 +89,35 @@ class DipendenteOrarioSettimanaleController extends Controller
         ]);
 
         $oreSettimanaliPartTime = $dipendente->ore_settimanali_part_time;
-        $totaleOre = array_sum(array_column($validated['orari'], 'ore_giornaliere_previste'));
 
-        // Validazione: la somma non può superare le ore settimanali part-time
-        if ($totaleOre > $oreSettimanaliPartTime) {
+        // Normalizza ogni giornata a 2 decimali prima del calcolo del totale.
+        // Questo allinea il controllo backend con il valore mostrato nel frontend.
+        $orariNormalizzati = array_map(function (array $orario) {
+            $orario['ore_giornaliere_previste'] = round((float) ($orario['ore_giornaliere_previste'] ?? 0), 2);
+            return $orario;
+        }, $validated['orari']);
+
+        $totaleOre = round(array_sum(array_column($orariNormalizzati, 'ore_giornaliere_previste')), 2);
+        $oreSettimanaliPartTime = round((float) $oreSettimanaliPartTime, 2);
+
+        // Confronto in minuti per evitare problemi residui di floating point
+        $totaleMinuti = (int) round($totaleOre * 60);
+        $limiteMinuti = (int) round($oreSettimanaliPartTime * 60);
+
+        // Validazione: la somma deve coincidere esattamente con le ore settimanali part-time
+        if ($totaleMinuti !== $limiteMinuti) {
             return response()->json([
                 'error' => sprintf(
-                    'La somma delle ore (%s) supera le ore settimanali part-time consentite (%.2f)',
+                    'La somma delle ore (%s) deve coincidere esattamente con le ore settimanali part-time consentite (%.2f)',
                     $totaleOre,
                     $oreSettimanaliPartTime
-                )
+                ),
+                'totale_ore' => $totaleOre,
+                'ore_settimanali_part_time' => $oreSettimanaliPartTime,
+                'totale_minuti' => $totaleMinuti,
+                'limite_minuti' => $limiteMinuti,
+                'differenza_minuti' => $totaleMinuti - $limiteMinuti,
+                'orari' => $orariNormalizzati,
             ], 422);
         }
 
@@ -110,7 +128,7 @@ class DipendenteOrarioSettimanaleController extends Controller
             // Aggiorna o crea i record per ogni giorno
             // Usa updateOrCreate per gestire correttamente i giorni con 0 ore
             // e per evitare problemi con il constraint UNIQUE
-            foreach ($validated['orari'] as $orarioData) {
+            foreach ($orariNormalizzati as $orarioData) {
                 $dipendente->orariSettimanali()->updateOrCreate(
                     [
                         'giorno_settimana' => $orarioData['giorno_settimana'],
