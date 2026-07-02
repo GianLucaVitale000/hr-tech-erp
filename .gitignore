@@ -68,6 +68,7 @@ microservice-python/test-output/
 # ========================
 # VSC e sistema operativo
 # ========================
+.vscode/
 .vscode/settings.json
 .DS_Store
 Thumbs.db
