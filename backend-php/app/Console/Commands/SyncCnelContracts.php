@@ -43,6 +43,12 @@ class SyncCnelContracts extends Command
         $this->info('========================================');
         
         try {
+            // 0. Pulizia automatica dei contratti ARAN esistenti
+            $this->info('');
+            $this->info('→ Pulizia contratti ARAN esistenti...');
+            $deletedCount = $this->cleanAranContracts();
+            $this->info("  ✓ Eliminati: {$deletedCount} contratti ARAN");
+
             // 1. Elaborazione ARCHIVIO CORRENTE
             $this->info('');
             $this->info('→ Sincronizzazione ARCHIVIO CORRENTE...');
@@ -57,6 +63,7 @@ class SyncCnelContracts extends Command
             $this->info('========================================');
             $this->info("Sincronizzazione completata con successo!");
             $this->info("Contratti elaborati:");
+            $this->info("  - Eliminati ARAN: {$deletedCount}");
             $this->info("  - Archivio Corrente: {$correnteCount}");
             $this->info("  - Archivio Storico: {$storicoCount}");
             $this->info("  - Totale: " . ($correnteCount + $storicoCount));
@@ -71,6 +78,28 @@ class SyncCnelContracts extends Command
             Log::error('CNEL Sync Error: ' . $e->getMessage());
             return Command::FAILURE;
         }
+    }
+
+    /**
+     * Elimina i contratti ARAN esistenti dal database
+     * Viene eseguito automaticamente all'inizio di ogni sincronizzazione
+     *
+     * @return int Numero di contratti eliminati
+     */
+    private function cleanAranContracts(): int
+    {
+        // Codici CNEL noti di ARAN
+        $codiciAranNoti = ['S225', 'S003', 'S125', 'S105', 'S001', 'S002', 'S004', 'S000', 'S025', 'S005', 'S305', 'S205', 'S325'];
+        
+        // Elimina contratti con ARAN nelle parti firmatarie o nel titolo
+        $deleted = Contratto::where(function($query) use ($codiciAranNoti) {
+            $query->where('partiDatorialiFirmatarie', 'LIKE', '%ARAN%')
+                  ->orWhere('partiSindacaliFirmatarie', 'LIKE', '%ARAN%')
+                  ->orWhere('nome_contratto', 'LIKE', '%ARAN%')
+                  ->orWhereIn('codice_cnel', $codiciAranNoti);
+        })->delete();
+
+        return $deleted;
     }
 
     /**
@@ -205,47 +234,89 @@ class SyncCnelContracts extends Command
     private function shouldExclude(array $item): bool
     {
         $titolo = strtoupper($item['titoloCcnl'] ?? $item['titolo'] ?? '');
+        $codiceCnel = strtoupper($item['codiceCcnl'] ?? '');
+
+        // Normalizza parti firmatarie per ricerca ARAN
+        $partiDatorialiRaw = $item['partiDatorialiFirmatarie'] ?? [];
+        $partiSindacaliRaw = $item['partiSindacaliFirmatarie'] ?? [];
         
-        // Parole chiave per escludere il settore pubblico
+        // Gestisce sia array che stringa per parti firmatarie
+        $partiDatoriali = is_array($partiDatorialiRaw) 
+            ? implode('|', array_map('strtoupper', $partiDatorialiRaw)) 
+            : strtoupper((string) $partiDatorialiRaw);
+        $partiSindacali = is_array($partiSindacaliRaw)
+            ? implode('|', array_map('strtoupper', $partiSindacaliRaw))
+            : strtoupper((string) $partiSindacaliRaw);
+
+        // ===========================================
+        // ESCLUSIONE ARAN (pubblico impiego)
+        // ===========================================
+        
+        // Controlla ARAN in parti firmatarie e titolo (varie forme)
+        $aranPatterns = ['ARAN', 'A.R.A.N.', 'AGENZIA PER LA RAPPRESENTAZIONE NEGOZIALE'];
+        foreach ($aranPatterns as $pattern) {
+            $upperPattern = strtoupper($pattern);
+            if (str_contains($partiDatoriali, $upperPattern) || 
+                str_contains($partiSindacali, $upperPattern) ||
+                str_contains($titolo, $upperPattern)) {
+                Log::debug("[ARAN] Escluso per pattern '{$pattern}': {$item['codiceCcnl']}");
+                return true;
+            }
+        }
+
+        // ===========================================
+        // ESCLUSIONE SETTORE PUBBLICO (parole chiave)
+        // ===========================================
         $paroleEscluse = [
             'MINISTERI', 'MINISTERO',
             'REGIONE', 'REGIONI',
             'PROVINCIA', 'PROVINCE',
             'COMUNE', 'COMUNI',
             'QUADRO',
-            'SOLIDARIETA',
-            'SOLIDARIETÀ',
+            'SOLIDARIETA', 'SOLIDARIETÀ',
             'PUBBLICA AMMINISTRAZIONE',
             'PUBBLICO IMPIEGO',
             'ENTE PUBBLICO',
-            'PUBBLICHE',
-            'PUBBLICI',
+            'PUBBLICHE', 'PUBBLICI',
             'SCUOLA',
-            'SANITA',
-            'SANITÀ',
+            'SANITA', 'SANITÀ',
             'ASL',
-            'AZIENDA SANITARIA',
-            'UNIVERSITA',
-            'UNIVERSITÀ',
+            'AZIENDA SANITARIA', 'AZIENDE SANITARIE',
+            'UNIVERSITA', 'UNIVERSITÀ',
             'DIFESA',
             'ESERCITO',
             'MARINA',
             'AERONAUTICA',
-            'POLIZIA',
+            'POLIZIA', 'POLIZIA DI STATO',
             'CARABINIERI',
             'VIGILI DEL FUOCO',
+            'PUBBLICHE AMMINISTRAZIONI',
+            'AMMINISTRAZIONE PUBBLICA',
+            'SETTORE PUBBLICO',
+            'COMPARTO PUBBLICO',
+            'DIPENDENTI PUBBLICI',
+            'FUNZIONE PUBBLICA',
         ];
 
         foreach ($paroleEscluse as $parola) {
             if (str_contains($titolo, $parola)) {
+                Log::debug("[PUBBLICO] Escluso per parola chiave '{$parola}': {$item['codiceCcnl']}");
                 return true;
             }
         }
 
-        // Esclusione per codice ambito (se il pubblico ha un ambito specifico)
+        // ===========================================
+        // ESCLUSIONE PER CODICE AMBITO
+        // ===========================================
         // I contratti privati hanno tipicamente codiceAmbito = 4
-        if (isset($item['codiceAmbito']) && $item['codiceAmbito'] != '4') {
-            return true;
+        // ARAN e altri enti pubblici hanno codici diversi
+        if (isset($item['codiceAmbito'])) {
+            $ambito = (string) $item['codiceAmbito'];
+            // Se non e' ambito 4 (privato), escludi
+            if ($ambito !== '4') {
+                Log::debug("[AMBITO] Escluso per codice ambito '{$ambito}': {$item['codiceCcnl']}");
+                return true;
+            }
         }
 
         return false;
