@@ -3,18 +3,58 @@
 # ========================
 backend-php/vendor/
 backend-php/.env
+backend-php/.env.backup
+backend-php/.env.production
+backend-php/.phpunit.result.cache
+backend-php/.phpunit.cache/
+backend-php/.codex/
+backend-php/.cursor/
+backend-php/.idea/
+backend-php/.nova/
+backend-php/.vscode/
+backend-php/.zed/
+backend-php/auth.json
+backend-php/Homestead.json
+backend-php/Homestead.yaml
+backend-php/_ide_helper.php
+backend-php/storage/*.key
+backend-php/storage/pail/
 backend-php/storage/logs/
 backend-php/storage/framework/cache/
 backend-php/storage/framework/sessions/
+backend-php/storage/framework/testing/
+backend-php/storage/framework/views/
+backend-php/storage/app/
+backend-php/storage/app/private/
+backend-php/storage/app/public/
 backend-php/bootstrap/cache/
+backend-php/public/build/
+backend-php/public/fonts-manifest.dev.json
+backend-php/public/hot
+backend-php/public/storage
+backend-php/.DS_Store
+backend-php/Thumbs.db
 
 # ========================
-# React (frontend-react)
+# Frontend React
 # ========================
+frontend-react/logs/
+frontend-react/*.log
 frontend-react/node_modules/
 frontend-react/dist/
+frontend-react/dist-ssr/
 frontend-react/.env
 frontend-react/.env.local
+frontend-react/*.local
+frontend-react/.vscode/*
+!frontend-react/.vscode/extensions.json
+frontend-react/.idea/
+frontend-react/.DS_Store
+frontend-react/*.suo
+frontend-react/*.ntvs*
+frontend-react/*.njsproj
+frontend-react/*.sln
+frontend-react/*.sw?
 
 # ========================
 # Python (microservice-python)
