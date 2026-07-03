@@ -105,7 +105,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             'Data Assunzione', 'CCNL Applicato', 'Livello', 'Mansione', '% Part-Time', 'Gg. Lav. Sett.',
             'Periodo', 'Totale Ore Ordinarie',
             'Totale Ore Supplementari', 'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
-            'Totale Permessi Retribuiti', 'Totale Permessi Non Retribuiti',
+            'Totale PR', 'Totale PNR',
             'Totale Malattia', 'Totale Infortunio', 'Totale Maternità', 'Totale Sciopero', 'Totale Cassa Integrazione'
         ])
     else:
@@ -214,8 +214,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
                 'Totale Ore Straordinarie': totale_straordinarie,
                 'Totale Ferie': safe_sum(gruppo[gruppo['causale'] == 'ferie']['ore_causale']),
                 'Totale Permessi': safe_sum(gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale']),
-                'Totale Permessi Retribuiti': safe_sum(gruppo[gruppo['causale'] == 'permesso_retribuito']['ore_causale']),
-                'Totale Permessi Non Retribuiti': safe_sum(gruppo[gruppo['causale'] == 'permesso_non_retribuito']['ore_causale']),
+                'Totale PR': safe_sum(gruppo[gruppo['causale'] == 'permesso_retribuito']['ore_causale']),
+                'Totale PNR': safe_sum(gruppo[gruppo['causale'] == 'permesso_non_retribuito']['ore_causale']),
                 'Totale Malattia': safe_sum(gruppo[gruppo['causale'] == 'malattia']['ore_causale']),
                 'Totale Infortunio': safe_sum(gruppo[gruppo['causale'] == 'infortunio']['ore_causale']),
                 'Totale Maternità': safe_sum(gruppo[gruppo['causale'] == 'maternita']['ore_causale']),
