@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/presenze/mesi-approvati', [PresenzaController::class, 'mesiApprovati']);
     Route::post('/presenze/aggiorna-stato-mese', [PresenzaController::class, 'aggiornaStatoMese']);
     Route::post('/presenze/registra-malattia', [PresenzaController::class, 'registraMalattia']);
+    Route::post('/presenze/registra-cassa-integrazione', [PresenzaController::class, 'registraCassaIntegrazione']);
     Route::post('/presenze/{presenza}/giustificativo-trasferta', [PresenzaController::class, 'uploadGiustificativoTrasferta']);
     Route::post('/presenze/{presenza}/giustificativo-infortunio', [PresenzaController::class, 'uploadGiustificativoInfortunio']);
     Route::apiResource('presenze', PresenzaController::class);

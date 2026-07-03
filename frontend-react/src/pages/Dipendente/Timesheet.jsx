@@ -6,6 +6,7 @@ import {
   salvaPresenza,
   inviaMese,
   registraMalattia,
+  registraCassaIntegrazione,
   uploadGiustificativoTrasferta,
   uploadGiustificativoInfortunio,
 } from '../../services/presenzeService'
@@ -14,10 +15,14 @@ const CAUSALI = [
   { value: 'lavoro', label: '-- Nessuna --' },
   { value: 'ferie', label: 'Ferie' },
   { value: 'permesso_rol', label: 'Permesso/ROL' },
+  { value: 'permesso_retribuito', label: 'Permessi Retribuiti (PR)' },
+  { value: 'permesso_non_retribuito', label: 'Permessi Non Retribuiti (PNR)' },
   { value: 'malattia', label: 'Malattia' },
   { value: 'maternita', label: 'Maternità' },
   { value: 'infortunio', label: 'Infortunio' },
   { value: 'assemblea', label: 'Assemblea' },
+  { value: 'sciopero', label: 'Sciopero' },
+  { value: 'cassa_integrazione', label: 'Cassa Integrazione' },
 ]
 
 const GIORNI_SETTIMANA = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
@@ -40,19 +45,44 @@ function formattaData(dataIso) {
 }
 
 function RigaGiorno({
-  giorno, nomeGiorno, riga, onChange, onSalva, salvando, salvato,
-  onApriModaleMalattia, onUploadTrasferta, onUploadInfortunio, isFullTime = false
+  giorno, nomeGiorno, riga, onChange, onSalva, salvando,
+  onApriModaleMalattia, onApriModaleCassaIntegrazione, onUploadTrasferta, onUploadInfortunio, 
+  isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese
 }) {
-  const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale)
+  // Mostra modalità per lavoro OPPURE per cassa integrazione parziale (< 100%)
+  const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale) || 
+                        (riga.causale === 'cassa_integrazione' && (riga.percentuale_cassa_integrazione ?? 100) < 100)
   const isMalattia = riga.causale === 'malattia'
   const isInfortunio = riga.causale === 'infortunio'
   const isTrasferta = riga.modalita_lavoro === 'trasferta'
+  
+  // Determina se la riga è stata salvata (ha un ID dal backend)
+  const isSalvato = riga.id !== null && riga.id !== undefined
+  
+  // Determina lo stato del pulsante Salva in base allo stato del foglio
+  const isFoglioApprovato = statoFoglio === 'approvato'
+  const isFoglioInviato = statoFoglio === 'inviato'
+  const isFoglioRifiutatoOReinviato = statoFoglio === 'rifiutato' || statoFoglio === 'reinviato'
 
   const handleCausaleChange = (nuovaCausale) => {
     if (nuovaCausale === 'malattia') {
       onApriModaleMalattia(giorno)
       return
     }
+    if (nuovaCausale === 'cassa_integrazione') {
+      onApriModaleCassaIntegrazione(giorno)
+      return
+    }
+    
+    // Per ferie: imposta automaticamente ore_causale in base alla distribuzione oraria
+    if (nuovaCausale === 'ferie' && Object.keys(orariSettimanali).length > 0) {
+      const data = new Date(anno, mese - 1, giorno)
+      const giornoSettimana = data.getDay()
+      const orePreviste = orariSettimanali[giornoSettimana] || 0
+      onChange({ ...riga, causale: nuovaCausale, ore_causale: orePreviste, modalita_lavoro: null })
+      return
+    }
+    
     onChange({ ...riga, causale: nuovaCausale, modalita_lavoro: null })
   }
 
@@ -152,7 +182,7 @@ function RigaGiorno({
 
       <td style={{ padding: '0.5rem' }}>
         {mostraModalita && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.85rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.85rem', alignItems: 'flex-start' }}>
             <label>
               <input
                 type="radio"
@@ -198,18 +228,20 @@ function RigaGiorno({
       <td style={{ padding: '0.5rem' }}>
         <button
           onClick={onSalva}
-          disabled={salvando}
+          disabled={salvando || isFoglioApprovato || (isFoglioInviato && isSalvato)}
           style={{
             padding: '0.25rem 0.75rem',
-            backgroundColor: salvato ? '#16a34a' : '#2563eb',
+            backgroundColor: isFoglioApprovato ? '#93c5fd' : (isSalvato ? '#16a34a' : '#2563eb'),
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '0.85rem'
+            cursor: (salvando || isFoglioApprovato || (isFoglioInviato && isSalvato)) ? 'not-allowed' : 'pointer',
+            fontSize: '0.85rem',
+            opacity: isFoglioApprovato ? 0.6 : 1
           }}
+          title={(isFoglioApprovato || (isFoglioInviato && isSalvato)) ? (isFoglioApprovato ? 'Foglio approvato. Non è possibile modificare.' : 'Foglio inviato. Non è possibile modificare righe già salvate.') : ''}
         >
-          {salvando ? '...' : salvato ? '✓ Salvato' : 'Salva'}
+          {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
         </button>
       </td>
     </tr>
@@ -273,6 +305,64 @@ function ModaleMalattia({ dataInizio, onConferma, onAnnulla }) {
   )
 }
 
+function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
+  const [dataFine, setDataFine] = useState(dataInizio)
+  const [percentuale, setPercentuale] = useState(100)
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', zIndex: 1000
+    }}>
+      <div style={{ backgroundColor: '#1f2937', padding: '1.5rem', borderRadius: '8px', width: '360px' }}>
+        <h3 style={{ marginTop: 0 }}>Registra periodo di Cassa Integrazione</h3>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label>Dal</label>
+          <input type="date" value={dataInizio} disabled style={{ display: 'block', width: '100%', padding: '0.4rem' }} />
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label>Al</label>
+          <input
+            type="date"
+            value={dataFine}
+            min={dataInizio}
+            onChange={(e) => setDataFine(e.target.value)}
+            style={{ display: 'block', width: '100%', padding: '0.4rem' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label>Percentuale (%)</label>
+          <input
+            type="number"
+            value={percentuale}
+            min="0"
+            max="100"
+            onChange={(e) => setPercentuale(parseInt(e.target.value) || 0)}
+            style={{ display: 'block', width: '100%', padding: '0.4rem' }}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <button onClick={onAnnulla} style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Annulla
+          </button>
+          <button
+            onClick={() => onConferma(dataFine, percentuale)}
+            disabled={percentuale <= 0 || percentuale > 100}
+            style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+          >
+            Conferma
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Timesheet() {
   const navigate = useNavigate()
   const oggi = new Date()
@@ -280,12 +370,14 @@ function Timesheet() {
   const [anno, setAnno] = useState(oggi.getFullYear())
   const [dipendente, setDipendente] = useState(null)
   const [righe, setRighe] = useState({})
-  const [statoSalvataggio, setStatoSalvataggio] = useState({})
+  const [salvataggioInCorso, setSalvataggioInCorso] = useState(null)
   const [loading, setLoading] = useState(true)
   const [messaggio, setMessaggio] = useState('')
   const [errore, setErrore] = useState('')
   const [modaleMalattiaGiorno, setModaleMalattiaGiorno] = useState(null)
+  const [modaleCassaIntegrazioneGiorno, setModaleCassaIntegrazioneGiorno] = useState(null)
   const [statoFoglio, setStatoFoglio] = useState(null)
+  const [orariSettimanali, setOrariSettimanali] = useState({})
 
   const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
@@ -301,13 +393,26 @@ function Timesheet() {
   protocollo_malattia: p.protocollo_malattia || null,
   data_inizio_malattia: p.data_inizio_malattia || null,
   data_fine_malattia: p.data_fine_malattia || null,
+  data_inizio_cassa_integrazione: p.data_inizio_cassa_integrazione || null,
+  data_fine_cassa_integrazione: p.data_fine_cassa_integrazione || null,
+  percentuale_cassa_integrazione: p.percentuale_cassa_integrazione || null,
   id: p.id || null,
   warning: p.warning || null,
 })
 
 useEffect(() => {
   getMioProfilo().then((res) => {
-    setDipendente(res.data)
+    const profilo = res.data
+    setDipendente(profilo)
+    // Estrae gli orari settimanali in un oggetto indexato per giorno_settimana
+    // Laravel restitusce la relazione in snake_case: orari_settimanali
+    const orariMap = {}
+    if (profilo.orari_settimanali && profilo.orari_settimanali.length > 0) {
+      profilo.orari_settimanali.forEach(o => {
+        orariMap[o.giorno_settimana] = parseFloat(o.ore_giornaliere_previste) || 0
+      })
+    }
+    setOrariSettimanali(orariMap)
   })
 }, [])
 
@@ -315,6 +420,7 @@ useEffect(() => {
   if (dipendente) {
     const fetchPresenze = async () => {
       setLoading(true)
+      setSalvataggioInCorso(null)
       const res = await getPresenze(dipendente.id, mese, anno)
       const mappa = {}
       let statoDelMese = null
@@ -332,6 +438,13 @@ useEffect(() => {
   }
 }, [dipendente, mese, anno])
 
+// Reset salvataggioInCorso quando il foglio cambia stato
+useEffect(() => {
+  if (statoFoglio === 'rifiutato' || statoFoglio === 'reinviato' || statoFoglio === 'inviato') {
+    setTimeout(() => setSalvataggioInCorso(null), 0)
+  }
+}, [statoFoglio])
+
   const giorni = Array.from(
     { length: getGiorniDelMese(mese, anno) },
     (_, i) => i + 1
@@ -343,15 +456,82 @@ useEffect(() => {
   const getRiga = (dataStr) => righe[dataStr] || normalizzaRiga()
 
   const handleChange = (dataStr, nuovaRiga) => {
+    // Per part-time: gestione automatica delle ore
+    if (!isFullTime && Object.keys(orariSettimanali).length > 0) {
+      const [y, m, d] = dataStr.split('-')
+      const oreOrdinarieMax = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
+      
+      const oreOrdinarie = parseFloat(nuovaRiga.ore_ordinarie) || 0
+      const oreCausale = parseFloat(nuovaRiga.ore_causale) || 0
+      const causale = nuovaRiga.causale || 'lavoro'
+      
+      // Per causali diverse da 'lavoro': riduci ore_causale se superano il limite
+      if (causale !== 'lavoro') {
+        const totale = oreOrdinarie + oreCausale
+        if (totale > oreOrdinarieMax) {
+          // Riduce ore_causale per rispettare il limite
+          const oreCausaleCorrette = Math.max(0, oreOrdinarieMax - oreOrdinarie)
+          setRighe((prev) => ({
+            ...prev,
+            [dataStr]: {
+              ...nuovaRiga,
+              ore_causale: oreCausaleCorrette,
+              ore_eccedenti: 0
+            }
+          }))
+          return
+        }
+      }
+      
+      // Per lavoro: sposta l'eccedenza in ore_eccedenti
+      if (causale === 'lavoro') {
+        const oreEccedenti = oreOrdinarie > oreOrdinarieMax ? oreOrdinarie - oreOrdinarieMax : 0
+        setRighe((prev) => ({
+          ...prev,
+          [dataStr]: {
+            ...nuovaRiga,
+            ore_eccedenti: oreEccedenti
+          }
+        }))
+        return
+      }
+      
+      // Per causali senza eccedenza (totale <= limite)
+      setRighe((prev) => ({
+        ...prev,
+        [dataStr]: {
+          ...nuovaRiga,
+          ore_eccedenti: 0
+        }
+      }))
+      return
+    }
+    
     setRighe((prev) => ({ ...prev, [dataStr]: nuovaRiga }))
   }
 
   const handleSalva = async (dataStr) => {
-    setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: 'salvando' }))
+    setSalvataggioInCorso(dataStr)
     setErrore('')
 
     try {
       const riga = getRiga(dataStr)
+      
+      // Validazione frontend per PR e PNR: limite basato sulla distribuzione oraria settimanale
+      // Applicata a TUTTI i dipendenti con distribuzione oraria configurata (inclusi giorni di riposo)
+      if ((riga.causale === 'permesso_retribuito' || riga.causale === 'permesso_non_retribuito') && 
+          Object.keys(orariSettimanali).length > 0) {
+        const [y, m, d] = dataStr.split('-')
+        const orePreviste = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
+        const oreCausale = parseFloat(riga.ore_causale) || 0
+        
+        if (oreCausale > orePreviste) {
+          setSalvataggioInCorso(null)
+          alert(`Attenzione: per i permessi (PR o PNR) le ore non possono superare ${orePreviste} ore previste per questo giorno secondo la tua distribuzione oraria settimanale`)
+          return
+        }
+      }
+      
       // Per part-time, non inviare ore_eccedenti in modo che il backend possa calcolarlo
       const payload = {
         dipendente_id: dipendente.id,
@@ -375,18 +555,14 @@ useEffect(() => {
         mappa[p.data] = normalizzaRiga(p)
       })
       setRighe(mappa)
-
-      setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: 'salvato' }))
-      setTimeout(() => {
-        setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: null }))
-      }, 1500)
     } catch (error) {
-      setStatoSalvataggio((prev) => ({ ...prev, [dataStr]: null }))
       const errorMessage = error.response?.data?.message || 
                            error.response?.data?.error ||
                            'Errore nel salvataggio. Verifica i dati inseriti.'
       setErrore(errorMessage)
       setTimeout(() => setErrore(''), 5000)
+    } finally {
+      setSalvataggioInCorso(null)
     }
   }
 
@@ -398,6 +574,23 @@ useEffect(() => {
     const dataInizioStr = getDataStr(modaleMalattiaGiorno)
     await registraMalattia(dipendente.id, dataInizioStr, dataFine, protocollo)
     setModaleMalattiaGiorno(null)
+
+    const res = await getPresenze(dipendente.id, mese, anno)
+    const mappa = {}
+    res.data.forEach((p) => {
+      mappa[p.data] = normalizzaRiga(p)
+    })
+    setRighe(mappa)
+  }
+
+  const handleApriModaleCassaIntegrazione = (giorno) => {
+    setModaleCassaIntegrazioneGiorno(giorno)
+  }
+
+  const handleConfermaCassaIntegrazione = async (dataFine, percentuale) => {
+    const dataInizioStr = getDataStr(modaleCassaIntegrazioneGiorno)
+    await registraCassaIntegrazione(dipendente.id, dataInizioStr, dataFine, percentuale)
+    setModaleCassaIntegrazioneGiorno(null)
 
     const res = await getPresenze(dipendente.id, mese, anno)
     const mappa = {}
@@ -452,6 +645,13 @@ useEffect(() => {
   // Determina se il dipendente è full-time (gestisce sia numero che stringa)
   const isFullTime = Number(dipendente?.percentuale_part_time) === 100;
 
+  // Funzione per ottenere le ore previste per un giorno specifico
+  const getOrePrevistePerGiorno = (anno, mese, giorno) => {
+    const data = new Date(anno, mese - 1, giorno)
+    const giornoSettimana = data.getDay() // 0=Dom, 1=Lun, etc.
+    return orariSettimanali[giornoSettimana] || 0
+  }
+
   const totaleOrdinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseFloat(r.ore_ordinarie) || 0), 0
   )
@@ -466,11 +666,20 @@ useEffect(() => {
   const totaleFeriePermessi = Object.values(righe).reduce(
     (acc, r) => acc + (r.causale === 'ferie' || r.causale === 'permesso_rol' ? (parseFloat(r.ore_causale) || 0) : 0), 0
   )
+  const totalePermessiRetribuiti = Object.values(righe).reduce(
+    (acc, r) => acc + (r.causale === 'permesso_retribuito' ? (parseFloat(r.ore_causale) || 0) : 0), 0
+  )
+  const totalePermessiNonRetribuiti = Object.values(righe).reduce(
+    (acc, r) => acc + (r.causale === 'permesso_non_retribuito' ? (parseFloat(r.ore_causale) || 0) : 0), 0
+  )
   const totaleOreINPS = Object.values(righe).reduce(
     (acc, r) => acc + (r.causale === 'malattia' || r.causale === 'maternita' ? (parseFloat(r.ore_causale) || 0) : 0), 0
   )
   const totaleOreINAIL = Object.values(righe).reduce(
     (acc, r) => acc + (r.causale === 'infortunio' ? (parseFloat(r.ore_causale) || 0) : 0), 0
+  )
+  const totaleCassaIntegrazione = Object.values(righe).reduce(
+    (acc, r) => acc + (r.causale === 'cassa_integrazione' ? (parseFloat(r.ore_causale) || 0) : 0), 0
   )
 
   const handleMeseCorrente = () => {
@@ -549,11 +758,20 @@ useEffect(() => {
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
           <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
         </div>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <strong>PR:</strong> {totalePermessiRetribuiti}
+        </div>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <strong>PNR:</strong> {totalePermessiNonRetribuiti}
+        </div>
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fde68a', borderRadius: '6px', fontSize: '0.85rem' }}>
           <strong>Ore INPS:</strong> {totaleOreINPS}
         </div>
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fca5a5', borderRadius: '6px', fontSize: '0.85rem' }}>
           <strong>Ore INAIL:</strong> {totaleOreINAIL}
+        </div>
+        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#e0e7ff', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <strong>Cassa Integraz.:</strong> {totaleCassaIntegrazione}
         </div>
       </div>
 
@@ -600,7 +818,6 @@ useEffect(() => {
           {giorni.map((giorno) => {
             const dataStr = getDataStr(giorno)
             const riga = getRiga(dataStr)
-            const stato = statoSalvataggio[dataStr]
 
             return (
               <RigaGiorno
@@ -610,12 +827,16 @@ useEffect(() => {
                 riga={riga}
                 onChange={(nuovaRiga) => handleChange(dataStr, nuovaRiga)}
                 onSalva={() => handleSalva(dataStr)}
-                salvando={stato === 'salvando'}
-                salvato={stato === 'salvato'}
+                salvando={salvataggioInCorso === dataStr}
                 onApriModaleMalattia={handleApriModaleMalattia}
+                onApriModaleCassaIntegrazione={handleApriModaleCassaIntegrazione}
                 onUploadTrasferta={handleUploadTrasferta}
                 onUploadInfortunio={handleUploadInfortunio}
                 isFullTime={isFullTime}
+                statoFoglio={statoFoglio}
+                orariSettimanali={orariSettimanali}
+                anno={anno}
+                mese={mese}
               />
             )
           })}
@@ -627,6 +848,13 @@ useEffect(() => {
           dataInizio={getDataStr(modaleMalattiaGiorno)}
           onConferma={handleConfermaMalattia}
           onAnnulla={() => setModaleMalattiaGiorno(null)}
+        />
+      )}
+      {modaleCassaIntegrazioneGiorno && (
+        <ModaleCassaIntegrazione
+          dataInizio={getDataStr(modaleCassaIntegrazioneGiorno)}
+          onConferma={handleConfermaCassaIntegrazione}
+          onAnnulla={() => setModaleCassaIntegrazioneGiorno(null)}
         />
       )}
     </div>

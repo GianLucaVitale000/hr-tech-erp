@@ -21,9 +21,14 @@ return new class extends Migration
                 'malattia',
                 'maternita',
                 'infortunio',
-                'assemblea'
+                'assemblea',
+                'sciopero',
+                'cassa_integrazione'
             ])->default('lavoro');
             $table->enum('stato', ['bozza', 'inviato', 'approvato', 'rifiutato'])->default('bozza');
+            $table->date('data_inizio_cassa_integrazione')->nullable();
+            $table->date('data_fine_cassa_integrazione')->nullable();
+            $table->decimal('percentuale_cassa_integrazione', 5, 2)->nullable();
             $table->timestamps();
 
             $table->unique(['dipendente_id', 'data']);

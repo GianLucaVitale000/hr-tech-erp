@@ -23,6 +23,9 @@ class Presenza extends Model
     'data_inizio_malattia',
     'data_fine_malattia',
     'giustificativo_infortunio_path',
+    'data_inizio_cassa_integrazione',
+    'data_fine_cassa_integrazione',
+    'percentuale_cassa_integrazione',
     'warning',
 ];
 

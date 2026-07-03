@@ -28,6 +28,14 @@ export const registraMalattia = (dipendenteId, dataInizio, dataFine, protocollo)
     protocollo
   })
 
+export const registraCassaIntegrazione = (dipendenteId, dataInizio, dataFine, percentuale) =>
+  api.post('/presenze/registra-cassa-integrazione', {
+    dipendente_id: dipendenteId,
+    data_inizio: dataInizio,
+    data_fine: dataFine,
+    percentuale: parseFloat(percentuale)
+  })
+
 export const uploadGiustificativoTrasferta = (presenzaId, file) => {
   const formData = new FormData()
   formData.append('file', file)

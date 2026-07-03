@@ -7,10 +7,14 @@ MAPPA_CODICI_PAGHE = {
     'lavoro': 'ORD',
     'ferie': 'FER',
     'permesso_rol': 'ROL',
+    'permesso_retribuito': 'PR',
+    'permesso_non_retribuito': 'PNR',
     'malattia': 'MAL',
     'maternita': 'MAT',
     'infortunio': 'INF',
     'assemblea': 'ASS',
+    'sciopero': 'SCI',
+    'cassa_integrazione': 'CIG',
 }
 
 MAPPA_MODALITA = {
@@ -101,7 +105,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             'Data Assunzione', 'CCNL Applicato', 'Livello', 'Mansione', '% Part-Time', 'Gg. Lav. Sett.',
             'Periodo', 'Totale Ore Ordinarie',
             'Totale Ore Supplementari', 'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
-            'Totale Malattia', 'Totale Infortunio', 'Totale Maternità'
+            'Totale Permessi Retribuiti', 'Totale Permessi Non Retribuiti',
+            'Totale Malattia', 'Totale Infortunio', 'Totale Maternità', 'Totale Sciopero', 'Totale Cassa Integrazione'
         ])
     else:
         df = pd.DataFrame(righe)
@@ -209,9 +214,13 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
                 'Totale Ore Straordinarie': totale_straordinarie,
                 'Totale Ferie': safe_sum(gruppo[gruppo['causale'] == 'ferie']['ore_causale']),
                 'Totale Permessi': safe_sum(gruppo[gruppo['causale'] == 'permesso_rol']['ore_causale']),
+                'Totale Permessi Retribuiti': safe_sum(gruppo[gruppo['causale'] == 'permesso_retribuito']['ore_causale']),
+                'Totale Permessi Non Retribuiti': safe_sum(gruppo[gruppo['causale'] == 'permesso_non_retribuito']['ore_causale']),
                 'Totale Malattia': safe_sum(gruppo[gruppo['causale'] == 'malattia']['ore_causale']),
                 'Totale Infortunio': safe_sum(gruppo[gruppo['causale'] == 'infortunio']['ore_causale']),
                 'Totale Maternità': safe_sum(gruppo[gruppo['causale'] == 'maternita']['ore_causale']),
+                'Totale Sciopero': safe_sum(gruppo[gruppo['causale'] == 'sciopero']['ore_causale']),
+                'Totale Cassa Integrazione': safe_sum(gruppo[gruppo['causale'] == 'cassa_integrazione']['ore_causale']),
             })
         df_riepilogo = pd.DataFrame(riepilogo)
 

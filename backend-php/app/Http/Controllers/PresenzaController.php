@@ -61,7 +61,7 @@ class PresenzaController extends Controller
             'ore_straordinarie' => "nullable|numeric|min:0",
             'ore_eccedenti' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
-            'causale' => 'required|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
+            'causale' => 'required|in:lavoro,ferie,permesso_rol,permesso_retribuito,permesso_non_retribuito,malattia,maternita,infortunio,assemblea,sciopero,cassa_integrazione',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
 
@@ -88,6 +88,18 @@ class PresenzaController extends Controller
             }
         }
         
+        // Validazione specifica per PR e PNR: ore_causale non deve superare il limite del giorno
+        // Applicata a TUTTI i dipendenti (inclusi giorni di riposo con 0 ore)
+        if (isset($validated['causale']) && 
+            ($validated['causale'] === 'permesso_retribuito' || $validated['causale'] === 'permesso_non_retribuito')) {
+            $oreCausale = (float)($validated['ore_causale'] ?? 0);
+            if ($oreCausale > $oreOrdinarieMax) {
+                return response()->json([
+                    'error' => 'Per i permessi retribuiti/non retribuiti, le ore non possono superare il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore) secondo la distribuzione oraria settimanale'
+                ], 422);
+            }
+        }
+
         // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
         // (per causali diverse da lavoro come assemblea, ferie, permesso, ecc.)
         if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
@@ -148,7 +160,7 @@ class PresenzaController extends Controller
             'ore_straordinarie' => "nullable|numeric|min:0",
             'ore_eccedenti' => "nullable|numeric|min:0",
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
-            'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,malattia,maternita,infortunio,assemblea',
+            'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,permesso_retribuito,permesso_non_retribuito,malattia,maternita,infortunio,assemblea,sciopero,cassa_integrazione',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
@@ -172,9 +184,20 @@ class PresenzaController extends Controller
             }
         }
         
+        // Validazione specifica per PR e PNR: ore_causale non deve superare il limite del giorno
+        // Applicata a TUTTI i dipendenti (inclusi giorni di riposo con 0 ore)
+        $causaleCorrente = isset($validated['causale']) ? $validated['causale'] : $presenza->causale;
+        if ($causaleCorrente === 'permesso_retribuito' || $causaleCorrente === 'permesso_non_retribuito') {
+            $oreCausale = (float)($validated['ore_causale'] ?? $presenza->ore_causale ?? 0);
+            if ($oreCausale > $oreOrdinarieMax) {
+                return response()->json([
+                    'error' => 'Per i permessi retribuiti/non retribuiti, le ore non possono superare il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore) secondo la distribuzione oraria settimanale'
+                ], 422);
+            }
+        }
+
         // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
         // (per causali diverse da lavoro come assemblea, ferie, permesso, ecc.)
-        $causaleCorrente = isset($validated['causale']) ? $validated['causale'] : $presenza->causale;
         if ($causaleCorrente !== 'lavoro') {
             $totaleOre = (float)($validated['ore_ordinarie'] ?? $presenza->ore_ordinarie ?? 0) + 
                         (float)($validated['ore_causale'] ?? $presenza->ore_causale ?? 0);
@@ -359,6 +382,80 @@ class PresenzaController extends Controller
 
         return response()->json([
             'message' => 'Periodo di malattia registrato',
+            'giorni_creati' => count($righeCreate),
+            'presenze' => $righeCreate,
+        ]);
+    }
+
+    // Registra un periodo di cassa integrazione su più giorni, anche a cavallo di mesi diversi
+    public function registraCassaIntegrazione(Request $request)
+    {
+        $validated = $request->validate([
+            'dipendente_id' => 'required|exists:dipendenti,id',
+            'data_inizio' => 'required|date',
+            'data_fine' => 'required|date|after_or_equal:data_inizio',
+            'percentuale' => 'required|numeric|min:0|max:100',
+        ]);
+
+        // Recupera il dipendente con gli orari settimanali
+        $dipendente = \App\Models\Dipendente::with(['contratto.regoleCalcolo', 'orariSettimanali'])->find($validated['dipendente_id']);
+        
+        if (!$dipendente) {
+            return response()->json(['error' => 'Dipendente non trovato'], 404);
+        }
+        
+        // BLOCCO: Per dipendenti part-time, serve la configurazione orari settimanali
+        if (!$dipendente->has_orari_settimanali_configurati && (float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            return response()->json([
+                'error' => 'Impossibile registrare cassa integrazione: il dipendente part-time non ha la configurazione orari settimanali completata'
+            ], 403);
+        }
+
+        $inizio = Carbon::parse($validated['data_inizio']);
+        $fine = Carbon::parse($validated['data_fine']);
+        $percentuale = (float)$validated['percentuale'];
+        $righeCreate = [];
+
+        for ($giorno = $inizio->copy(); $giorno->lte($fine); $giorno->addDay()) {
+            $dataStr = $giorno->format('Y-m-d');
+            
+            // Escludi i giorni già registrati come malattia
+            $esisteMalattia = Presenza::where('dipendente_id', $validated['dipendente_id'])
+                ->where('data', $dataStr)
+                ->where('causale', 'malattia')
+                ->exists();
+            
+            if ($esisteMalattia) {
+                continue; // Salta questo giorno
+            }
+            
+            // Calcola le ore previste per questo giorno specifico
+            $giornoSettimana = $giorno->dayOfWeek;
+            $orePreviste = $dipendente->getOrePrevistePerGiorno($giornoSettimana);
+            $oreCausale = $orePreviste * ($percentuale / 100);
+            
+            $presenza = Presenza::updateOrCreate(
+                [
+                    'dipendente_id' => $validated['dipendente_id'],
+                    'data' => $dataStr,
+                ],
+                [
+                    'causale' => 'cassa_integrazione',
+                    'ore_ordinarie' => 0,
+                    'ore_straordinarie' => 0,
+                    'ore_eccedenti' => 0,
+                    'ore_causale' => $oreCausale,
+                    'modalita_lavoro' => null,
+                    'data_inizio_cassa_integrazione' => $validated['data_inizio'],
+                    'data_fine_cassa_integrazione' => $validated['data_fine'],
+                    'percentuale_cassa_integrazione' => $percentuale,
+                ]
+            );
+            $righeCreate[] = $presenza;
+        }
+
+        return response()->json([
+            'message' => 'Periodo di cassa integrazione registrato',
             'giorni_creati' => count($righeCreate),
             'presenze' => $righeCreate,
         ]);

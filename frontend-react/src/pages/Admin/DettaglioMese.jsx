@@ -6,10 +6,14 @@ const CAUSALI_LABEL = {
   lavoro: '-- Nessuna --',
   ferie: 'Ferie',
   permesso_rol: 'Permesso/ROL',
+  permesso_retribuito: 'Permessi Retribuiti (PR)',
+  permesso_non_retribuito: 'Permessi Non Retribuiti (PNR)',
   malattia: 'Malattia',
   maternita: 'Maternità',
   infortunio: 'Infortunio',
   assemblea: 'Assemblea',
+  sciopero: 'Sciopero',
+  cassa_integrazione: 'Cassa Integrazione',
 }
 
 const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
