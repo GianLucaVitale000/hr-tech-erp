@@ -101,6 +101,8 @@ DROP TABLE IF EXISTS `regole_calcolo_contratto`;
 CREATE TABLE `regole_calcolo_contratto` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `contratto_id` bigint unsigned NOT NULL,
+  `nome_profilo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `descrizione` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
   `limite_straordinario_mensile` decimal(5,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -108,6 +110,28 @@ CREATE TABLE `regole_calcolo_contratto` (
   PRIMARY KEY (`id`),
   KEY `regole_calcolo_contratto_contratto_id_index` (`contratto_id`),
   CONSTRAINT `regole_calcolo_contratto_contratto_id_foreign` FOREIGN KEY (`contratto_id`) REFERENCES `contratti` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dipendente_regola_calcolo`
+--
+
+DROP TABLE IF EXISTS `dipendente_regola_calcolo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dipendente_regola_calcolo` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `dipendente_id` bigint unsigned NOT NULL,
+  `regola_calcolo_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `dipendente_regola_calcolo_dipendente_id_unique` (`dipendente_id`),
+  KEY `dipendente_regola_calcolo_dipendente_id_index` (`dipendente_id`),
+  KEY `dipendente_regola_calcolo_regola_calcolo_id_index` (`regola_calcolo_id`),
+  CONSTRAINT `dipendente_regola_calcolo_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dipendente_regola_calcolo_regola_calcolo_id_foreign` FOREIGN KEY (`regola_calcolo_id`) REFERENCES `regole_calcolo_contratto` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

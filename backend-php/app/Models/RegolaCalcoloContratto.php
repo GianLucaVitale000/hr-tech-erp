@@ -11,6 +11,8 @@ class RegolaCalcoloContratto extends Model
     protected $fillable = [
         'contratto_id',
         'ore_settimanali_teoriche',
+        'nome_profilo',
+        'descrizione',
     ];
 
     protected $casts = [
@@ -33,6 +35,7 @@ class RegolaCalcoloContratto extends Model
 
     public function dipendenti()
     {
-        return $this->hasMany(Dipendente::class, 'regola_calcolo_id');
+        return $this->belongsToMany(Dipendente::class, 'dipendente_regola_calcolo')
+            ->withTimestamps();
     }
 }

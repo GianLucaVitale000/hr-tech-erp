@@ -51,14 +51,32 @@ class Dipendente extends Model
     }
 
     /**
-     * Accessor per ottenere la regola di calcolo attraverso il contratto.
-     * Restituisce la prima regola associata al contratto del dipendente.
+     * Relazione molti-a-molti con RegolaCalcoloContratto tramite tabella pivot
+     */
+    public function regoleCalcolo()
+    {
+        return $this->belongsToMany(RegolaCalcoloContratto::class, 'dipendente_regola_calcolo')
+            ->withTimestamps();
+    }
+
+    /**
+     * Accessor per ottenere la regola di calcolo del dipendente.
+     * Priorità:
+     * 1. Regola specifica associata tramite pivot (profilo orario personalizzato)
+     * 2. Prima regola del contratto (fallback)
      */
     public function getRegolaCalcoloAttribute()
     {
+        // 1. Verifica se c'è una regola specifica associata tramite pivot
+        if ($this->regoleCalcolo->isNotEmpty()) {
+            return $this->regoleCalcolo->first();
+        }
+        
+        // 2. Fallback: prima regola del contratto
         if ($this->contratto && $this->contratto->regoleCalcolo->isNotEmpty()) {
             return $this->contratto->regoleCalcolo->first();
         }
+        
         return null;
     }
 

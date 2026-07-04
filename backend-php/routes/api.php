@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('dipendenti', DipendenteController::class)->parameters(['dipendenti' => 'dipendente']);
     Route::apiResource('regole-calcolo', RegolaCalcoloContrattoController::class)->parameters(['regole-calcolo' => 'regolaCalcoloContratto']);
     Route::get('/contratti/{contratto}/regole-calcolo', [RegolaCalcoloContrattoController::class, 'byContratto']);
+    Route::get('/contratti/{contratto}/dipendenti', [RegolaCalcoloContrattoController::class, 'getDipendentiByContratto']);
 
     // Rotte per orari settimanali dipendenti
     Route::get('/dipendenti/{dipendente}/orari-settimanali', [DipendenteOrarioSettimanaleController::class, 'index']);

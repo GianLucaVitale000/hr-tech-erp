@@ -66,6 +66,7 @@ function Dipendenti() {
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Email</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>CF</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Mansione</th>
+                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Ore Sett.</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Livello</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>CCNL</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>% PT</th>
@@ -81,6 +82,17 @@ function Dipendenti() {
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.user?.email}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.codice_fiscale || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.mansione || '-'}</td>
+                  <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>
+                    {d.regola_calcolo?.ore_settimanali_teoriche !== null && d.regola_calcolo?.ore_settimanali_teoriche !== undefined ? (
+                      d.regola_calcolo.ore_settimanali_teoriche
+                    ) : (
+                      d.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche !== null && d.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche !== undefined ? (
+                        d.contratto.regole_calcolo[0].ore_settimanali_teoriche
+                      ) : (
+                        '40'
+                      )
+                    )}
+                  </td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.livello || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.contratto?.codice_cnel || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>

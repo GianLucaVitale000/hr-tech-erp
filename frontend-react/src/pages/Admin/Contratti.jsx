@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getContrattiAllVersions, getRegoleCalcolo, createRegolaCalcolo, updateRegolaCalcolo } from '../../services/dipendentiService'
+import { getContrattiAllVersions, getRegoleCalcolo, createRegolaCalcolo, updateRegolaCalcolo, getDipendentiByContratto } from '../../services/dipendentiService'
 
 function Contratti() {
   const [contratti, setContratti] = useState([])
@@ -9,10 +9,15 @@ function Contratti() {
   const [modalOpen, setModalOpen] = useState(false)
   const [currentContratto, setCurrentContratto] = useState(null)
   const [regolaForm, setRegolaForm] = useState({
-    ore_settimanali_teoriche: 40
+    ore_settimanali_teoriche: 40,
+    nome_profilo: '',
+    descrizione: '',
+    dipendenti_ids: []
   })
   const [modalLoading, setModalLoading] = useState(false)
   const [regoleMap, setRegoleMap] = useState({})
+  const [dipendentiList, setDipendentiList] = useState([])
+  const [dipendentiLoading, setDipendentiLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [onlyMainUnions, setOnlyMainUnions] = useState(false)
   const [expandedCodes, setExpandedCodes] = useState({}) // { codice_cnel: true/false }
@@ -169,13 +174,31 @@ function Contratti() {
     }
   }, [])
 
-  const openRegoleModal = (contratto) => {
+  const openRegoleModal = async (contratto) => {
     setCurrentContratto(contratto)
     const existingRegola = regoleMap[contratto?.id]
-    // Converti 0 in null per coerenza
+    
+    // Carica i dipendenti del contratto
+    setDipendentiLoading(true)
+    try {
+      const dipendentiRes = await getDipendentiByContratto(contratto.id)
+      setDipendentiList(dipendentiRes.data)
+    } catch (error) {
+      console.error('Errore nel caricamento dipendenti:', error)
+      setDipendentiList([])
+    } finally {
+      setDipendentiLoading(false)
+    }
+    
+    // Imposta i valori del form
     const ore = existingRegola?.ore_settimanali_teoriche
+    const dipendentiIds = existingRegola?.dipendenti?.map(d => d.id) || []
+    
     setRegolaForm({
-      ore_settimanali_teoriche: !ore || parseFloat(ore) === 0 ? null : ore
+      ore_settimanali_teoriche: !ore || parseFloat(ore) === 0 ? null : ore,
+      nome_profilo: existingRegola?.nome_profilo || '',
+      descrizione: existingRegola?.descrizione || '',
+      dipendenti_ids: dipendentiIds
     })
     setModalOpen(true)
   }
@@ -186,8 +209,24 @@ function Contratti() {
   }
 
   const handleRegolaChange = (e) => {
-    const { name, value } = e.target
-    setRegolaForm({ ...regolaForm, [name]: value === '' ? null : Number(value) })
+    const { name, value, type, checked } = e.target
+    
+    if (type === 'checkbox') {
+      // Gestione checkbox per dipendenti
+      const newDipendentiIds = checked
+        ? [...regolaForm.dipendenti_ids, Number(value)]
+        : regolaForm.dipendenti_ids.filter(id => id !== Number(value))
+      setRegolaForm({ ...regolaForm, dipendenti_ids: newDipendentiIds })
+    } else if (name === 'dipendenti_ids') {
+      // Select multipla
+      const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value))
+      setRegolaForm({ ...regolaForm, dipendenti_ids: selectedOptions })
+    } else if (name === 'ore_settimanali_teoriche') {
+      setRegolaForm({ ...regolaForm, [name]: value === '' ? null : Number(value) })
+    } else {
+      // Campi testuali (nome_profilo, descrizione)
+      setRegolaForm({ ...regolaForm, [name]: value })
+    }
   }
 
   const handleSaveRegola = async () => {
@@ -201,9 +240,17 @@ function Contratti() {
     setError('')
     
     try {
+      // Prepara i dati: invia dipendenti_ids solo se ci sono selezionati
       const regolaData = {
-        ...regolaForm,
-        contratto_id: currentContratto.id
+        contratto_id: currentContratto.id,
+        ore_settimanali_teoriche: regolaForm.ore_settimanali_teoriche,
+        nome_profilo: regolaForm.nome_profilo || null,
+        descrizione: regolaForm.descrizione || null,
+      }
+      
+      // Invia dipendenti_ids solo se ci sono selezionati
+      if (regolaForm.dipendenti_ids && regolaForm.dipendenti_ids.length > 0) {
+        regolaData.dipendenti_ids = regolaForm.dipendenti_ids
       }
       
       const existingRegola = regoleMap[currentContratto.id]
@@ -372,7 +419,21 @@ function Contratti() {
                           {formatFirmatari(main.partiSindacaliFirmatarie)}
                         </td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          {Number(mainRegola?.ore_settimanali_teoriche ?? main.ore_settimanali_teoriche) === 0 ? '-' : (mainRegola?.ore_settimanali_teoriche ?? main.ore_settimanali_teoriche ?? '-')}
+                          {mainRegola ? (
+                            <div>
+                              <div style={{ fontWeight: '500' }}>
+                                {mainRegola.nome_profilo ? `${mainRegola.nome_profilo}: ` : ''}
+                                {Number(mainRegola.ore_settimanali_teoriche) === 0 ? '-' : mainRegola.ore_settimanali_teoriche}
+                              </div>
+                              {mainRegola.descrizione && (
+                                <div style={{ fontSize: '0.65rem', color: '#9ca3af' }}>
+                                  {mainRegola.descrizione}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            Number(main.ore_settimanali_teoriche) === 0 ? '-' : (main.ore_settimanali_teoriche ?? '-')
+                          )}
                         </td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                           {main.data_decorrenza && (
@@ -453,7 +514,21 @@ function Contratti() {
                               {formatFirmatari(c.partiSindacaliFirmatarie)}
                             </td>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              {Number(regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche) === 0 ? '-' : (regola?.ore_settimanali_teoriche ?? c.ore_settimanali_teoriche ?? '-')}
+                              {regola ? (
+                                <div>
+                                  <div style={{ fontWeight: '500' }}>
+                                    {regola.nome_profilo ? `${regola.nome_profilo}: ` : ''}
+                                    {Number(regola.ore_settimanali_teoriche) === 0 ? '-' : regola.ore_settimanali_teoriche}
+                                  </div>
+                                  {regola.descrizione && (
+                                    <div style={{ fontSize: '0.65rem', color: '#9ca3af' }}>
+                                      {regola.descrizione}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                Number(c.ore_settimanali_teoriche) === 0 ? '-' : (c.ore_settimanali_teoriche ?? '-')
+                              )}
                             </td>
                             <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                               {c.data_decorrenza && (
@@ -489,7 +564,7 @@ function Contratti() {
         </div>
       )}
 
-      {/* Modale Regole di Calcolo */}
+      {/* Modale Regole di Calcolo / Profilo Orario */}
       {modalOpen && (
         <div style={{
           position: 'fixed',
@@ -508,14 +583,14 @@ function Contratti() {
             padding: '2rem',
             borderRadius: '8px',
             width: '100%',
-            maxWidth: '500px',
+            maxWidth: '600px',
             maxHeight: '80vh',
             overflowY: 'auto',
             color: 'white'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'white' }}>
-                {currentContratto ? `Regole di Calcolo - ${currentContratto.nome_contratto}` : 'Nuove Regole di Calcolo'}
+                {currentContratto ? `Profilo Orario - ${currentContratto.nome_contratto}` : 'Nuovo Profilo Orario'}
               </h2>
               <button
                 onClick={closeModal}
@@ -531,6 +606,54 @@ function Contratti() {
               </button>
             </div>
             
+            {/* Campo Profilo Orario (Nome) */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
+                Profilo Orario
+              </label>
+              <input
+                type="text"
+                name="nome_profilo"
+                value={regolaForm.nome_profilo || ''}
+                onChange={handleRegolaChange}
+                placeholder="Es: Vigilanza, Custodi, Logistica"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #4b5563',
+                  borderRadius: '4px',
+                  backgroundColor: '#374151',
+                  color: 'white'
+                }}
+              />
+            </div>
+            
+            {/* Campo Descrizione */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
+                Descrizione
+              </label>
+              <textarea
+                name="descrizione"
+                value={regolaForm.descrizione || ''}
+                onChange={handleRegolaChange}
+                placeholder="Es: Ex Art. 133 CCNL Terziario - 45 ore settimanali"
+                rows={2}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #4b5563',
+                  borderRadius: '4px',
+                  backgroundColor: '#374151',
+                  color: 'white',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+            
+            {/* Campo Ore Settimanali Teoriche */}
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
                 Ore Settimanali Teoriche
@@ -542,7 +665,7 @@ function Contratti() {
                 onChange={handleRegolaChange}
                 step="0.01"
                 min="0"
-                placeholder="Lascia vuoto per nessuna regola"
+                placeholder="Inserisci il numero di ore (es: 40, 45, 39)"
                 style={{
                   display: 'block',
                   width: '100%',
@@ -553,6 +676,57 @@ function Contratti() {
                   color: 'white'
                 }}
               />
+            </div>
+            
+            {/* Select multipla per Dipendenti */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
+                Dipendenti Associati (opzionale)
+                <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#9ca3af' }}>
+                  {' - Seleziona i dipendenti a cui applicare questo profilo orario'}
+                </span>
+              </label>
+              
+              {dipendentiLoading ? (
+                <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Caricamento dipendenti...</p>
+              ) : dipendentiList.length === 0 ? (
+                <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nessun dipendente trovato per questo contratto</p>
+              ) : (
+                <select
+                  name="dipendenti_ids"
+                  value={regolaForm.dipendenti_ids || []}
+                  onChange={handleRegolaChange}
+                  multiple
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #4b5563',
+                    borderRadius: '4px',
+                    backgroundColor: '#374151',
+                    color: 'white',
+                    minHeight: '100px'
+                  }}
+                  size={Math.min(dipendentiList.length, 5)}
+                >
+                  {dipendentiList.map((dipendente) => (
+                    <option
+                      key={dipendente.id}
+                      value={dipendente.id}
+                      style={{ backgroundColor: '#374151', color: 'white' }}
+                    >
+                      {dipendente.user?.name || `Dipendente #${dipendente.id}`}
+                      {dipendente.mansione && ` (${dipendente.mansione})`}
+                    </option>
+                  ))}
+                </select>
+              )}
+              
+              {regolaForm.dipendenti_ids.length > 0 && (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981' }}>
+                  Selezionati: {regolaForm.dipendenti_ids.length} dipendente(i)
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
