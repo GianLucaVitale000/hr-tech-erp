@@ -13,20 +13,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('regole_calcolo_contratto', function (Blueprint $table) {
-            $table->string('nome_profilo', 255)->nullable()->after('contratto_id');
-            $table->text('descrizione')->nullable()->after('nome_profilo');
+            $table->text('descrizione')->nullable()->after('contratto_id');
         });
 
         // Crea tabella pivot per associazione molti-a-molti
         Schema::create('dipendente_regola_calcolo', function (Blueprint $table) {
             $table->id();
             $table->foreignId('dipendente_id')->constrained('dipendenti')->onDelete('cascade');
-            $table->foreignId('regola_calcolo_id')->constrained('regole_calcolo_contratto')->onDelete('cascade');
+            $table->foreignId('regola_calcolo_contratto_id')->constrained('regole_calcolo_contratto')->onDelete('cascade');
             $table->timestamps();
 
             // Indici per ottimizzare le query
             $table->index('dipendente_id');
-            $table->index('regola_calcolo_id');
+            $table->index('regola_calcolo_contratto_id');
 
             // Assicura unicità: un dipendente può avere una sola regola di calcolo attiva
             $table->unique(['dipendente_id']);
@@ -38,7 +37,7 @@ return new class extends Migration
         Schema::dropIfExists('dipendente_regola_calcolo');
 
         Schema::table('regole_calcolo_contratto', function (Blueprint $table) {
-            $table->dropColumn(['nome_profilo', 'descrizione']);
+            $table->dropColumn(['descrizione']);
         });
     }
 };

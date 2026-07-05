@@ -97,8 +97,8 @@ function RigaGiorno({
           type="number"
           min="0"
           step="0.25"
-          value={riga.ore_ordinarie}
-          onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value })}
+          value={riga.ore_ordinarie || 0}
+          onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           style={{ width: '60px', padding: '0.25rem' }}
         />
       </td>
@@ -109,8 +109,8 @@ function RigaGiorno({
             type="number"
             min="0"
             step="0.25"
-            value={riga.ore_eccedenti}
-            onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value })}
+            value={riga.ore_eccedenti || 0}
+            onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             style={{ width: '60px', padding: '0.25rem' }}
             title="Ore eccedenti (oltre il limite ordinario del giorno)"
           />
@@ -123,8 +123,8 @@ function RigaGiorno({
             type="number"
             min="0"
             step="0.25"
-            value={riga.ore_straordinarie}
-            onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value })}
+            value={riga.ore_straordinarie || 0}
+            onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             style={{ width: '60px', padding: '0.25rem' }}
           />
           {riga.ore_straordinarie > 4 && (
@@ -173,9 +173,9 @@ function RigaGiorno({
           type="number"
           min="0"
           max="8"
-          step="1"
-          value={riga.ore_causale}
-          onChange={(e) => onChange({ ...riga, ore_causale: e.target.value })}
+          step="0.25"
+          value={riga.ore_causale || 0}
+          onChange={(e) => onChange({ ...riga, ore_causale: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           style={{ width: '60px', padding: '0.25rem' }}
         />
       </td>
@@ -456,31 +456,50 @@ useEffect(() => {
   const getRiga = (dataStr) => righe[dataStr] || normalizzaRiga()
 
   const handleChange = (dataStr, nuovaRiga) => {
-    // Per part-time: gestione automatica delle ore
-    if (!isFullTime && Object.keys(orariSettimanali).length > 0) {
+    // Normalizza tutti i valori numerici per assicurare che siano numeri
+    const normalizza = (val) => {
+      const num = parseFloat(val)
+      return isNaN(num) ? 0 : num
+    }
+    
+    // Applica normalizzazione a tutti i campi numerici
+    nuovaRiga = {
+      ...nuovaRiga,
+      ore_ordinarie: normalizza(nuovaRiga.ore_ordinarie),
+      ore_straordinarie: normalizza(nuovaRiga.ore_straordinarie),
+      ore_eccedenti: normalizza(nuovaRiga.ore_eccedenti),
+      ore_causale: normalizza(nuovaRiga.ore_causale),
+    }
+    
+    // Gestione automatica delle ore per tutti i dipendenti
+    // (sia full-time che part-time)
+    if (Object.keys(orariSettimanali).length > 0) {
       const [y, m, d] = dataStr.split('-')
       const oreOrdinarieMax = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
       
-      const oreOrdinarie = parseFloat(nuovaRiga.ore_ordinarie) || 0
-      const oreCausale = parseFloat(nuovaRiga.ore_causale) || 0
+      const oreOrdinarie = nuovaRiga.ore_ordinarie || 0
+      const oreCausale = nuovaRiga.ore_causale || 0
       const causale = nuovaRiga.causale || 'lavoro'
       
-      // Per causali diverse da 'lavoro': riduci ore_causale se superano il limite
+      // Per causali diverse da 'lavoro': mantieni ore_causale e ripartisci ore_ordinarie
       if (causale !== 'lavoro') {
-        const totale = oreOrdinarie + oreCausale
-        if (totale > oreOrdinarieMax) {
-          // Riduce ore_causale per rispettare il limite
-          const oreCausaleCorrette = Math.max(0, oreOrdinarieMax - oreOrdinarie)
-          setRighe((prev) => ({
-            ...prev,
-            [dataStr]: {
-              ...nuovaRiga,
-              ore_causale: oreCausaleCorrette,
-              ore_eccedenti: 0
-            }
-          }))
-          return
-        }
+        // Calcola il limite residuo per ore ordinarie dopo aver considerato ore_causale
+        const limiteResiduo = Math.max(0, oreOrdinarieMax - oreCausale)
+        // Limita ore_ordinarie al limite residuo
+        const oreOrdinarieCorrette = Math.min(oreOrdinarie, limiteResiduo)
+        // L'eccedenza delle ore di lavoro va in ore_eccedenti
+        const oreEccedenti = Math.max(0, oreOrdinarie - limiteResiduo)
+        
+        setRighe((prev) => ({
+          ...prev,
+          [dataStr]: {
+            ...nuovaRiga,
+            ore_ordinarie: oreOrdinarieCorrette,
+            ore_causale: oreCausale, // Mantieni invariato
+            ore_eccedenti: oreEccedenti
+          }
+        }))
+        return
       }
       
       // Per lavoro: sposta l'eccedenza in ore_eccedenti
@@ -490,21 +509,12 @@ useEffect(() => {
           ...prev,
           [dataStr]: {
             ...nuovaRiga,
+            ore_causale: 0, // Azzera ore_causale per lavoro
             ore_eccedenti: oreEccedenti
           }
         }))
         return
       }
-      
-      // Per causali senza eccedenza (totale <= limite)
-      setRighe((prev) => ({
-        ...prev,
-        [dataStr]: {
-          ...nuovaRiga,
-          ore_eccedenti: 0
-        }
-      }))
-      return
     }
     
     setRighe((prev) => ({ ...prev, [dataStr]: nuovaRiga }))
@@ -542,10 +552,8 @@ useEffect(() => {
         causale: riga.causale,
         modalita_lavoro: riga.modalita_lavoro,
       }
-      // Invia anche supplementari, ma il backend per part-time lo sovrascriverà
-      if (isFullTime) {
-        payload.ore_eccedenti = parseFloat(riga.ore_eccedenti) || 0;
-      }
+      // Invia ore_eccedenti per tutti i dipendenti
+      payload.ore_eccedenti = parseFloat(riga.ore_eccedenti) || 0;
 
       await salvaPresenza(payload)
       // Ricarica tutte le presenze per avere i dati aggiornati dal backend

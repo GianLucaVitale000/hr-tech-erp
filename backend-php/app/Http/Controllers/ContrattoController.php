@@ -74,18 +74,15 @@ class ContrattoController extends Controller
     }
 
     /**
-     * Formatta i contratti aggiungendo i campi delle regole di calcolo
+     * Formatta i contratti con le regole di calcolo
+     * Note: NON sovrascrive ore_settimanali_teoriche del contratto con quello delle regole
+     * perche il contratto ha il suo valore base (es: 40, 39, 45) e le regole hanno valori specifici
      */
     private function formatContrattiWithRegole($contratti)
     {
         return $contratti->map(function ($contratto) {
-            if ($contratto->regoleCalcolo->isNotEmpty()) {
-                $regola = $contratto->regoleCalcolo->first();
-                $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
-            } else {
-                // Se non ci sono regole, imposta a null per retrocompatibilita
-                $contratto->ore_settimanali_teoriche = null;
-            }
+            // Non sovrascriviamo ore_settimanali_teoriche del contratto
+            // Le regole verranno caricate separatamente tramite la relazione regoleCalcolo
             return $contratto;
         });
     }
@@ -98,6 +95,7 @@ class ContrattoController extends Controller
             'data_decorrenza' => 'nullable|date',
             'data_scadenza' => 'nullable|date',
             'ultimo_accordo_vigente' => 'boolean',
+            'ore_settimanali_teoriche' => 'nullable|numeric',
         ]);
 
         return Contratto::create($validated);
@@ -106,15 +104,6 @@ class ContrattoController extends Controller
     public function show(Contratto $contratto)
     {
         $contratto->load('regoleCalcolo');
-        
-        // Aggiungi i campi delle regole per retrocompatibilita
-        if ($contratto->regoleCalcolo->isNotEmpty()) {
-            $regola = $contratto->regoleCalcolo->first();
-            $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
-        } else {
-            $contratto->ore_settimanali_teoriche = null;
-        }
-        
         return $contratto;
     }
 
@@ -126,6 +115,7 @@ class ContrattoController extends Controller
             'data_decorrenza' => 'nullable|date',
             'data_scadenza' => 'nullable|date',
             'ultimo_accordo_vigente' => 'boolean',
+            'ore_settimanali_teoriche' => 'nullable|numeric',
         ]);
 
         $contratto->update($validated);
@@ -191,16 +181,6 @@ class ContrattoController extends Controller
             return $conSindacatiPrincipali ?: $ordinati->first();
         })->values();
         
-        return $contrattiUnici->map(function ($contratto) {
-            // Aggiungi i campi delle regole per retrocompatibilita con il frontend
-            if ($contratto->regoleCalcolo->isNotEmpty()) {
-                $regola = $contratto->regoleCalcolo->first();
-                $contratto->ore_settimanali_teoriche = $regola->ore_settimanali_teoriche;
-            } else {
-                // Valori default se non ci sono regole configurate
-                $contratto->ore_settimanali_teoriche = 40;
-            }
-            return $contratto;
-        });
+        return $contrattiUnici;
     }
 }

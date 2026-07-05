@@ -67,25 +67,51 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
     cursor.execute(query, (mese, anno))
     righe = cursor.fetchall()
     
-    # Ottieni le ore settimanali previste per ogni dipendente
+    # Ottieni le ore settimanali previste e il profilo orario per ogni dipendente
+    # Priorità: pivot > regola del contratto
     orari_query = """
         SELECT 
             d.id AS dipendente_id,
             d.percentuale_part_time,
-            COALESCE(rc.ore_settimanali_teoriche, 40) AS ore_settimanali_teoriche
+            COALESCE(
+                -- 1. Regola specifica associata tramite pivot (priorità massima)
+                (SELECT rcc.ore_settimanali_teoriche 
+                 FROM dipendente_regola_calcolo drc
+                 JOIN regole_calcolo_contratto rcc ON drc.regola_calcolo_contratto_id = rcc.id
+                 WHERE drc.dipendente_id = d.id LIMIT 1),
+                -- 2. Regola del contratto (fallback)
+                (SELECT rcc.ore_settimanali_teoriche 
+                 FROM regole_calcolo_contratto rcc
+                 WHERE rcc.contratto_id = c.id
+                 ORDER BY rcc.id ASC LIMIT 1),
+                40
+            ) AS ore_settimanali_teoriche,
+            -- Dati del profilo specifico
+            COALESCE(
+                (SELECT rcc.ore_settimanali_teoriche 
+                 FROM dipendente_regola_calcolo drc
+                 JOIN regole_calcolo_contratto rcc ON drc.regola_calcolo_contratto_id = rcc.id
+                 WHERE drc.dipendente_id = d.id LIMIT 1),
+                ''
+            ) AS profilo_orario_nome,
+            COALESCE(
+                (SELECT rcc.descrizione 
+                 FROM dipendente_regola_calcolo drc
+                 JOIN regole_calcolo_contratto rcc ON drc.regola_calcolo_contratto_id = rcc.id
+                 WHERE drc.dipendente_id = d.id LIMIT 1),
+                ''
+            ) AS profilo_orario_descrizione
         FROM dipendenti d
         LEFT JOIN contratti c ON d.contratto_id = c.id
-        LEFT JOIN (
-            SELECT contratto_id, MAX(ore_settimanali_teoriche) as ore_settimanali_teoriche
-            FROM regole_calcolo_contratto
-            GROUP BY contratto_id
-        ) rc ON c.id = rc.contratto_id
     """
     cursor.execute(orari_query)
     orari_dipendenti = cursor.fetchall()
     orari_map = {str(row['dipendente_id']): {
         'percentuale_part_time': float(row['percentuale_part_time']),
-        'ore_settimanali_teoriche': float(row['ore_settimanali_teoriche'])
+        'ore_settimanali_teoriche': float(row['ore_settimanali_teoriche']),
+        'profilo_orario_nome': row['profilo_orario_nome'] or '',
+        'profilo_orario_descrizione': row['profilo_orario_descrizione'] or '',
+        'ore_profilo': row['profilo_orario_nome'] or ''  # profilo_orario_nome contiene le ore
     } for row in orari_dipendenti}
     
     cursor.close()
@@ -102,7 +128,9 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
         df_dettaglio = pd.DataFrame(columns=colonne_dettaglio)
         df_riepilogo = pd.DataFrame(columns=[
             'Dipendente', 'Codice Fiscale', 'IBAN',
-            'Data Assunzione', 'CCNL Applicato', 'Livello', 'Mansione', '% Part-Time', 'Gg. Lav. Sett.',
+            'Data Assunzione', 'CCNL Applicato', 'Livello', 'Mansione',
+            'Ore', 'Descrizione Profilo',
+            '% Part-Time', 'Gg. Lav. Sett.',
             'Periodo', 'Totale Ore Ordinarie',
             'Totale Ore Supplementari', 'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
             'Totale PR', 'Totale PNR',
@@ -198,6 +226,12 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             def safe_sum(series):
                 return series.dropna().astype(float).sum()
             
+            # Ottieni dati del profilo orario per questo dipendente
+            orari_info = orari_map.get(str(dipendente_id), {})
+            profilo_orario_descrizione = orari_info.get('profilo_orario_descrizione', '')
+            # profilo_orario_nome contiene le ore del profilo (dalla prima query)
+            ore_profilo = float(orari_info.get('profilo_orario_nome', '') or 0) or orari_info.get('ore_settimanali_teoriche', 40.0)
+            
             riepilogo.append({
                 'Dipendente': nome,
                 'Codice Fiscale': cf,
@@ -206,6 +240,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
                 'CCNL Applicato': ccnl or '',
                 'Livello': livello or '',
                 'Mansione': mansione or '',
+                'Ore': ore_profilo,
+                'Descrizione Profilo': profilo_orario_descrizione,
                 '% Part-Time': pt,
                 'Gg. Lav. Sett.': gg_lav_sett,
                 'Periodo': periodo,

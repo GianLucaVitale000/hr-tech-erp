@@ -13,7 +13,7 @@ Route::get('/ping', function () {
     return response()->json(['message' => 'Laravel API attiva!']);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::get('/users', [AuthController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('regole-calcolo', RegolaCalcoloContrattoController::class)->parameters(['regole-calcolo' => 'regolaCalcoloContratto']);
     Route::get('/contratti/{contratto}/regole-calcolo', [RegolaCalcoloContrattoController::class, 'byContratto']);
     Route::get('/contratti/{contratto}/dipendenti', [RegolaCalcoloContrattoController::class, 'getDipendentiByContratto']);
+    Route::get('/contratti/by-codice/{codice}/dipendenti', [RegolaCalcoloContrattoController::class, 'getDipendentiByCodiceContratto']);
 
     // Rotte per orari settimanali dipendenti
     Route::get('/dipendenti/{dipendente}/orari-settimanali', [DipendenteOrarioSettimanaleController::class, 'index']);

@@ -19,6 +19,7 @@ class Dipendente extends Model
         'data_assunzione',
         'percentuale_part_time',
         'giorni_lavorativi_settimanali',
+        'ore_settimanali',
     ];
 
     /**
@@ -55,8 +56,12 @@ class Dipendente extends Model
      */
     public function regoleCalcolo()
     {
-        return $this->belongsToMany(RegolaCalcoloContratto::class, 'dipendente_regola_calcolo')
-            ->withTimestamps();
+        return $this->belongsToMany(
+            RegolaCalcoloContratto::class, 
+            'dipendente_regola_calcolo',
+            'dipendente_id',                // foreign key su pivot table
+            'regola_calcolo_contratto_id'   // other key su pivot table
+        )->withTimestamps();
     }
 
     /**

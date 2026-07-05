@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import api from '../../services/api'
@@ -8,9 +8,26 @@ function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showLoginForm, setShowLoginForm] = useState(false)
+  const [isFading, setIsFading] = useState(false)
 
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => {
+      setIsFading(true)
+    }, 2000)
+
+    const formTimer = setTimeout(() => {
+      setShowLoginForm(true)
+    }, 3000)
+
+    return () => {
+      clearTimeout(fadeTimer)
+      clearTimeout(formTimer)
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -32,6 +49,36 @@ function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (!showLoginForm) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'sans-serif',
+        zIndex: 1000,
+        opacity: isFading ? 0 : 1,
+        transition: 'opacity 1s ease-out'
+      }}>
+        <h1 style={{
+          color: 'white',
+          fontSize: '3rem',
+          textAlign: 'center',
+          marginBottom: '2rem'
+        }}>
+          HR-Tech ERP
+        </h1>
+      </div>
+    )
   }
 
   return (

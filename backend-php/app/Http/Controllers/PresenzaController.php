@@ -71,22 +71,8 @@ class PresenzaController extends Controller
         }
         
         // GESTIONE ORE ECCEDENTI (per part-time):
-        // Per i dipendenti part-time con configurazione orari settimanali,
-        // le ore che superano il limite ordinario del giorno diventano ore eccedenti
-        // (verranno qualificate come supplementari o straordinarie solo in esportazione settimanale)
-        if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
-            $oreInserite = (float)($validated['ore_ordinarie'] ?? 0);
-            
-            if ($oreInserite > $oreOrdinarieMax) {
-                // Sposta l'eccedenza in ore_eccedenti
-                $validated['ore_eccedenti'] = $oreInserite - $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = $oreOrdinarieMax;
-            } else {
-                // Se le ore ordinarie sono <= al limite, azzera le ore_eccedenti
-                // per evitare valori persistiti da modifiche precedenti
-                $validated['ore_eccedenti'] = 0;
-            }
-        }
+        // Il frontend gestisce già correttamente la ripartizione per part-time,
+        // quindi non sovrascriviamo i valori. Mantieni solo i valori forniti.
         
         // Validazione specifica per PR e PNR: ore_causale non deve superare il limite del giorno
         // Applicata a TUTTI i dipendenti (inclusi giorni di riposo con 0 ore)
@@ -101,8 +87,9 @@ class PresenzaController extends Controller
         }
 
         // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
-        // (per causali diverse da lavoro come assemblea, ferie, permesso, ecc.)
-        if (isset($validated['causale']) && $validated['causale'] !== 'lavoro') {
+        // (per causali diverse da lavoro e assemblea come ferie, permesso, ecc.)
+        // Per l'assemblea, permettiamo che il totale superi il limite (l'eccedenza va in ore_eccedenti)
+        if (isset($validated['causale']) && $validated['causale'] !== 'lavoro' && $validated['causale'] !== 'assemblea') {
             $totaleOre = (float)($validated['ore_ordinarie'] ?? 0) + (float)($validated['ore_causale'] ?? 0);
             if ($totaleOre > $oreOrdinarieMax) {
                 return response()->json([
@@ -170,19 +157,9 @@ class PresenzaController extends Controller
             $validated['warning'] = 'Attenzione: superato limite consigliato di straordinario giornaliero';
         }
         
-        // GESTIONE SUPPLEMENTARI:
-        if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
-            $oreInserite = (float)($validated['ore_ordinarie'] ?? ($presenza->ore_ordinarie ?? 0));
-            
-            if ($oreInserite > $oreOrdinarieMax) {
-                $validated['ore_eccedenti'] = $oreInserite - $oreOrdinarieMax;
-                $validated['ore_ordinarie'] = $oreOrdinarieMax;
-            } else {
-                // Se le ore ordinarie sono <= al limite, azzera le supplementari
-                // per evitare valori persistiti da modifiche precedenti
-                $validated['ore_eccedenti'] = 0;
-            }
-        }
+        // GESTIONE ORE ECCEDENTI:
+        // Il frontend gestisce già correttamente la ripartizione per part-time,
+        // quindi non sovrascriviamo i valori. Mantieni solo i valori forniti.
         
         // Validazione specifica per PR e PNR: ore_causale non deve superare il limite del giorno
         // Applicata a TUTTI i dipendenti (inclusi giorni di riposo con 0 ore)
@@ -197,8 +174,9 @@ class PresenzaController extends Controller
         }
 
         // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
-        // (per causali diverse da lavoro come assemblea, ferie, permesso, ecc.)
-        if ($causaleCorrente !== 'lavoro') {
+        // (per causali diverse da lavoro e assemblea come ferie, permesso, ecc.)
+        // Per l'assemblea, permettiamo che il totale superi il limite (l'eccedenza va in ore_eccedenti)
+        if ($causaleCorrente !== 'lavoro' && $causaleCorrente !== 'assemblea') {
             $totaleOre = (float)($validated['ore_ordinarie'] ?? $presenza->ore_ordinarie ?? 0) + 
                         (float)($validated['ore_causale'] ?? $presenza->ore_causale ?? 0);
             if ($totaleOre > $oreOrdinarieMax) {

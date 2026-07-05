@@ -17,6 +17,7 @@ class Contratto extends Model
         'data_scadenza',
         'ultimo_accordo_vigente',
         'tipologia_contratto',
+        'ore_settimanali_teoriche',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class Contratto extends Model
         'ultimo_accordo_vigente' => 'boolean',
         'partiDatorialiFirmatarie' => 'array',
         'partiSindacaliFirmatarie' => 'array',
+        'ore_settimanali_teoriche' => 'decimal:2',
     ];
 
     public function dipendenti()

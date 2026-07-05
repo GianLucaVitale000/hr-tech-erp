@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('regole_calcolo_contratto', function (Blueprint $table) {
-            $table->dropColumn(['soglia_maggiorazione_1', 'soglia_maggiorazione_2']);
+            if (Schema::hasColumn('regole_calcolo_contratto', 'soglia_maggiorazione_1')) {
+                $table->dropColumn(['soglia_maggiorazione_1', 'soglia_maggiorazione_2']);
+            }
         });
     }
 

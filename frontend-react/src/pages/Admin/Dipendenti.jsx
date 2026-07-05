@@ -83,14 +83,12 @@ function Dipendenti() {
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.codice_fiscale || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.mansione || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>
-                    {d.regola_calcolo?.ore_settimanali_teoriche !== null && d.regola_calcolo?.ore_settimanali_teoriche !== undefined ? (
-                      d.regola_calcolo.ore_settimanali_teoriche
+                    {d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0 ? (
+                      d.ore_settimanali
+                    ) : d.contratto?.ore_settimanali_teoriche !== null && parseFloat(d.contratto.ore_settimanali_teoriche) !== 0 ? (
+                      d.contratto.ore_settimanali_teoriche
                     ) : (
-                      d.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche !== null && d.contratto?.regole_calcolo?.[0]?.ore_settimanali_teoriche !== undefined ? (
-                        d.contratto.regole_calcolo[0].ore_settimanali_teoriche
-                      ) : (
-                        '40'
-                      )
+                      '40'
                     )}
                   </td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.livello || '-'}</td>

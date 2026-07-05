@@ -85,6 +85,7 @@ CREATE TABLE `contratti` (
   `data_scadenza` date DEFAULT NULL,
   `ultimo_accordo_vigente` tinyint(1) NOT NULL DEFAULT '0',
   `tipologia_contratto` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -101,7 +102,6 @@ DROP TABLE IF EXISTS `regole_calcolo_contratto`;
 CREATE TABLE `regole_calcolo_contratto` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `contratto_id` bigint unsigned NOT NULL,
-  `nome_profilo` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `descrizione` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
   `limite_straordinario_mensile` decimal(5,2) DEFAULT NULL,
@@ -123,15 +123,15 @@ DROP TABLE IF EXISTS `dipendente_regola_calcolo`;
 CREATE TABLE `dipendente_regola_calcolo` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `dipendente_id` bigint unsigned NOT NULL,
-  `regola_calcolo_id` bigint unsigned NOT NULL,
+  `regola_calcolo_contratto_id` bigint unsigned NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dipendente_regola_calcolo_dipendente_id_unique` (`dipendente_id`),
   KEY `dipendente_regola_calcolo_dipendente_id_index` (`dipendente_id`),
-  KEY `dipendente_regola_calcolo_regola_calcolo_id_index` (`regola_calcolo_id`),
+  KEY `dipendente_regola_calcolo_regola_calcolo_contratto_id_index` (`regola_calcolo_contratto_id`),
   CONSTRAINT `dipendente_regola_calcolo_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `dipendente_regola_calcolo_regola_calcolo_id_foreign` FOREIGN KEY (`regola_calcolo_id`) REFERENCES `regole_calcolo_contratto` (`id`) ON DELETE CASCADE
+  CONSTRAINT `dipendente_regola_calcolo_regola_calcolo_contratto_id_foreign` FOREIGN KEY (`regola_calcolo_contratto_id`) REFERENCES `regole_calcolo_contratto` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
