@@ -122,6 +122,7 @@ class CnelContractsSeeder extends Seeder
                     'ultimo_accordo_vigente' => $isVigente,
                     'partiDatorialiFirmatarie' => $item['partiDatorialiFirmatarie'] ? json_encode($item['partiDatorialiFirmatarie']) : null,
                     'partiSindacaliFirmatarie' => $item['partiSindacaliFirmatarie'] ? json_encode($item['partiSindacaliFirmatarie']) : null,
+                    'tipologia_contratto' => $item['tipologiaAccordo'] ?? null,
                 ]
             );
 

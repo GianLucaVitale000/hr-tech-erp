@@ -437,12 +437,12 @@ function Contratti() {
             <thead>
               <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Nome Contratto</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Codice CNEL</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Tipologia</th>
+                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Cod. CNEL</th>
+                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Tipo</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Datoriale</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Sindacale</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Ore Settimanali</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Data Decorrenza</th>
+                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Ore Sett.</th>
+                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Decorrenza</th>
                 <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Azioni</th>
               </tr>
             </thead>

@@ -63,7 +63,6 @@ function Dipendenti() {
             <thead>
               <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Nome</th>
-                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Email</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>CF</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Mansione</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Ore Sett.</th>
@@ -79,7 +78,6 @@ function Dipendenti() {
               {dipendenti.map((d) => (
                 <tr key={d.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.user?.name}</td>
-                  <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.user?.email}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.codice_fiscale || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.mansione || '-'}</td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>
