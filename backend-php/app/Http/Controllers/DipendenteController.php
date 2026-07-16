@@ -35,6 +35,8 @@ class DipendenteController extends Controller
             'livello' => 'nullable|string',
             'mansione' => 'nullable|string',
             'data_assunzione' => 'nullable|date',
+            'tipo_contratto' => 'required|in:determinato,indeterminato',
+            'data_scadenza_contratto' => 'nullable|date|required_if:tipo_contratto,determinato',
             'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
             'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
         ]);
@@ -58,6 +60,8 @@ class DipendenteController extends Controller
             'livello' => 'nullable|string',
             'mansione' => 'nullable|string',
             'data_assunzione' => 'nullable|date',
+            'tipo_contratto' => 'nullable|in:determinato,indeterminato',
+            'data_scadenza_contratto' => 'nullable|date|required_if:tipo_contratto,determinato',
             'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
             'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
         ]);

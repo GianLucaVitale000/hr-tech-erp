@@ -42,6 +42,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             d.mansione,
             d.percentuale_part_time,
             d.giorni_lavorativi_settimanali,
+            d.tipo_contratto,
+            d.data_scadenza_contratto,
             DATE_FORMAT(p.data, '%d/%m/%Y') AS data,
             DAYOFWEEK(p.data) - 1 AS giorno_settimana,  -- 0=Dom, 1=Lun, etc.
             p.ore_ordinarie,
@@ -131,6 +133,7 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             'Data Assunzione', 'CCNL Applicato', 'Livello', 'Mansione',
             'Ore', 'Descrizione Profilo',
             '% Part-Time', 'Gg. Lav. Sett.',
+            'Tipologia', 'Data',
             'Periodo', 'Totale Ore Ordinarie',
             'Totale Ore Supplementari', 'Totale Ore Straordinarie', 'Totale Ferie', 'Totale Permessi',
             'Totale PR', 'Totale PNR',
@@ -180,6 +183,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             livello = primo['livello'] if 'livello' in primo else None
             mansione = primo['mansione'] if 'mansione' in primo else None
             gg_lav_sett = primo['giorni_lavorativi_settimanali'] if 'giorni_lavorativi_settimanali' in primo else None
+            tipo_contratto = primo['tipo_contratto'] if 'tipo_contratto' in primo else None
+            data_scadenza_contratto = primo['data_scadenza_contratto'] if 'data_scadenza_contratto' in primo else None
             
             # Calcola totali per il dipendente
             totale_ordinarie = gruppo['ore_ordinarie'].astype(float).sum()
@@ -232,6 +237,12 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
             # profilo_orario_nome contiene le ore del profilo (dalla prima query)
             ore_profilo = float(orari_info.get('profilo_orario_nome', '') or 0) or orari_info.get('ore_settimanali_teoriche', 40.0)
             
+            # Formatta tipo_contratto per l'export: indeterminato -> indeterminato, determinato -> termine
+            tipologia = 'indeterminato' if tipo_contratto == 'indeterminato' else 'termine'
+            
+            # Formatta data_scadenza_contratto: se presente e valida, formattala, altrimenti "-"
+            data_formattata = '-' if not data_scadenza_contratto else data_scadenza_contratto.strftime('%d/%m/%Y') if data_scadenza_contratto else '-'
+            
             riepilogo.append({
                 'Dipendente': nome,
                 'Codice Fiscale': cf,
@@ -244,6 +255,8 @@ def genera_report_mensile(mese: int, anno: int) -> BytesIO:
                 'Descrizione Profilo': profilo_orario_descrizione,
                 '% Part-Time': pt,
                 'Gg. Lav. Sett.': gg_lav_sett,
+                'Tipologia': tipologia,
+                'Data': data_formattata,
                 'Periodo': periodo,
                 'Totale Ore Ordinarie': totale_ordinarie,
                 'Totale Ore Supplementari': totale_supplementari,

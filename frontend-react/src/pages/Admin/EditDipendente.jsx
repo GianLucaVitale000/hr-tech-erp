@@ -31,6 +31,26 @@ const calcolaOreDaTempo = (dalle, alle) => {
   }
 }
 
+// Helper per convertire data ISO a formato aaaa-mm-gg per input type="date"
+const formatDateForInput = (dateString) => {
+  if (!dateString) return ''
+  try {
+    // Se è già in formato aaaa-mm-gg, restituisci così
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString
+    }
+    // Altrimenti parsea la data ISO completa
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return dateString
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  } catch {
+    return dateString
+  }
+}
+
 
 
 function EditDipendente() {
@@ -47,6 +67,8 @@ function EditDipendente() {
     livello: '',
     mansione: '',
     data_assunzione: '',
+    tipo_contratto: 'indeterminato',
+    data_scadenza_contratto: '',
     percentuale_part_time: 100,
     giorni_lavorativi_settimanali: 5
   })
@@ -104,7 +126,9 @@ function EditDipendente() {
           iban: d.iban || '',
           livello: d.livello || '',
           mansione: d.mansione || '',
-          data_assunzione: d.data_assunzione || '',
+          data_assunzione: formatDateForInput(d.data_assunzione) || '',
+          tipo_contratto: d.tipo_contratto || 'indeterminato',
+          data_scadenza_contratto: formatDateForInput(d.data_scadenza_contratto) || '',
           percentuale_part_time: d.percentuale_part_time || 100,
           giorni_lavorativi_settimanali: d.giorni_lavorativi_settimanali || 5
         })
@@ -282,13 +306,21 @@ function EditDipendente() {
       setSelectedUserEmail(selectedUser ? selectedUser.email : '')
     }
     
-    setForm(prev => {
-      const newForm = { ...prev, [name]: value }
-      if (name === 'contratto_id') {
-        console.log('Form aggiornato, contratto_id:', newForm.contratto_id)
-      }
-      return newForm
-    })
+    if (name === 'tipo_contratto') {
+      setForm(prev => ({
+        ...prev,
+        [name]: value,
+        data_scadenza_contratto: value === 'indeterminato' ? '' : prev.data_scadenza_contratto
+      }))
+    } else {
+      setForm(prev => {
+        const newForm = { ...prev, [name]: value }
+        if (name === 'contratto_id') {
+          console.log('Form aggiornato, contratto_id:', newForm.contratto_id)
+        }
+        return newForm
+      })
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -302,6 +334,8 @@ function EditDipendente() {
         // Converte i campi che devono essere numerici
         contratto_id: form.contratto_id ? Number(form.contratto_id) : null,
         user_id: form.user_id ? Number(form.user_id) : null,
+        tipo_contratto: form.tipo_contratto,
+        data_scadenza_contratto: form.tipo_contratto === 'determinato' ? form.data_scadenza_contratto : null,
         percentuale_part_time: Number(form.percentuale_part_time) || 100,
         giorni_lavorativi_settimanali: Number(form.giorni_lavorativi_settimanali) || 5
       }
@@ -418,7 +452,6 @@ function EditDipendente() {
             name="data_assunzione"
             value={form.data_assunzione}
             onChange={handleChange}
-            placeholder="Seleziona data"
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
           />
         </div>
@@ -488,6 +521,52 @@ function EditDipendente() {
                 </option>
               ))}
           </select>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Tipo Contratto *
+          </label>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="tipo_contratto"
+                value="indeterminato"
+                checked={form.tipo_contratto === 'indeterminato'}
+                onChange={handleChange}
+                required
+                style={{ marginRight: '0.5rem' }}
+              />
+              Tempo Indeterminato
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="tipo_contratto"
+                value="determinato"
+                checked={form.tipo_contratto === 'determinato'}
+                onChange={handleChange}
+                required
+                style={{ marginRight: '0.5rem' }}
+              />
+              Tempo Determinato
+            </label>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            {form.tipo_contratto === 'determinato' ? 'Data Scadenza Contratto *' : 'Cessazione'}
+          </label>
+          <input
+            type="date"
+            name="data_scadenza_contratto"
+            value={form.data_scadenza_contratto}
+            onChange={handleChange}
+            required={form.tipo_contratto === 'determinato'}
+            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>

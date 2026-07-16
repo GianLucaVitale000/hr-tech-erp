@@ -33,6 +33,16 @@ class PresenzaController extends Controller
             return response()->json(['error' => 'Dipendente non trovato'], 404);
         }
         
+        // BLOCCO: Contratto scaduto - non si possono inserire presenze
+        if ($dipendente->tipo_contratto === 'determinato' && 
+            $dipendente->data_scadenza_contratto && 
+            \Carbon\Carbon::parse($dipendente->data_scadenza_contratto)->isPast()) {
+            return response()->json([
+                'error' => 'Impossibile inserire presenze: il contratto di questo dipendente è scaduto il ' . 
+                           \Carbon\Carbon::parse($dipendente->data_scadenza_contratto)->format('d/m/Y')
+            ], 403);
+        }
+        
         // BLOCCO: Per dipendenti part-time, serve la configurazione orari settimanali
         if (!$dipendente->has_orari_settimanali_configurati && (float)($dipendente->percentuale_part_time ?? 100) < 100) {
             return response()->json([
@@ -121,6 +131,16 @@ class PresenzaController extends Controller
         
         if (!$dipendente) {
             return response()->json(['error' => 'Dipendente non trovato'], 404);
+        }
+        
+        // BLOCCO: Contratto scaduto - non si possono modificare presenze
+        if ($dipendente->tipo_contratto === 'determinato' && 
+            $dipendente->data_scadenza_contratto && 
+            \Carbon\Carbon::parse($dipendente->data_scadenza_contratto)->isPast()) {
+            return response()->json([
+                'error' => 'Impossibile modificare presenze: il contratto di questo dipendente è scaduto il ' . 
+                           \Carbon\Carbon::parse($dipendente->data_scadenza_contratto)->format('d/m/Y')
+            ], 403);
         }
         
         // BLOCCO: Per dipendenti part-time, serve la configurazione orari settimanali

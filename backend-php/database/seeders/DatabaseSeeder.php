@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             CnelContractsSeeder::class,
             RegoleCalcoloContrattoSeeder::class,
             RolesAndUsersSeeder::class,
+            DipendentiSeeder::class,
         ]);
 
         // User::factory(10)->create();

@@ -27,7 +27,7 @@ const CAUSALI = [
 
 const GIORNI_SETTIMANA = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
-const CAUSALI_CON_MODALITA = ['lavoro']
+const CAUSALI_CON_MODALITA = ['lavoro', 'permesso_rol', 'permesso_retribuito', 'permesso_non_retribuito', 'assemblea']
 
 function getGiorniDelMese(mese, anno) {
   return new Date(anno, mese, 0).getDate()
@@ -47,9 +47,9 @@ function formattaData(dataIso) {
 function RigaGiorno({
   giorno, nomeGiorno, riga, onChange, onSalva, salvando,
   onApriModaleMalattia, onApriModaleCassaIntegrazione, onUploadTrasferta, onUploadInfortunio, 
-  isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese
+  isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese, disabled = false
 }) {
-  // Mostra modalità per lavoro OPPURE per cassa integrazione parziale (< 100%)
+  // Mostra modalità per lavoro, permessi, assemblea, OPPURE per cassa integrazione parziale (< 100%)
   const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale) || 
                         (riga.causale === 'cassa_integrazione' && (riga.percentuale_cassa_integrazione ?? 100) < 100)
   const isMalattia = riga.causale === 'malattia'
@@ -74,8 +74,21 @@ function RigaGiorno({
       return
     }
     
-    // Per ferie: imposta automaticamente ore_causale in base alla distribuzione oraria
-    if (nuovaCausale === 'ferie' && Object.keys(orariSettimanali).length > 0) {
+    // Causali che sostituiscono completamente il lavoro (ore_ordinarie = 0, ore_causale = orePreviste)
+    // assemblea è esclusa perché può essere combinata con ore_ordinarie
+    const causaliPiene = ['ferie', 'malattia', 'maternita', 'infortunio', 'sciopero', 'cassa_integrazione']
+    
+    // Per causali piene: azzera ore_ordinarie e imposta ore_causale in base alla distribuzione oraria
+    if (causaliPiene.includes(nuovaCausale) && Object.keys(orariSettimanali).length > 0) {
+      const data = new Date(anno, mese - 1, giorno)
+      const giornoSettimana = data.getDay()
+      const orePreviste = orariSettimanali[giornoSettimana] || 0
+      onChange({ ...riga, causale: nuovaCausale, ore_causale: orePreviste, ore_ordinarie: 0, modalita_lavoro: null })
+      return
+    }
+    
+    // Per assemblea: imposta ore_causale ma NON azzerare ore_ordinarie (può essere combinata)
+    if (nuovaCausale === 'assemblea' && Object.keys(orariSettimanali).length > 0) {
       const data = new Date(anno, mese - 1, giorno)
       const giornoSettimana = data.getDay()
       const orePreviste = orariSettimanali[giornoSettimana] || 0
@@ -83,6 +96,8 @@ function RigaGiorno({
       return
     }
     
+    // Per causali parziali (permesso_rol, permesso_retribuito, permesso_non_retribuito), 
+    // non azzerare ore_ordinarie: l'utente può inserire entrambi i valori
     onChange({ ...riga, causale: nuovaCausale, modalita_lavoro: null })
   }
 
@@ -99,6 +114,7 @@ function RigaGiorno({
           step="0.25"
           value={riga.ore_ordinarie || 0}
           onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          disabled={disabled}
           style={{ width: '60px', padding: '0.25rem' }}
         />
       </td>
@@ -111,6 +127,7 @@ function RigaGiorno({
             step="0.25"
             value={riga.ore_eccedenti || 0}
             onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+            disabled={disabled}
             style={{ width: '60px', padding: '0.25rem' }}
             title="Ore eccedenti (oltre il limite ordinario del giorno)"
           />
@@ -125,6 +142,7 @@ function RigaGiorno({
             step="0.25"
             value={riga.ore_straordinarie || 0}
             onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+            disabled={disabled}
             style={{ width: '60px', padding: '0.25rem' }}
           />
           {riga.ore_straordinarie > 4 && (
@@ -139,6 +157,7 @@ function RigaGiorno({
         <select
           value={riga.causale}
           onChange={(e) => handleCausaleChange(e.target.value)}
+          disabled={disabled}
           style={{ padding: '0.25rem' }}
         >
           {CAUSALI.map((c) => (
@@ -176,6 +195,7 @@ function RigaGiorno({
           step="0.25"
           value={riga.ore_causale || 0}
           onChange={(e) => onChange({ ...riga, ore_causale: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          disabled={disabled}
           style={{ width: '60px', padding: '0.25rem' }}
         />
       </td>
@@ -189,6 +209,7 @@ function RigaGiorno({
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'in_sede'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'in_sede' })}
+                disabled={disabled}
               /> In sede
             </label>
             <label>
@@ -197,6 +218,7 @@ function RigaGiorno({
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'smart_working'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'smart_working' })}
+                disabled={disabled}
               /> SW
             </label>
             <label>
@@ -205,6 +227,7 @@ function RigaGiorno({
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'trasferta'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'trasferta' })}
+                disabled={disabled}
               /> Trasferta
             </label>
 
@@ -228,18 +251,18 @@ function RigaGiorno({
       <td style={{ padding: '0.5rem' }}>
         <button
           onClick={onSalva}
-          disabled={salvando || isFoglioApprovato || (isFoglioInviato && isSalvato)}
+          disabled={salvando || isFoglioApprovato || (isFoglioInviato && isSalvato) || disabled}
           style={{
             padding: '0.25rem 0.75rem',
-            backgroundColor: isFoglioApprovato ? '#93c5fd' : (isSalvato ? '#16a34a' : '#2563eb'),
+            backgroundColor: (isFoglioApprovato || disabled) ? '#93c5fd' : (isSalvato ? '#16a34a' : '#2563eb'),
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: (salvando || isFoglioApprovato || (isFoglioInviato && isSalvato)) ? 'not-allowed' : 'pointer',
+            cursor: (salvando || isFoglioApprovato || (isFoglioInviato && isSalvato) || disabled) ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem',
-            opacity: isFoglioApprovato ? 0.6 : 1
+            opacity: (isFoglioApprovato || disabled) ? 0.6 : 1
           }}
-          title={(isFoglioApprovato || (isFoglioInviato && isSalvato)) ? (isFoglioApprovato ? 'Foglio approvato. Non è possibile modificare.' : 'Foglio inviato. Non è possibile modificare righe già salvate.') : ''}
+          title={disabled ? 'Non puoi salvare: contratto scaduto' : (isFoglioApprovato || (isFoglioInviato && isSalvato)) ? (isFoglioApprovato ? 'Foglio approvato. Non è possibile modificare.' : 'Foglio inviato. Non è possibile modificare righe già salvate.') : ''}
         >
           {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
         </button>
@@ -481,27 +504,6 @@ useEffect(() => {
       const oreCausale = nuovaRiga.ore_causale || 0
       const causale = nuovaRiga.causale || 'lavoro'
       
-      // Per causali diverse da 'lavoro': mantieni ore_causale e ripartisci ore_ordinarie
-      if (causale !== 'lavoro') {
-        // Calcola il limite residuo per ore ordinarie dopo aver considerato ore_causale
-        const limiteResiduo = Math.max(0, oreOrdinarieMax - oreCausale)
-        // Limita ore_ordinarie al limite residuo
-        const oreOrdinarieCorrette = Math.min(oreOrdinarie, limiteResiduo)
-        // L'eccedenza delle ore di lavoro va in ore_eccedenti
-        const oreEccedenti = Math.max(0, oreOrdinarie - limiteResiduo)
-        
-        setRighe((prev) => ({
-          ...prev,
-          [dataStr]: {
-            ...nuovaRiga,
-            ore_ordinarie: oreOrdinarieCorrette,
-            ore_causale: oreCausale, // Mantieni invariato
-            ore_eccedenti: oreEccedenti
-          }
-        }))
-        return
-      }
-      
       // Per lavoro: sposta l'eccedenza in ore_eccedenti
       if (causale === 'lavoro') {
         const oreEccedenti = oreOrdinarie > oreOrdinarieMax ? oreOrdinarie - oreOrdinarieMax : 0
@@ -511,6 +513,20 @@ useEffect(() => {
             ...nuovaRiga,
             ore_causale: 0, // Azzera ore_causale per lavoro
             ore_eccedenti: oreEccedenti
+          }
+        }))
+        return
+      }
+      
+      // Per causali diverse da 'lavoro': mantieni entrambi i valori (ore_ordinarie + ore_causale)
+      // ma non applichiamo limiti automatici qui - la validazione avviene al salvataggio
+      if (causale !== 'lavoro') {
+        setRighe((prev) => ({
+          ...prev,
+          [dataStr]: {
+            ...nuovaRiga,
+            ore_causale: oreCausale,
+            ore_ordinarie: oreOrdinarie
           }
         }))
         return
@@ -527,17 +543,28 @@ useEffect(() => {
     try {
       const riga = getRiga(dataStr)
       
-      // Validazione frontend per PR e PNR: limite basato sulla distribuzione oraria settimanale
-      // Applicata a TUTTI i dipendenti con distribuzione oraria configurata (inclusi giorni di riposo)
-      if ((riga.causale === 'permesso_retribuito' || riga.causale === 'permesso_non_retribuito') && 
-          Object.keys(orariSettimanali).length > 0) {
+      // Validazione: se la causale richiede modalità di lavoro, verificare che sia specificata
+      const causaleRichiedeModalita = CAUSALI_CON_MODALITA.includes(riga.causale) || 
+                                        (riga.causale === 'cassa_integrazione' && (riga.percentuale_cassa_integrazione ?? 100) < 100)
+      if (causaleRichiedeModalita && !riga.modalita_lavoro) {
+        setSalvataggioInCorso(null)
+        alert('Attenzione: per questa causale è obbligatorio specificare una modalità di lavoro (In sede, SW o Trasferta)')
+        return
+      }
+      
+      // Validazione frontend per causali con ore_causale: limite basato sulla distribuzione oraria settimanale
+      // Controlla che la somma di ore_ordinarie + ore_causale non superi le ore previste
+      // Escludi 'lavoro' e 'assemblea' (per assemblea, l'eccedenza va in ore_eccedenti)
+      if (riga.causale !== 'lavoro' && riga.causale !== 'assemblea' && Object.keys(orariSettimanali).length > 0) {
         const [y, m, d] = dataStr.split('-')
         const orePreviste = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
+        const oreOrdinarie = parseFloat(riga.ore_ordinarie) || 0
         const oreCausale = parseFloat(riga.ore_causale) || 0
+        const totaleOre = oreOrdinarie + oreCausale
         
-        if (oreCausale > orePreviste) {
+        if (totaleOre > orePreviste) {
           setSalvataggioInCorso(null)
-          alert(`Attenzione: per i permessi (PR o PNR) le ore non possono superare ${orePreviste} ore previste per questo giorno secondo la tua distribuzione oraria settimanale`)
+          alert(`Attenzione: la somma di ore ordinarie (${oreOrdinarie}) e ore causale (${oreCausale}) non può superare ${orePreviste} ore previste per questo giorno secondo la tua distribuzione oraria settimanale. Causale: ${riga.causale}`)
           return
         }
       }
@@ -549,11 +576,19 @@ useEffect(() => {
         ore_ordinarie: parseFloat(riga.ore_ordinarie) || 0,
         ore_straordinarie: parseFloat(riga.ore_straordinarie) || 0,
         ore_causale: parseFloat(riga.ore_causale) || 0,
+        ore_eccedenti: parseFloat(riga.ore_eccedenti) || 0,
         causale: riga.causale,
         modalita_lavoro: riga.modalita_lavoro,
+        // Preserva campi specifici per non perderli durante l'aggiornamento
+        protocollo_malattia: riga.protocollo_malattia || null,
+        data_inizio_malattia: riga.data_inizio_malattia || null,
+        data_fine_malattia: riga.data_fine_malattia || null,
+        data_inizio_cassa_integrazione: riga.data_inizio_cassa_integrazione || null,
+        data_fine_cassa_integrazione: riga.data_fine_cassa_integrazione || null,
+        percentuale_cassa_integrazione: riga.percentuale_cassa_integrazione || null,
+        giustificativo_trasferta_path: riga.giustificativo_trasferta_path || null,
+        giustificativo_infortunio_path: riga.giustificativo_infortunio_path || null,
       }
-      // Invia ore_eccedenti per tutti i dipendenti
-      payload.ore_eccedenti = parseFloat(riga.ore_eccedenti) || 0;
 
       await salvaPresenza(payload)
       // Ricarica tutte le presenze per avere i dati aggiornati dal backend
@@ -653,6 +688,41 @@ useEffect(() => {
   // Determina se il dipendente è full-time (gestisce sia numero che stringa)
   const isFullTime = Number(dipendente?.percentuale_part_time) === 100;
 
+  // Funzione per verificare se il dipendente può inserire presenze per il mese/anno selezionato
+  const puoInserirePresenze = () => {
+    if (!dipendente) return true;
+    
+    const tipoContratto = dipendente.tipo_contratto;
+    const dataScadenza = dipendente.data_scadenza_contratto;
+    
+    // Se non c'è data di scadenza e il contratto è indeterminato, può sempre inserire
+    if (!dataScadenza && tipoContratto === 'indeterminato') {
+      return true;
+    }
+    
+    // Se c'è una data di scadenza (per determinato o per cessazione di indeterminato)
+    if (dataScadenza) {
+      // Converte la data di scadenza in oggetto Date
+      const scadenzaDate = new Date(dataScadenza);
+      // L'inizio del mese selezionato
+      const inizioMeseSelezionato = new Date(anno, mese - 1, 1);
+      
+      // Se l'inizio del mese è dopo la scadenza, non può inserire
+      if (inizioMeseSelezionato > scadenzaDate) {
+        return false;
+      }
+      
+      // Se il mese include la data di scadenza o è prima, può inserire
+      return true;
+    }
+    
+    return true;
+  };
+
+  const messaggioBlocco = !puoInserirePresenze() 
+    ? `Non puoi inserire presenze. Scadenza contratto: ${dipendente?.data_scadenza_contratto ? new Date(dipendente.data_scadenza_contratto).toLocaleDateString('it-IT') : 'N/D'}.`
+    : null;
+
   // Funzione per ottenere le ore previste per un giorno specifico
   const getOrePrevistePerGiorno = (anno, mese, giorno) => {
     const data = new Date(anno, mese - 1, giorno)
@@ -713,6 +783,20 @@ useEffect(() => {
           Dashboard
         </button>
       </div>
+      
+      {messaggioBlocco && (
+        <div style={{
+          padding: '1rem', 
+          backgroundColor: '#fca5a5', 
+          color: '#991b1b', 
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          fontWeight: '500',
+          textAlign: 'center'
+        }}>
+          ⚠️ {messaggioBlocco}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
         <select
@@ -786,19 +870,20 @@ useEffect(() => {
       <div style={{ marginBottom: '1.5rem' }}>
         <button
           onClick={handleInvia}
-          disabled={statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato'}
+          disabled={statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato' || !puoInserirePresenze()}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato') ? '#93c5fd' : '#2563eb',
+            backgroundColor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato' || !puoInserirePresenze()) ? '#93c5fd' : '#2563eb',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato') ? 'not-allowed' : 'pointer',
+            cursor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato' || !puoInserirePresenze()) ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem',
             display: 'block',
             margin: '0 auto'
           }}
-          title={statoFoglio === 'approvato' ? 'Foglio già approvato. Non è possibile reinviare.' : 
+          title={!puoInserirePresenze() ? 'Non puoi inviare: contratto scaduto' : 
+                statoFoglio === 'approvato' ? 'Foglio già approvato. Non è possibile reinviare.' : 
                 statoFoglio === 'reinviato' ? 'Foglio già reinviato. Attendere l\'approvazione.' :
                 statoFoglio === 'inviato' ? 'Foglio già inviato. Attendere l\'approvazione.' : ''}
         >
@@ -845,6 +930,7 @@ useEffect(() => {
                 orariSettimanali={orariSettimanali}
                 anno={anno}
                 mese={mese}
+                disabled={!puoInserirePresenze()}
               />
             )
           })}

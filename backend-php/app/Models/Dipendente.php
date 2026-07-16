@@ -17,9 +17,16 @@ class Dipendente extends Model
         'livello',
         'mansione',
         'data_assunzione',
+        'tipo_contratto',
+        'data_scadenza_contratto',
         'percentuale_part_time',
         'giorni_lavorativi_settimanali',
         'ore_settimanali',
+    ];
+
+    protected $casts = [
+        'data_assunzione' => 'date',
+        'data_scadenza_contratto' => 'date',
     ];
 
     /**
@@ -135,7 +142,8 @@ class Dipendente extends Model
                 $giorniLavorativi = $this->giorni_lavorativi_settimanali ?? 5;
                 return ($oreGiornaliereContratto / $giorniLavorativi);
             }
-            return 0;
+            // Default per full-time senza regola: 8 ore (standard contrattuale)
+            return 8;
         }
         
         // Per part-time, cerca la configurazione personalizzata

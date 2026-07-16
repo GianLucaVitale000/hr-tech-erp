@@ -15,6 +15,8 @@ function NuovoDipendente() {
     livello: '',
     mansione: '',
     data_assunzione: '',
+    tipo_contratto: 'indeterminato',
+    data_scadenza_contratto: '',
     percentuale_part_time: 100,
     giorni_lavorativi_settimanali: 5
   })
@@ -39,7 +41,15 @@ function NuovoDipendente() {
       setSelectedUserEmail(selectedUser ? selectedUser.email : '')
     }
     
-    setForm({ ...form, [name]: value })
+    if (name === 'tipo_contratto') {
+      setForm({
+        ...form,
+        [name]: value,
+        data_scadenza_contratto: value === 'indeterminato' ? '' : form.data_scadenza_contratto
+      })
+    } else {
+      setForm({ ...form, [name]: value })
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -221,6 +231,52 @@ function NuovoDipendente() {
 
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Tipo Contratto *
+          </label>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="tipo_contratto"
+                value="indeterminato"
+                checked={form.tipo_contratto === 'indeterminato'}
+                onChange={handleChange}
+                required
+                style={{ marginRight: '0.5rem' }}
+              />
+              Tempo Indeterminato
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name="tipo_contratto"
+                value="determinato"
+                checked={form.tipo_contratto === 'determinato'}
+                onChange={handleChange}
+                required
+                style={{ marginRight: '0.5rem' }}
+              />
+              Tempo Determinato
+            </label>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            {form.tipo_contratto === 'determinato' ? 'Data Scadenza Contratto *' : 'Cessazione'}
+          </label>
+          <input
+            type="date"
+            name="data_scadenza_contratto"
+            value={form.data_scadenza_contratto}
+            onChange={handleChange}
+            required={form.tipo_contratto === 'determinato'}
+            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
             % Part-Time *
           </label>
           <input
@@ -266,7 +322,6 @@ function NuovoDipendente() {
             name="data_assunzione"
             value={form.data_assunzione}
             onChange={handleChange}
-            placeholder="Seleziona data"
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
           />
         </div>
