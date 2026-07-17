@@ -75,6 +75,30 @@ class PresenzaController extends Controller
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
 
+        // GESTIONE CASSA INTEGRAZIONE: calcolo automatico ore_ordinarie per differenza
+        // e blocco ore_straordinarie
+        if (isset($validated['causale']) && $validated['causale'] === 'cassa_integrazione') {
+            // Calcola ore_ordinarie = ore_previste - ore_causale (differenza)
+            if (isset($validated['ore_causale']) && $validated['ore_causale'] > 0) {
+                $validated['ore_ordinarie'] = $oreOrdinarieMax - (float)$validated['ore_causale'];
+            }
+            // Blocca ore_straordinarie per cassa integrazione
+            if (isset($validated['ore_straordinarie']) && (float)$validated['ore_straordinarie'] > 0) {
+                return response()->json([
+                    'error' => 'Per la cassa integrazione non è possibile inserire ore straordinarie. Le ore ordinarie vengono calcolate automaticamente come differenza.'
+                ], 422);
+            }
+        }
+
+        // SPLIT AUTOMATICO: Se ore_ordinarie supera il limite giornaliero,
+        // sposta l'eccedenza in ore_straordinarie (solo per causale = lavoro)
+        if (isset($validated['causale']) && $validated['causale'] === 'lavoro' &&
+            isset($validated['ore_ordinarie']) && (float)$validated['ore_ordinarie'] > $oreOrdinarieMax) {
+            $eccedenza = (float)$validated['ore_ordinarie'] - $oreOrdinarieMax;
+            $validated['ore_straordinarie'] = (float)($validated['ore_straordinarie'] ?? 0) + $eccedenza;
+            $validated['ore_ordinarie'] = $oreOrdinarieMax;
+        }
+
         // Warning se ore straordinarie superano il limite consigliato
         if (isset($validated['ore_straordinarie']) && (float)$validated['ore_straordinarie'] > $oreStraordinarieLimiteConsigliato) {
             $validated['warning'] = 'Attenzione: superato limite consigliato di straordinario giornaliero';
@@ -84,26 +108,16 @@ class PresenzaController extends Controller
         // Il frontend gestisce già correttamente la ripartizione per part-time,
         // quindi non sovrascriviamo i valori. Mantieni solo i valori forniti.
         
-        // Validazione specifica per PR e PNR: ore_causale non deve superare il limite del giorno
-        // Applicata a TUTTI i dipendenti (inclusi giorni di riposo con 0 ore)
-        if (isset($validated['causale']) && 
-            ($validated['causale'] === 'permesso_retribuito' || $validated['causale'] === 'permesso_non_retribuito')) {
-            $oreCausale = (float)($validated['ore_causale'] ?? 0);
-            if ($oreCausale > $oreOrdinarieMax) {
-                return response()->json([
-                    'error' => 'Per i permessi retribuiti/non retribuiti, le ore non possono superare il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore) secondo la distribuzione oraria settimanale'
-                ], 422);
-            }
-        }
-
         // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
-        // (per causali diverse da lavoro e assemblea come ferie, permesso, ecc.)
+        // (per causali diverse da lavoro e assemblea: permesso_rol, PR, PNR, ferie, malattia, ecc.)
         // Per l'assemblea, permettiamo che il totale superi il limite (l'eccedenza va in ore_eccedenti)
-        if (isset($validated['causale']) && $validated['causale'] !== 'lavoro' && $validated['causale'] !== 'assemblea') {
+        if (isset($validated['causale']) && 
+            $validated['causale'] !== 'lavoro' && 
+            $validated['causale'] !== 'assemblea') {
             $totaleOre = (float)($validated['ore_ordinarie'] ?? 0) + (float)($validated['ore_causale'] ?? 0);
             if ($totaleOre > $oreOrdinarieMax) {
                 return response()->json([
-                    'error' => 'La somma tra ore ordinarie e ore di causale supera il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore)'
+                    'error' => 'La somma tra ore ordinarie e ore di causale supera il limite giornaliere previsto (' . $oreOrdinarieMax . ' ore)'
                 ], 422);
             }
         }
@@ -172,6 +186,31 @@ class PresenzaController extends Controller
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
         ]);
 
+        // GESTIONE CASSA INTEGRAZIONE: calcolo automatico ore_ordinarie per differenza
+        // e blocco ore_straordinarie
+        $causaleCorrente = isset($validated['causale']) ? $validated['causale'] : $presenza->causale;
+        if ($causaleCorrente === 'cassa_integrazione') {
+            // Calcola ore_ordinarie = ore_previste - ore_causale (differenza)
+            if (isset($validated['ore_causale']) && $validated['ore_causale'] > 0) {
+                $validated['ore_ordinarie'] = $oreOrdinarieMax - (float)$validated['ore_causale'];
+            }
+            // Blocca ore_straordinarie per cassa integrazione
+            if (isset($validated['ore_straordinarie']) && (float)$validated['ore_straordinarie'] > 0) {
+                return response()->json([
+                    'error' => 'Per la cassa integrazione non è possibile inserire ore straordinarie. Le ore ordinarie vengono calcolate automaticamente come differenza.'
+                ], 422);
+            }
+        }
+
+        // SPLIT AUTOMATICO: Se ore_ordinarie supera il limite giornaliero,
+        // sposta l'eccedenza in ore_straordinarie (solo per causale = lavoro)
+        if ((isset($validated['causale']) ? $validated['causale'] : $presenza->causale) === 'lavoro' &&
+            isset($validated['ore_ordinarie']) && (float)$validated['ore_ordinarie'] > $oreOrdinarieMax) {
+            $eccedenza = (float)$validated['ore_ordinarie'] - $oreOrdinarieMax;
+            $validated['ore_straordinarie'] = (float)($validated['ore_straordinarie'] ?? $presenza->ore_straordinarie ?? 0) + $eccedenza;
+            $validated['ore_ordinarie'] = $oreOrdinarieMax;
+        }
+
         // Warning se ore straordinarie superano il limite consigliato
         if (isset($validated['ore_straordinarie']) && (float)$validated['ore_straordinarie'] > $oreStraordinarieLimiteConsigliato) {
             $validated['warning'] = 'Attenzione: superato limite consigliato di straordinario giornaliero';
@@ -181,22 +220,13 @@ class PresenzaController extends Controller
         // Il frontend gestisce già correttamente la ripartizione per part-time,
         // quindi non sovrascriviamo i valori. Mantieni solo i valori forniti.
         
-        // Validazione specifica per PR e PNR: ore_causale non deve superare il limite del giorno
-        // Applicata a TUTTI i dipendenti (inclusi giorni di riposo con 0 ore)
-        $causaleCorrente = isset($validated['causale']) ? $validated['causale'] : $presenza->causale;
-        if ($causaleCorrente === 'permesso_retribuito' || $causaleCorrente === 'permesso_non_retribuito') {
-            $oreCausale = (float)($validated['ore_causale'] ?? $presenza->ore_causale ?? 0);
-            if ($oreCausale > $oreOrdinarieMax) {
-                return response()->json([
-                    'error' => 'Per i permessi retribuiti/non retribuiti, le ore non possono superare il limite giornaliero previsto (' . $oreOrdinarieMax . ' ore) secondo la distribuzione oraria settimanale'
-                ], 422);
-            }
-        }
-
         // Validazione: ore_ordinarie + ore_causale non devono superare il limite giornaliero
-        // (per causali diverse da lavoro e assemblea come ferie, permesso, ecc.)
+        // (per causali diverse da lavoro e assemblea: permesso_rol, PR, PNR, ferie, malattia, ecc.)
         // Per l'assemblea, permettiamo che il totale superi il limite (l'eccedenza va in ore_eccedenti)
-        if ($causaleCorrente !== 'lavoro' && $causaleCorrente !== 'assemblea') {
+        // NOTE: Usiamo i valori vecchi per i campi non inviati (il frontend deve inviare tutti i campi quando cambia causale)
+        $causaleCorrente = isset($validated['causale']) ? $validated['causale'] : $presenza->causale;
+        if ($causaleCorrente !== 'lavoro' && 
+            $causaleCorrente !== 'assemblea') {
             $totaleOre = (float)($validated['ore_ordinarie'] ?? $presenza->ore_ordinarie ?? 0) + 
                         (float)($validated['ore_causale'] ?? $presenza->ore_causale ?? 0);
             if ($totaleOre > $oreOrdinarieMax) {

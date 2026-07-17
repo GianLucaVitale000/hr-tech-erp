@@ -36,23 +36,29 @@ function AdminDashboard() {
   const dipendenteAttivoInPeriodo = (dipendente, mese, anno) => {
     const tipoContratto = dipendente.tipo_contratto || 'indeterminato'
     const dataScadenza = dipendente.data_scadenza_contratto
+    const dataAssunzione = dipendente.data_assunzione
     
-    // Se è indeterminato senza data di scadenza, è sempre attivo
-    if (tipoContratto === 'indeterminato' && !dataScadenza) {
-      return true
+    const inizioMeseSelezionato = new Date(anno, mese - 1, 1)
+    const fineMeseSelezionato = new Date(anno, mese, 0) // Ultimo giorno del mese
+    
+    // 1. Controlla se il dipendente era già assunto alla fine del mese
+    if (dataAssunzione) {
+      const assunzioneDate = new Date(dataAssunzione)
+      // Deve essere stato assunto prima o durante il mese selezionato
+      if (assunzioneDate > fineMeseSelezionato) {
+        return false  // Non era ancora assunto nel periodo
+      }
     }
     
-    // Se c'è una data di scadenza (per determinato o cessazione)
-    if (dataScadenza) {
+    // 2. Controlla scadenza del contratto (per determinato)
+    if (tipoContratto === 'determinato' && dataScadenza) {
       const scadenzaDate = new Date(dataScadenza)
-      // L'inizio del mese selezionato
-      const inizioMeseSelezionato = new Date(anno, mese - 1, 1)
-      
-      // È attivo se l'inizio del mese è <= alla data di scadenza
-      return inizioMeseSelezionato <= scadenzaDate
+      if (inizioMeseSelezionato > scadenzaDate) {
+        return false  // Contratto scaduto prima del mese
+      }
     }
     
-    // Default: attivo
+    // 3. Se passa tutti i controlli, è attivo
     return true
   }
 
