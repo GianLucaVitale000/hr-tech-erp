@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('presenze', function (Blueprint $table) {
-            $table->decimal('percentuale_cassa_integrazione', 5, 2)->nullable()->after('data_fine_cassa_integrazione');
+            if (!Schema::hasColumn('presenze', 'percentuale_cassa_integrazione')) {
+                $table->decimal('percentuale_cassa_integrazione', 5, 2)->nullable()->after('data_fine_cassa_integrazione');
+            }
         });
     }
 

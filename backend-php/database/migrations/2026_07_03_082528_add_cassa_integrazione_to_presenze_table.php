@@ -12,14 +12,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Aggiungi cassa_integrazione all'enum causale
-        DB::statement("ALTER TABLE presenze MODIFY COLUMN causale ENUM('lavoro','ferie','permesso_rol','malattia','maternita','infortunio','assemblea','sciopero','cassa_integrazione') NOT NULL DEFAULT 'lavoro'");
+        // Aggiungi cassa_integrazione all'enum causale (se non esiste già)
+        $enumValues = ['lavoro','ferie','permesso_rol','malattia','maternita','infortunio','assemblea','sciopero'];
+        if (!in_array('cassa_integrazione', $enumValues)) {
+            DB::statement("ALTER TABLE presenze MODIFY COLUMN causale ENUM('lavoro','ferie','permesso_rol','malattia','maternita','infortunio','assemblea','sciopero','cassa_integrazione') NOT NULL DEFAULT 'lavoro'");
+        }
         
-        // Aggiungi i nuovi campi per cassa integrazione
+        // Aggiungi i nuovi campi per cassa integrazione (se non esistono già)
         Schema::table('presenze', function (Blueprint $table) {
-            $table->date('data_inizio_cassa_integrazione')->nullable();
-            $table->date('data_fine_cassa_integrazione')->nullable();
-            $table->decimal('percentuale_cassa_integrazione', 5, 2)->nullable();
+            if (!Schema::hasColumn('presenze', 'data_inizio_cassa_integrazione')) {
+                $table->date('data_inizio_cassa_integrazione')->nullable();
+            }
+            if (!Schema::hasColumn('presenze', 'data_fine_cassa_integrazione')) {
+                $table->date('data_fine_cassa_integrazione')->nullable();
+            }
+            if (!Schema::hasColumn('presenze', 'percentuale_cassa_integrazione')) {
+                $table->decimal('percentuale_cassa_integrazione', 5, 2)->nullable();
+            }
         });
     }
 

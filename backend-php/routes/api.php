@@ -45,5 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/presenze/registra-cassa-integrazione', [PresenzaController::class, 'registraCassaIntegrazione']);
     Route::post('/presenze/{presenza}/giustificativo-trasferta', [PresenzaController::class, 'uploadGiustificativoTrasferta']);
     Route::post('/presenze/{presenza}/giustificativo-infortunio', [PresenzaController::class, 'uploadGiustificativoInfortunio']);
+    
+    // 🔹 Rotte per QR Code
+    Route::get('/presenze/{presenza}/generate-qr', [PresenzaController::class, 'generateQrToken']);
     Route::apiResource('presenze', PresenzaController::class);
 });
+
+// 🔹 Rotta per scansione QR dal tablet (nessun auth:sanctum, usa middleware kiosk.auth)
+Route::post('/presenze/scan-qr', [PresenzaController::class, 'scanQrCode'])->middleware(['kiosk.auth', \Illuminate\Http\Middleware\HandleCors::class]);

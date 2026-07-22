@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Presenza;
+use App\Models\Dipendente;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Firebase\JWT\JWT;
+use Firebase\JWT\ExpiredException;
+use Firebase\JWT\Key;
 
 class PresenzaController extends Controller
 {
@@ -73,7 +77,49 @@ class PresenzaController extends Controller
             'ore_causale' => "nullable|numeric|min:0|max:$oreCausaleMax",
             'causale' => 'required|in:lavoro,ferie,permesso_rol,permesso_retribuito,permesso_non_retribuito,malattia,maternita,infortunio,assemblea,sciopero,cassa_integrazione',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
+            'usa_qr' => 'boolean',
+            'pausa_ore' => 'nullable|numeric|min:0|max:8',
+            'fonte_dato' => 'nullable|string|in:MANUALE,QR_CODE',
         ]);
+
+        // 🔒 GESTIONE FLAG USA_QR: Validazione vincoli e azzeramento campi ore
+        if (isset($validated['usa_qr']) && $validated['usa_qr']) {
+            // Recupera il dipendente
+            $dipendente = \App\Models\Dipendente::with(['contratto.regoleCalcolo', 'orariSettimanali'])->find($validated['dipendente_id']);
+            
+            // Verifica che il dipendente sia tempo pieno
+            if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
+                return response()->json(['error' => 'QR Code disabilitato per dipendenti part-time'], 403);
+            }
+            // Verifica che causale sia 'lavoro'
+            if (($validated['causale'] ?? 'lavoro') !== 'lavoro') {
+                return response()->json(['error' => 'QR Code consentito solo per causale "lavoro"'], 403);
+            }
+            // Verifica che modalita_lavoro sia 'in_sede'
+            if (($validated['modalita_lavoro'] ?? 'in_sede') !== 'in_sede') {
+                return response()->json(['error' => 'QR Code consentito solo per modalità "in sede"'], 403);
+            }
+            
+            // Se usa QR, imposta i campi ore a 0 (verranno calcolati automaticamente al CHECK_OUT)
+            // NOTE: Non usare NULL perché il database ha NOT NULL constraint con default 0
+            $validated['ore_ordinarie'] = 0;
+            $validated['ore_straordinarie'] = 0;
+            $validated['ore_eccedenti'] = 0;
+            $validated['ore_causale'] = 0;
+            $validated['pausa_ore'] = $validated['pausa_ore'] ?? 0;
+            $validated['fonte_dato'] = 'QR_CODE';
+            
+            // Se sta salvando una nuova presenza, non impostare ora_ingresso/ora_uscita
+            // (verranno impostati dal QR scan)
+            if (!isset($validated['ora_ingresso'])) {
+                $validated['ora_ingresso'] = null;
+            }
+            if (!isset($validated['ora_uscita'])) {
+                $validated['ora_uscita'] = null;
+            }
+        } else {
+            $validated['fonte_dato'] = 'MANUALE';
+        }
 
         // GESTIONE CASSA INTEGRAZIONE: calcolo automatico ore_ordinarie per differenza
         // e blocco ore_straordinarie
@@ -184,7 +230,39 @@ class PresenzaController extends Controller
             'causale' => 'sometimes|in:lavoro,ferie,permesso_rol,permesso_retribuito,permesso_non_retribuito,malattia,maternita,infortunio,assemblea,sciopero,cassa_integrazione',
             'stato' => 'sometimes|in:bozza,inviato,approvato,rifiutato',
             'modalita_lavoro' => 'nullable|in:in_sede,smart_working,trasferta',
+            'usa_qr' => 'boolean',
+            'pausa_ore' => 'nullable|numeric|min:0|max:8',
         ]);
+
+        // 🔒 GESTIONE FLAG USA_QR: Validazione vincoli
+        if (isset($validated['usa_qr']) && $validated['usa_qr']) {
+            // Verifica che il dipendente sia tempo pieno
+            if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
+                return response()->json(['error' => 'QR Code disabilitato per dipendenti part-time'], 403);
+            }
+            // Verifica che causale sia 'lavoro'
+            $causaleCorrente = $validated['causale'] ?? $presenza->causale;
+            if ($causaleCorrente !== 'lavoro') {
+                return response()->json(['error' => 'QR Code consentito solo per causale "lavoro"'], 403);
+            }
+            // Verifica che modalita_lavoro sia 'in_sede'
+            $modalitaCorrente = $validated['modalita_lavoro'] ?? $presenza->modalita_lavoro;
+            if ($modalitaCorrente !== 'in_sede') {
+                return response()->json(['error' => 'QR Code consentito solo per modalità "in sede"'], 403);
+            }
+            
+            // Se attiva QR, imposta i campi ore a 0 (verranno calcolati automaticamente al CHECK_OUT)
+            // NOTE: Non usare NULL perché il database ha NOT NULL constraint con default 0
+            $validated['ore_ordinarie'] = 0;
+            $validated['ore_straordinarie'] = 0;
+            $validated['ore_eccedenti'] = 0;
+            $validated['ore_causale'] = 0;
+            $validated['pausa_ore'] = $validated['pausa_ore'] ?? ($presenza->pausa_ore ?? 0);
+            $validated['fonte_dato'] = 'QR_CODE';
+        } else {
+            // Se disattiva QR, assicurati che fonte_dato sia MANUALE
+            $validated['fonte_dato'] = 'MANUALE';
+        }
 
         // GESTIONE CASSA INTEGRAZIONE: calcolo automatico ore_ordinarie per differenza
         // e blocco ore_straordinarie
@@ -239,6 +317,177 @@ class PresenzaController extends Controller
         $presenza->update($validated);
 
         return $presenza;
+    }
+
+    /**
+     * Genera un token JWT per il QR Code di una presenza specifica
+     * Solo per dipendenti tempo pieno con flag usa_qr attivo
+     * 
+     * @param Request $request
+     * @param Presenza $presenza
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function generateQrToken(Request $request, Presenza $presenza)
+    {
+        $user = $request->user();
+
+        // Verifica autenticazione
+        if (!$user) {
+            return response()->json(['error' => 'Non autenticato'], 401);
+        }
+
+        // Carica le relazioni necessarie
+        $user->load('dipendente');
+        $presenza->load('dipendente');
+
+        // Verifica che l'utente abbia un dipendente associato
+        if (!$user->dipendente) {
+            return response()->json(['error' => 'Utente non associato a un dipendente'], 403);
+        }
+
+        // Verifica che la presenza abbia un dipendente
+        if (!$presenza->dipendente) {
+            return response()->json(['error' => 'Dipendente non trovato per questa presenza'], 404);
+        }
+
+        // Verifica che l'utente sia il proprietario della presenza
+        if ($presenza->dipendente_id !== $user->dipendente->id) {
+            return response()->json(['error' => 'Non autorizzato a generare QR per questa presenza'], 403);
+        }
+
+        $dipendente = $presenza->dipendente;
+
+        // Verifica che il dipendente sia tempo pieno
+        if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
+            return response()->json(['error' => 'QR Code disabilitato per dipendenti part-time'], 403);
+        }
+
+        // Verifica vincoli per QR
+        if (!$presenza->usa_qr) {
+            return response()->json(['error' => 'QR Code non attivo per questa presenza'], 403);
+        }
+        if ($presenza->causale !== 'lavoro') {
+            return response()->json(['error' => 'QR Code consentito solo per causale "lavoro"'], 403);
+        }
+        if ($presenza->modalita_lavoro !== 'in_sede') {
+            return response()->json(['error' => 'QR Code consentito solo per modalità "in sede"'], 403);
+        }
+
+        // Verifica che non ci siano già timbrature complete
+        if ($presenza->ora_ingresso && $presenza->ora_uscita) {
+            return response()->json(['error' => 'Timbrature già complete per questa presenza'], 400);
+        }
+
+        $payload = [
+            'user_id' => $user->id,
+            'dipendente_id' => $dipendente->id,
+            'presenza_id' => $presenza->id,
+            'data' => \Carbon\Carbon::parse($presenza->data)->toDateString(),
+            'exp' => Carbon::now()->addSeconds(30)->timestamp,  // Scade dopo 30 secondi
+        ];
+
+        // Controlla che config app.key esista
+        $appKey = config('app.key');
+        if (empty($appKey)) {
+            return response()->json(['error' => 'Configurazione applicazione non valida'], 500);
+        }
+
+        try {
+            $token = JWT::encode($payload, $appKey, 'HS256');
+            return ['qr_token' => $token];
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Errore nella generazione del token: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Elabora la scansione del QR Code dal tablet
+     * Registra CHECK_IN o CHECK_OUT in base allo stato attuale
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function scanQrCode(Request $request)
+    {
+        $request->validate(['qr_token' => 'required|string']);
+
+        try {
+            $payload = JWT::decode($request->qr_token, new Key(config('app.key'), 'HS256'));
+            
+            $presenza = Presenza::findOrFail($payload->presenza_id);
+            $dipendente = $presenza->dipendente;
+
+            // Verifica che il token corrisponda alla presenza
+            if ($payload->dipendente_id !== $dipendente->id || $payload->data !== $presenza->data) {
+                throw new \Exception('Token non valido per questa presenza');
+            }
+
+            // Verifica che la presenza sia ancora configurata per QR
+            if (!$presenza->usa_qr || $presenza->causale !== 'lavoro' || $presenza->modalita_lavoro !== 'in_sede') {
+                throw new \Exception('Presenza non configurata per QR Code');
+            }
+
+            // Verifica che il dipendente sia tempo pieno
+            if ((float)($dipendente->percentuale_part_time ?? 100) < 100) {
+                throw new \Exception('QR Code disabilitato per dipendenti part-time');
+            }
+
+            $now = Carbon::now()->format('H:i:s');
+
+            if (!$presenza->ora_ingresso) {
+                // Prima timbratura = CHECK_IN
+                $presenza->update([
+                    'ora_ingresso' => $now,
+                    'fonte_dato' => 'QR_CODE'
+                ]);
+                return ['message' => 'Ingresso registrato alle ' . $now];
+            }
+            elseif (!$presenza->ora_uscita) {
+                // Seconda timbratura = CHECK_OUT
+                // Usa la data della presenza + l'orario per evitare problemi con Carbon::parse
+                // che altrimenti userebbe la data corrente reale invece di quella mockata
+                $ingresso = Carbon::parse($presenza->data . ' ' . $presenza->ora_ingresso);
+                $uscita = Carbon::parse($presenza->data . ' ' . $now);
+                $oreLavorate = $ingresso->diffInMinutes($uscita) / 60;
+                $pausaOre = (float)($presenza->pausa_ore ?? 0);
+                
+                // Arrotondamento a blocchi di 15 minuti (0.25, 0.50, 0.75, 1.00, ...)
+                $oreLavorate = round($oreLavorate * 4) / 4;
+                
+                // Protezione: pausa non può superare le ore lavorate → valore minimo 0.00
+                $oreNette = max(0, $oreLavorate - $pausaOre);
+
+                // Calcola ore ordinarie/straordinarie in base al contratto
+                $dataPresenza = Carbon::parse($presenza->data);
+                $oreOrdinarieMax = $dipendente->getOrePrevistePerGiorno($dataPresenza->dayOfWeek);
+                
+                // Arrotondamento finale a blocchi di 15 minuti
+                $oreStraordinarie = round(max(0, $oreNette - $oreOrdinarieMax) * 4) / 4;
+                $oreOrdinarie = round(min($oreNette, $oreOrdinarieMax) * 4) / 4;
+
+                $presenza->update([
+                    'ora_uscita' => $now,
+                    'ore_ordinarie' => $oreOrdinarie,
+                    'ore_straordinarie' => $oreStraordinarie,
+                    'fonte_dato' => 'QR_CODE'
+                ]);
+
+                return [
+                    'message' => 'Uscita registrata alle ' . $now,
+                    'ore' => $oreNette,
+                    'ore_ordinarie' => $oreOrdinarie,
+                    'ore_straordinarie' => $oreStraordinarie
+                ];
+            }
+            else {
+                return response()->json(['error' => 'Timbrature già complete per questa presenza'], 400);
+            }
+
+        } catch (ExpiredException $e) {
+            return response()->json(['error' => 'QR Code scaduto. Generane uno nuovo.'], 400);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 
     public function destroy(Presenza $presenza)
@@ -400,6 +649,8 @@ class PresenzaController extends Controller
                     'ore_eccedenti' => 0,
                     'ore_causale' => $orePreviste,
                     'modalita_lavoro' => null,
+                    'pausa_ore' => 0,
+                    'fonte_dato' => 'MANUALE',
                     'protocollo_malattia' => $validated['protocollo'],
                     'data_inizio_malattia' => $validated['data_inizio'],
                     'data_fine_malattia' => $validated['data_fine'],
@@ -474,6 +725,8 @@ class PresenzaController extends Controller
                     'ore_eccedenti' => 0,
                     'ore_causale' => $oreCausale,
                     'modalita_lavoro' => null,
+                    'pausa_ore' => 0,
+                    'fonte_dato' => 'MANUALE',
                     'data_inizio_cassa_integrazione' => $validated['data_inizio'],
                     'data_fine_cassa_integrazione' => $validated['data_fine'],
                     'percentuale_cassa_integrazione' => $percentuale,

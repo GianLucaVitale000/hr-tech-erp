@@ -51,3 +51,28 @@ export const uploadGiustificativoInfortunio = (presenzaId, file) => {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+
+// 🔹 Funzione per generare token QR Code per una presenza
+export const generateQrToken = async (presenzaId) => {
+  const response = await api.get(`/presenze/${presenzaId}/generate-qr`)
+  return response.data.qr_token
+}
+
+// 🔹 Funzione per inviare la scansione QR dal tablet
+export const scanQrCode = async (qrToken, kioskToken) => {
+  const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/presenze/scan-qr`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Kiosk-Token': kioskToken,
+    },
+    body: JSON.stringify({ qr_token: qrToken }),
+  })
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || errorData.message || 'Errore nel server')
+  }
+  
+  return await response.json()
+}

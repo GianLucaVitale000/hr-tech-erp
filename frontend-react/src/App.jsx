@@ -14,6 +14,8 @@ import Contratti from './pages/Admin/Contratti'
 import Utenti from './pages/Admin/Utenti'
 import NuovoUtente from './pages/Admin/NuovoUtente'
 import EditUtente from './pages/Admin/EditUtente'
+import Kiosk from './pages/Kiosk'
+import KioskTest from './pages/KioskTest'
 
 function App() {
   return (
@@ -93,6 +95,11 @@ function App() {
               <Timesheet />
             </ProtectedRoute>
           } />
+
+          {/* 🔹 Rotta PUBBLICA per il tablet in modalità kiosk (nessun auth richiesto) */}
+          <Route path="/kiosk" element={<Kiosk />} />
+          {/* 🔹 Rotta per emulazione kiosk durante lo sviluppo */}
+          <Route path="/kiosk-test" element={<KioskTest />} />
 
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>

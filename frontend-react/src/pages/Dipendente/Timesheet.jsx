@@ -9,7 +9,9 @@ import {
   registraCassaIntegrazione,
   uploadGiustificativoTrasferta,
   uploadGiustificativoInfortunio,
+  generateQrToken,
 } from '../../services/presenzeService'
+import QrCodeModal from '../../components/QrCodeModal'
 
 const CAUSALI = [
   { value: 'lavoro', label: '-- Nessuna --' },
@@ -44,9 +46,14 @@ function formattaData(dataIso) {
   return `${giorno}/${mese}/${anno}`
 }
 
+function getDataStr(anno, mese, giorno) {
+  return `${anno}-${String(mese).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`
+}
+
 function RigaGiorno({
   giorno, nomeGiorno, riga, onChange, onSalva, salvando,
   onApriModaleMalattia, onApriModaleCassaIntegrazione, onUploadTrasferta, onUploadInfortunio, 
+  onApriModaleQrSettings,
   isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese, disabled = false
 }) {
   // Mostra modalità per lavoro, permessi, assemblea, OPPURE per cassa integrazione parziale (< 100%)
@@ -63,8 +70,20 @@ function RigaGiorno({
   const isFoglioApprovato = statoFoglio === 'approvato'
   const isFoglioInviato = statoFoglio === 'inviato'
   const isFoglioRifiutatoOReinviato = statoFoglio === 'rifiutato' || statoFoglio === 'reinviato'
+  
+  // Determina se i campi ore devono essere disabilitati
+  // Se usa_qr è attivo MA non ci sono ancora timbrature, disabilita i campi ore
+  // Se ci sono già le timbrature (ora_ingresso e/o ora_uscita), l'utente può vedere le ore calcolate
+  // ma non può modificarle manualmente (verranno ricalcolate dal backend se la timbratura cambia)
+  const isOreDisabled = riga.usa_qr && riga.fonte_dato === 'QR_CODE'
 
   const handleCausaleChange = (nuovaCausale) => {
+    // 🔹 Se la causale cambia e non è 'lavoro', disattiva usa_qr
+    const newRiga = { ...riga, causale: nuovaCausale }
+    if (nuovaCausale !== 'lavoro') {
+      newRiga.usa_qr = false
+    }
+    
     if (nuovaCausale === 'malattia') {
       onApriModaleMalattia(giorno)
       return
@@ -83,7 +102,7 @@ function RigaGiorno({
       const data = new Date(anno, mese - 1, giorno)
       const giornoSettimana = data.getDay()
       const orePreviste = orariSettimanali[giornoSettimana] || 0
-      onChange({ ...riga, causale: nuovaCausale, ore_causale: orePreviste, ore_ordinarie: 0, modalita_lavoro: null })
+      onChange({ ...newRiga, ore_causale: orePreviste, ore_ordinarie: 0, modalita_lavoro: null })
       return
     }
     
@@ -92,13 +111,13 @@ function RigaGiorno({
       const data = new Date(anno, mese - 1, giorno)
       const giornoSettimana = data.getDay()
       const orePreviste = orariSettimanali[giornoSettimana] || 0
-      onChange({ ...riga, causale: nuovaCausale, ore_causale: orePreviste, modalita_lavoro: null })
+      onChange({ ...newRiga, ore_causale: orePreviste, modalita_lavoro: null })
       return
     }
     
     // Per causali parziali (permesso_rol, permesso_retribuito, permesso_non_retribuito), 
     // non azzerare ore_ordinarie: l'utente può inserire entrambi i valori
-    onChange({ ...riga, causale: nuovaCausale, modalita_lavoro: null })
+    onChange({ ...newRiga, modalita_lavoro: null })
   }
 
   return (
@@ -114,8 +133,9 @@ function RigaGiorno({
           step="0.25"
           value={riga.ore_ordinarie || 0}
           onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-          disabled={disabled}
+          disabled={disabled || isOreDisabled}
           style={{ width: '60px', padding: '0.25rem' }}
+          title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : ''}
         />
       </td>
 
@@ -127,9 +147,9 @@ function RigaGiorno({
             step="0.25"
             value={riga.ore_eccedenti || 0}
             onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-            disabled={disabled}
+            disabled={disabled || isOreDisabled}
             style={{ width: '60px', padding: '0.25rem' }}
-            title="Ore eccedenti (oltre il limite ordinario del giorno)"
+            title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : 'Ore eccedenti (oltre il limite ordinario del giorno)'}
           />
         </td>
       )}
@@ -142,8 +162,9 @@ function RigaGiorno({
             step="0.25"
             value={riga.ore_straordinarie || 0}
             onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-            disabled={disabled}
+            disabled={disabled || isOreDisabled}
             style={{ width: '60px', padding: '0.25rem' }}
+            title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : ''}
           />
           {riga.ore_straordinarie > 4 && (
             <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.25rem' }}>
@@ -202,13 +223,18 @@ function RigaGiorno({
 
       <td style={{ padding: '0.5rem' }}>
         {mostraModalita && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.85rem', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem', alignItems: 'flex-start' }}>
             <label>
               <input
                 type="radio"
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'in_sede'}
-                onChange={() => onChange({ ...riga, modalita_lavoro: 'in_sede' })}
+                onChange={() => {
+                  // Se cambia in 'in_sede', maintains usa_qr state
+                  // Se cambia in altro, disattiva usa_qr
+                  const newRiga = { ...riga, modalita_lavoro: 'in_sede' }
+                  onChange(newRiga)
+                }}
                 disabled={disabled}
               /> In sede
             </label>
@@ -217,7 +243,10 @@ function RigaGiorno({
                 type="radio"
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'smart_working'}
-                onChange={() => onChange({ ...riga, modalita_lavoro: 'smart_working' })}
+                onChange={() => {
+                  // Se cambia in 'smart_working', disattiva usa_qr
+                  onChange({ ...riga, modalita_lavoro: 'smart_working', usa_qr: false })
+                }}
                 disabled={disabled}
               /> SW
             </label>
@@ -226,7 +255,10 @@ function RigaGiorno({
                 type="radio"
                 name={`modalita-${giorno}`}
                 checked={riga.modalita_lavoro === 'trasferta'}
-                onChange={() => onChange({ ...riga, modalita_lavoro: 'trasferta' })}
+                onChange={() => {
+                  // Se cambia in 'trasferta', disattiva usa_qr
+                  onChange({ ...riga, modalita_lavoro: 'trasferta', usa_qr: false })
+                }}
                 disabled={disabled}
               /> Trasferta
             </label>
@@ -244,25 +276,90 @@ function RigaGiorno({
                 )}
               </div>
             )}
+
+            {/* 🔹 Checkbox QR Code - integrato nella colonna Modalità (solo tempo pieno + causale lavoro + in_sede) */}
+            {isFullTime && riga.causale === 'lavoro' && riga.modalita_lavoro === 'in_sede' && (
+              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={riga.usa_qr || false}
+                  onChange={(e) => {
+                    const nuovaRiga = { ...riga, usa_qr: e.target.checked }
+                    onChange(nuovaRiga)
+                    // Se attivato, apri la modale per configurare pausa
+                    if (e.target.checked) {
+                      setTimeout(() => onApriModaleQrSettings(giorno), 100)
+                    }
+                  }}
+                  disabled={disabled}
+                  title="Attiva/disattiva timbratura tramite QR Code"
+                  style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
+                />
+                <span 
+                  style={{ 
+                    marginLeft: '0.5rem', 
+                    fontSize: '0.8rem',
+                    cursor: disabled ? 'not-allowed' : 'pointer',
+                    opacity: disabled ? 0.6 : 1,
+                    color: riga.usa_qr ? '#3b82f6' : 'inherit'
+                  }}
+                  onClick={() => {
+                    if (disabled) return
+                    if (riga.usa_qr) {
+                      onApriModaleQrSettings(giorno)
+                    }
+                  }}
+                  title="Configura QR Code"
+                >
+                  QR Code
+                </span>
+              </div>
+            )}
           </div>
         )}
       </td>
 
+
+
       <td style={{ padding: '0.5rem' }}>
+        {/* Mostra stato timbrature se usa_qr è attivo */}
+        {riga.usa_qr && isSalvato && (
+          <div style={{ 
+            fontSize: '0.75rem', 
+            marginBottom: '0.25rem',
+            padding: '0.25rem 0.5rem',
+            borderRadius: '4px',
+            backgroundColor: riga.ora_ingresso && riga.ora_uscita ? '#dcfce7' : '#fef3c7',
+            color: riga.ora_ingresso && riga.ora_uscita ? '#166534' : '#92400e'
+          }}>
+            {riga.ora_ingresso && riga.ora_uscita && (
+              <span>In: {riga.ora_ingresso}<br/>Out: {riga.ora_uscita}</span>
+            )}
+            {riga.ora_ingresso && !riga.ora_uscita && (
+              <span>In: {riga.ora_ingresso}<br/>Out: --:--</span>
+            )}
+            {!riga.ora_ingresso && (
+              <span>In: --:--<br/>Out: --:--</span>
+            )}
+          </div>
+        )}
+        
         <button
           onClick={onSalva}
-          disabled={salvando || isFoglioApprovato || (isFoglioInviato && isSalvato) || disabled}
+          disabled={salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled}
           style={{
             padding: '0.25rem 0.75rem',
-            backgroundColor: (isFoglioApprovato || disabled) ? '#93c5fd' : (isSalvato ? '#16a34a' : '#2563eb'),
+            backgroundColor: (isFoglioApprovato || disabled || isSalvato) ? '#93c5fd' : '#2563eb',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: (salvando || isFoglioApprovato || (isFoglioInviato && isSalvato) || disabled) ? 'not-allowed' : 'pointer',
+            cursor: (salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled) ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem',
-            opacity: (isFoglioApprovato || disabled) ? 0.6 : 1
+            opacity: (isFoglioApprovato || disabled || isSalvato) ? 0.6 : 1,
+            display: 'block',
+            width: '100%'
           }}
-          title={disabled ? 'Non puoi salvare: contratto scaduto' : (isFoglioApprovato || (isFoglioInviato && isSalvato)) ? (isFoglioApprovato ? 'Foglio approvato. Non è possibile modificare.' : 'Foglio inviato. Non è possibile modificare righe già salvate.') : ''}
+          title={disabled ? 'Non puoi salvare: contratto scaduto' : (isFoglioApprovato || isSalvato) ? (isFoglioApprovato ? 'Foglio approvato. Non è possibile modificare.' : 'Riga già salvata. Non è possibile modificare.') : (isFoglioInviato ? 'Foglio inviato. Non è possibile modificare.' : '')}
         >
           {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
         </button>
@@ -386,6 +483,168 @@ function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
   )
 }
 
+function ModaleQrSettings({
+  riga, 
+  onChange, 
+  onGenerateQr, 
+  onClose,
+  onRefresh,
+  disabled,
+  dataStr
+}) {
+  // Calcola isSalvato internamente in base a riga.id
+  const isSalvato = riga.id !== null && riga.id !== undefined
+
+  const handlePausaChange = (value) => {
+    onChange({ ...riga, pausa_ore: value === '' ? 0 : parseFloat(value) })
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', zIndex: 1001
+    }} onClick={(e) => {
+      if (e.target === e.currentTarget) {
+        onClose()
+      }
+    }}>
+      <div style={{ 
+        backgroundColor: '#1f2937', 
+        padding: '1.5rem', 
+        borderRadius: '8px', 
+        width: '400px',
+        maxWidth: '90vw'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h3 style={{ marginTop: 0, color: 'white', marginBottom: 0 }}>Configurazione QR Code</h3>
+          <button 
+            onClick={onClose} 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'white', 
+              fontSize: '1.5rem', 
+              cursor: 'pointer',
+              padding: '0 0.25rem',
+              lineHeight: 1
+            }}
+            title="Chiudi"
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', color: 'white', marginBottom: '0.5rem' }}>
+            pausa non retribuita
+          </label>
+          <input
+            type="number"
+            min="0"
+            max="8"
+            step="0.25"
+            value={riga.pausa_ore || 0}
+            onChange={(e) => handlePausaChange(e.target.value)}
+            disabled={disabled}
+            style={{ 
+              width: '100%', 
+              padding: '0.5rem', 
+              borderRadius: '4px',
+              border: '1px solid #4b5563'
+            }}
+            title="Ore di pausa (saranno sottratte dal totale)"
+          />
+          <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+            Le ore di pausa verranno sottratte dal totale calcolato
+          </p>
+        </div>
+
+        {/* Pulsante Kiosk - sempre visibile */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <button
+            onClick={() => onGenerateQr && onGenerateQr(dataStr)}
+            disabled={disabled}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: disabled ? 'not-allowed' : 'pointer',
+              fontSize: '0.85rem',
+              width: '100%'
+            }}
+            title="Apri kiosk per timbrare con QR Code"
+          >
+            📱 Scansiona il QR code
+          </button>
+        </div>
+
+        {/* Mostra stato timbrature */}
+        {isSalvato && (
+          <div style={{ marginBottom: '1rem' }}>
+            {riga.ora_ingresso && !riga.ora_uscita && (
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: '#fbbf24', 
+                padding: '0.5rem',
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                borderRadius: '4px',
+                textAlign: 'center'
+              }}>
+                ⏳ Ingresso: {riga.ora_ingresso} - Uscita: in attesa
+              </div>
+            )}
+            {riga.ora_ingresso && riga.ora_uscita && (
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: '#34d399', 
+                padding: '0.5rem',
+                backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                borderRadius: '4px',
+                textAlign: 'center'
+              }}>
+                ✓ Ingresso: {riga.ora_ingresso} - Uscita: {riga.ora_uscita}
+                {riga.ore_ordinarie && (
+                  <div style={{ marginTop: '0.25rem', fontSize: '0.7rem' }}>
+                    Ore ordinarie: {riga.ore_ordinarie} h
+                    {riga.ore_straordinarie > 0 && (
+                      <span>, Straordinarie: {riga.ore_straordinarie} h</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+          {isSalvato && onRefresh && (
+            <button 
+              onClick={() => {
+                // Ricarica la riga dal backend per vedere gli aggiornamenti
+                onRefresh && onRefresh(dataStr)
+              }} 
+              style={{ 
+                padding: '0.5rem 1rem', 
+                backgroundColor: '#2563eb', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '4px', 
+                cursor: 'pointer'
+              }}
+              title="Ricarica i dati dal server per vedere gli aggiornamenti delle timbrature"
+            >
+              Verifica scansione
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function Timesheet() {
   const navigate = useNavigate()
   const oggi = new Date()
@@ -399,29 +658,84 @@ function Timesheet() {
   const [errore, setErrore] = useState('')
   const [modaleMalattiaGiorno, setModaleMalattiaGiorno] = useState(null)
   const [modaleCassaIntegrazioneGiorno, setModaleCassaIntegrazioneGiorno] = useState(null)
+  const [modaleQrSettingsGiorno, setModaleQrSettingsGiorno] = useState(null)
   const [statoFoglio, setStatoFoglio] = useState(null)
   const [orariSettimanali, setOrariSettimanali] = useState({})
+  // 🔹 States per QR Code
+  const [showQrModal, setShowQrModal] = useState(false)
+  const [qrToken, setQrToken] = useState('')
+  const [selectedPresence, setSelectedPresence] = useState(null)
+
+  // 🔹 Funzione per calcolare le ore lavorate da ora_ingresso e ora_uscita
+  const calcolaOreDaTimbrature = (riga, dataStr) => {
+    if (!riga.ora_ingresso || !riga.ora_uscita) {
+      return null
+    }
+    
+    try {
+      // Parsa gli orari (formato HH:MM:SS o HH:MM)
+      const [ingressoH, ingressoM, ingressoS = '0'] = riga.ora_ingresso.split(':')
+      const [uscitaH, uscitaM, uscitaS = '0'] = riga.ora_uscita.split(':')
+      
+      const ingressoTotale = parseInt(ingressoH) * 3600 + parseInt(ingressoM) * 60 + parseInt(ingressoS)
+      const uscitaTotale = parseInt(uscitaH) * 3600 + parseInt(uscitaM) * 60 + parseInt(uscitaS)
+      
+      const oreLavorateTotali = (uscitaTotale - ingressoTotale) / 3600
+      const orePausa = riga.pausa_ore || 0
+      const oreNette = oreLavorateTotali - orePausa
+      
+      // Calcola ore ordinarie e straordinarie in base al contratto
+      const [y, m, d] = dataStr.split('-')
+      const oreOrdinarieMax = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
+      const oreStraordinarie = Math.max(0, Math.round((oreNette - oreOrdinarieMax) * 4) / 4)
+      const oreOrdinarie = Math.min(oreNette, oreOrdinarieMax)
+      
+      return {
+        ore_ordinarie: Math.round(oreOrdinarie * 4) / 4,
+        ore_straordinarie: Math.round(oreStraordinarie * 4) / 4,
+        ore_eccedenti: 0
+      }
+    } catch (e) {
+      console.error('Errore nel calcolo delle ore:', e)
+      return null
+    }
+  }
 
   const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
-  const normalizzaRiga = (p = {}) => ({
-  ore_ordinarie: p.ore_ordinarie || 0,
-  ore_eccedenti: p.ore_eccedenti || 0,
-  ore_straordinarie: p.ore_straordinarie || 0,
-  ore_causale: p.ore_causale || 0,
-  causale: p.causale || 'lavoro',
-  modalita_lavoro: p.modalita_lavoro || null,
-  giustificativo_trasferta_path: p.giustificativo_trasferta_path || null,
-  giustificativo_infortunio_path: p.giustificativo_infortunio_path || null,
-  protocollo_malattia: p.protocollo_malattia || null,
-  data_inizio_malattia: p.data_inizio_malattia || null,
-  data_fine_malattia: p.data_fine_malattia || null,
-  data_inizio_cassa_integrazione: p.data_inizio_cassa_integrazione || null,
-  data_fine_cassa_integrazione: p.data_fine_cassa_integrazione || null,
-  percentuale_cassa_integrazione: p.percentuale_cassa_integrazione || null,
-  id: p.id || null,
-  warning: p.warning || null,
-})
+  const normalizzaRiga = (p = {}) => {
+    // Normalizza la data: se è una stringa con orario, estrai solo la parte data
+    let dataNormalizzata = p.data;
+    if (typeof dataNormalizzata === 'string' && dataNormalizzata.includes(' ')) {
+      dataNormalizzata = dataNormalizzata.split(' ')[0];
+    }
+    
+    return {
+      data: dataNormalizzata,
+      ore_ordinarie: p.ore_ordinarie || 0,
+      ore_eccedenti: p.ore_eccedenti || 0,
+      ore_straordinarie: p.ore_straordinarie || 0,
+      ore_causale: p.ore_causale || 0,
+      causale: p.causale || 'lavoro',
+      modalita_lavoro: p.modalita_lavoro || null,
+      giustificativo_trasferta_path: p.giustificativo_trasferta_path || null,
+      giustificativo_infortunio_path: p.giustificativo_infortunio_path || null,
+      protocollo_malattia: p.protocollo_malattia || null,
+      data_inizio_malattia: p.data_inizio_malattia || null,
+      data_fine_malattia: p.data_fine_malattia || null,
+      data_inizio_cassa_integrazione: p.data_inizio_cassa_integrazione || null,
+      data_fine_cassa_integrazione: p.data_fine_cassa_integrazione || null,
+      percentuale_cassa_integrazione: p.percentuale_cassa_integrazione || null,
+      id: p.id || null,
+      warning: p.warning || null,
+      // 🔹 Nuovi campi per QR Code
+      usa_qr: p.usa_qr || false,
+      pausa_ore: p.pausa_ore || 0,
+      ora_ingresso: p.ora_ingresso || null,
+      ora_uscita: p.ora_uscita || null,
+      fonte_dato: p.fonte_dato || 'MANUALE',
+    };
+  }
 
 useEffect(() => {
   getMioProfilo().then((res) => {
@@ -473,9 +787,6 @@ useEffect(() => {
     (_, i) => i + 1
   )
 
-  const getDataStr = (giorno) =>
-    `${anno}-${String(mese).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`
-
   const getRiga = (dataStr) => righe[dataStr] || normalizzaRiga()
 
   const handleChange = (dataStr, nuovaRiga) => {
@@ -492,6 +803,30 @@ useEffect(() => {
       ore_straordinarie: normalizza(nuovaRiga.ore_straordinarie),
       ore_eccedenti: normalizza(nuovaRiga.ore_eccedenti),
       ore_causale: normalizza(nuovaRiga.ore_causale),
+    }
+    
+    // 🔹 Se usa QR e ha entrambi gli orari, calcola automaticamente le ore
+    // Questo permette all'utente di vedere le ore calcolate prima di salvare
+    if (nuovaRiga.usa_qr && nuovaRiga.ora_ingresso && nuovaRiga.ora_uscita && 
+        Object.keys(orariSettimanali).length > 0) {
+      const calcolate = calcolaOreDaTimbrature(nuovaRiga, dataStr)
+      if (calcolate) {
+        // Sovrascrivi le ore calcolate, ma mantieni gli altri campi
+        nuovaRiga = {
+          ...nuovaRiga,
+          ...calcolate
+        }
+      }
+    }
+    
+    // 🔹 Se usa_qr viene attivato, imposta fonte_dato a QR_CODE
+    if (nuovaRiga.usa_qr && !nuovaRiga.fonte_dato) {
+      nuovaRiga.fonte_dato = 'QR_CODE'
+    }
+    
+    // 🔹 Se usa_qr viene disattivato, imposta fonte_dato a MANUALE
+    if (!nuovaRiga.usa_qr && nuovaRiga.fonte_dato === 'QR_CODE') {
+      nuovaRiga.fonte_dato = 'MANUALE'
     }
     
     // Gestione automatica delle ore per tutti i dipendenti
@@ -579,6 +914,12 @@ useEffect(() => {
         ore_eccedenti: parseFloat(riga.ore_eccedenti) || 0,
         causale: riga.causale,
         modalita_lavoro: riga.modalita_lavoro,
+        // 🔹 Campi QR Code
+        usa_qr: riga.usa_qr || false,
+        pausa_ore: riga.pausa_ore || 0,
+        ora_ingresso: riga.ora_ingresso || null,
+        ora_uscita: riga.ora_uscita || null,
+        fonte_dato: riga.fonte_dato || 'MANUALE',
         // Preserva campi specifici per non perderli durante l'aggiornamento
         protocollo_malattia: riga.protocollo_malattia || null,
         data_inizio_malattia: riga.data_inizio_malattia || null,
@@ -614,7 +955,7 @@ useEffect(() => {
   }
 
   const handleConfermaMalattia = async (dataFine, protocollo) => {
-    const dataInizioStr = getDataStr(modaleMalattiaGiorno)
+    const dataInizioStr = getDataStr(anno, mese, modaleMalattiaGiorno)
     await registraMalattia(dipendente.id, dataInizioStr, dataFine, protocollo)
     setModaleMalattiaGiorno(null)
 
@@ -631,7 +972,7 @@ useEffect(() => {
   }
 
   const handleConfermaCassaIntegrazione = async (dataFine, percentuale) => {
-    const dataInizioStr = getDataStr(modaleCassaIntegrazioneGiorno)
+    const dataInizioStr = getDataStr(anno, mese, modaleCassaIntegrazioneGiorno)
     await registraCassaIntegrazione(dipendente.id, dataInizioStr, dataFine, percentuale)
     setModaleCassaIntegrazioneGiorno(null)
 
@@ -644,7 +985,7 @@ useEffect(() => {
   }
 
   const handleUploadTrasferta = async (giorno, file) => {
-    const dataStr = getDataStr(giorno)
+    const dataStr = getDataStr(anno, mese, giorno)
     const riga = getRiga(dataStr)
     if (!riga.id) {
       alert('Salva prima la riga prima di caricare il giustificativo.')
@@ -655,7 +996,7 @@ useEffect(() => {
   }
 
   const handleUploadInfortunio = async (giorno, file) => {
-    const dataStr = getDataStr(giorno)
+    const dataStr = getDataStr(anno, mese, giorno)
     const riga = getRiga(dataStr)
     if (!riga.id) {
       alert('Salva prima la riga prima di caricare il giustificativo.')
@@ -663,6 +1004,123 @@ useEffect(() => {
     }
     const res = await uploadGiustificativoInfortunio(riga.id, file)
     setRighe((prev) => ({ ...prev, [dataStr]: normalizzaRiga(res.data) }))
+  }
+
+  const handleApriModaleQrSettings = (giorno) => {
+    setModaleQrSettingsGiorno(giorno)
+  }
+
+  const handleChiudiModaleQrSettings = () => {
+    setModaleQrSettingsGiorno(null)
+  }
+
+  // 🔹 Funzione per ricaricare una singola riga dal backend
+  const handleRefreshRiga = async (dataStr) => {
+    try {
+      const res = await getPresenze(dipendente.id, mese, anno)
+      const mappa = {}
+      res.data.forEach((p) => {
+        mappa[p.data] = normalizzaRiga(p)
+      })
+      // Mostra messaggio di aggiornamento
+      const rigaAggiornata = mappa[dataStr]
+      if (rigaAggiornata) {
+        setRighe(mappa)
+        setMessaggio(`Dati aggiornati per il ${dataStr}`)
+        setTimeout(() => setMessaggio(''), 3000)
+      }
+    } catch (error) {
+      setErrore(error.message || 'Errore nel ricaricare i dati')
+      setTimeout(() => setErrore(''), 3000)
+    }
+  }
+
+  // 🔹 Funzione per generare QR Code
+  const handleGenerateQr = async (dataStr) => {
+    const riga = getRiga(dataStr)
+    
+    // Se la riga non ha un ID, salvala prima automaticamente
+    let presenzaId = riga.id
+    if (!presenzaId) {
+      try {
+        // Crea un payload minimo per salvare la riga
+        // Tutti i campi ore sono richiesti dal database (non nullable)
+        const payload = {
+          dipendente_id: dipendente.id,
+          data: dataStr,
+          ore_ordinarie: 0,
+          ore_straordinarie: 0,
+          ore_eccedenti: 0,
+          ore_causale: 0,
+          causale: riga.causale || 'lavoro',
+          modalita_lavoro: riga.modalita_lavoro || 'in_sede',
+          usa_qr: true,
+          pausa_ore: riga.pausa_ore || 0,
+          fonte_dato: 'QR_CODE',
+        }
+        
+        const response = await salvaPresenza(payload)
+        presenzaId = response.data.id
+        
+        // Aggiorna lo stato locale con la riga salvata
+        setRighe((prev) => ({
+          ...prev,
+          [dataStr]: normalizzaRiga(response.data)
+        }))
+        
+        // Aspetta un po' per assicurarsi che lo stato sia aggiornato
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error ||
+                           'Errore nel salvare la riga'
+        alert('Errore nel salvare la riga: ' + errorMessage)
+        return
+      }
+    }
+    
+    // Ora abbiamo l'ID, generiamo il token
+    try {
+      const token = await generateQrToken(presenzaId)
+      setQrToken(token)
+      setSelectedPresence(getRiga(dataStr))
+      setShowQrModal(true)
+      
+      // Auto-refresh ogni 25 secondi (il token scade dopo 30s)
+      const interval = setInterval(async () => {
+        try {
+          // Controlla se la presenza è completata (entrata e uscita registrate)
+          const currentRiga = getRiga(dataStr)
+          if (currentRiga.ora_ingresso && currentRiga.ora_uscita) {
+            // Presenza completata, ferma il refresh automatico
+            clearInterval(interval)
+            setShowQrModal(false)
+            return
+          }
+          
+          const newToken = await generateQrToken(presenzaId)
+          setQrToken(newToken)
+        } catch (error) {
+          // Se l'errore è 400 (presenza completata), chiudi senza alert
+          if (error.response?.status === 400) {
+            clearInterval(interval)
+            setShowQrModal(false)
+          } else {
+            clearInterval(interval)
+            setShowQrModal(false)
+            alert('Errore nel generare il nuovo QR Code: ' + error.message)
+          }
+        }
+      }, 25000)
+      
+      // Salva l'intervallo per pulirlo alla chiusura
+      return () => clearInterval(interval)
+      
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || 'Errore nella generazione del QR Code'
+      alert(errorMessage)
+    }
   }
 
   const handleInvia = async () => {
@@ -857,13 +1315,13 @@ useEffect(() => {
           <strong>PNR:</strong> {totalePermessiNonRetribuiti}
         </div>
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fde68a', borderRadius: '6px', fontSize: '0.85rem' }}>
-          <strong>Ore INPS:</strong> {totaleOreINPS}
+          <strong>INPS:</strong> {totaleOreINPS}
         </div>
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fca5a5', borderRadius: '6px', fontSize: '0.85rem' }}>
-          <strong>Ore INAIL:</strong> {totaleOreINAIL}
+          <strong>INAIL:</strong> {totaleOreINAIL}
         </div>
         <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#e0e7ff', borderRadius: '6px', fontSize: '0.85rem' }}>
-          <strong>Cassa Integraz.:</strong> {totaleCassaIntegrazione}
+          <strong>CIG:</strong> {totaleCassaIntegrazione}
         </div>
       </div>
 
@@ -897,7 +1355,7 @@ useEffect(() => {
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-            <th style={{ padding: '0.5rem' }}>Giorno</th>
+            <th style={{ padding: '0.5rem' }}></th>
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
             {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
             {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
@@ -909,7 +1367,7 @@ useEffect(() => {
         </thead>
         <tbody>
           {giorni.map((giorno) => {
-            const dataStr = getDataStr(giorno)
+            const dataStr = getDataStr(anno, mese, giorno)
             const riga = getRiga(dataStr)
 
             return (
@@ -925,6 +1383,7 @@ useEffect(() => {
                 onApriModaleCassaIntegrazione={handleApriModaleCassaIntegrazione}
                 onUploadTrasferta={handleUploadTrasferta}
                 onUploadInfortunio={handleUploadInfortunio}
+                onApriModaleQrSettings={handleApriModaleQrSettings}
                 isFullTime={isFullTime}
                 statoFoglio={statoFoglio}
                 orariSettimanali={orariSettimanali}
@@ -939,16 +1398,44 @@ useEffect(() => {
 
       {modaleMalattiaGiorno && (
         <ModaleMalattia
-          dataInizio={getDataStr(modaleMalattiaGiorno)}
+          dataInizio={getDataStr(anno, mese, modaleMalattiaGiorno)}
           onConferma={handleConfermaMalattia}
           onAnnulla={() => setModaleMalattiaGiorno(null)}
         />
       )}
       {modaleCassaIntegrazioneGiorno && (
         <ModaleCassaIntegrazione
-          dataInizio={getDataStr(modaleCassaIntegrazioneGiorno)}
+          dataInizio={getDataStr(anno, mese, modaleCassaIntegrazioneGiorno)}
           onConferma={handleConfermaCassaIntegrazione}
           onAnnulla={() => setModaleCassaIntegrazioneGiorno(null)}
+        />
+      )}
+      
+      {/* Modale QR Settings */}
+      {modaleQrSettingsGiorno && (
+        <ModaleQrSettings
+          giorno={modaleQrSettingsGiorno}
+          nomeGiorno={getNomeGiornoSettimana(anno, mese, modaleQrSettingsGiorno)}
+          riga={getRiga(getDataStr(anno, mese, modaleQrSettingsGiorno))}
+          onChange={(nuovaRiga) => handleChange(getDataStr(anno, mese, modaleQrSettingsGiorno), nuovaRiga)}
+          onGenerateQr={handleGenerateQr}
+          onClose={handleChiudiModaleQrSettings}
+          onRefresh={handleRefreshRiga}
+          disabled={!puoInserirePresenze()}
+          dataStr={getDataStr(anno, mese, modaleQrSettingsGiorno)}
+        />
+      )}
+      
+      {/* 🔹 Modale QR Code */}
+      {showQrModal && selectedPresence && (
+        <QrCodeModal
+          qrToken={qrToken}
+          presence={selectedPresence}
+          onClose={() => {
+            setShowQrModal(false)
+            setQrToken('')
+            setSelectedPresence(null)
+          }}
         />
       )}
     </div>
