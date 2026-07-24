@@ -15,7 +15,7 @@ import Utenti from './pages/Admin/Utenti'
 import NuovoUtente from './pages/Admin/NuovoUtente'
 import EditUtente from './pages/Admin/EditUtente'
 import Kiosk from './pages/Kiosk'
-import KioskTest from './pages/KioskTest'
+import KioskTest from './tools/KioskTest'
 
 function App() {
   return (
