@@ -65,7 +65,7 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -89,7 +89,7 @@ CREATE TABLE `contratti` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -104,34 +104,11 @@ CREATE TABLE `regole_calcolo_contratto` (
   `contratto_id` bigint unsigned NOT NULL,
   `descrizione` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
-  `limite_straordinario_mensile` decimal(5,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `regole_calcolo_contratto_contratto_id_index` (`contratto_id`),
   CONSTRAINT `regole_calcolo_contratto_contratto_id_foreign` FOREIGN KEY (`contratto_id`) REFERENCES `contratti` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `dipendente_regola_calcolo`
---
-
-DROP TABLE IF EXISTS `dipendente_regola_calcolo`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `dipendente_regola_calcolo` (
-  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `dipendente_id` bigint unsigned NOT NULL,
-  `regola_calcolo_contratto_id` bigint unsigned NOT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `dipendente_regola_calcolo_dipendente_id_unique` (`dipendente_id`),
-  KEY `dipendente_regola_calcolo_dipendente_id_index` (`dipendente_id`),
-  KEY `dipendente_regola_calcolo_regola_calcolo_contratto_id_index` (`regola_calcolo_contratto_id`),
-  CONSTRAINT `dipendente_regola_calcolo_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `dipendente_regola_calcolo_regola_calcolo_contratto_id_foreign` FOREIGN KEY (`regola_calcolo_contratto_id`) REFERENCES `regole_calcolo_contratto` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -146,6 +123,8 @@ CREATE TABLE `dipendenti` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint unsigned NOT NULL,
   `contratto_id` bigint unsigned DEFAULT NULL,
+  `tipo_contratto` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'indeterminato',
+  `data_scadenza_contratto` date DEFAULT NULL,
   `codice_fiscale` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `iban` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `livello` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -154,6 +133,7 @@ CREATE TABLE `dipendenti` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `percentuale_part_time` decimal(5,2) NOT NULL DEFAULT '100.00',
+  `ore_settimanali` decimal(5,2) DEFAULT NULL COMMENT 'Ore settimanali del profilo orario specifico del dipendente',
   `giorni_lavorativi_settimanali` tinyint NOT NULL DEFAULT '5',
   PRIMARY KEY (`id`),
   UNIQUE KEY `dipendenti_codice_fiscale_unique` (`codice_fiscale`),
@@ -161,7 +141,7 @@ CREATE TABLE `dipendenti` (
   KEY `dipendenti_contratto_id_foreign` (`contratto_id`),
   CONSTRAINT `dipendenti_contratto_id_foreign` FOREIGN KEY (`contratto_id`) REFERENCES `contratti` (`id`) ON DELETE SET NULL,
   CONSTRAINT `dipendenti_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,6 +166,28 @@ CREATE TABLE `dipendente_orari_settimanali` (
   UNIQUE KEY `dip_orari_unique` (`dipendente_id`,`giorno_settimana`),
   KEY `dipendente_orari_settimanali_dipendente_id_index` (`dipendente_id`),
   CONSTRAINT `dipendente_orari_settimanali_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `dipendente_regola_calcolo`
+--
+
+DROP TABLE IF EXISTS `dipendente_regola_calcolo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `dipendente_regola_calcolo` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `dipendente_id` bigint unsigned NOT NULL,
+  `regola_calcolo_contratto_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `dipendente_regola_calcolo_dipendente_id_unique` (`dipendente_id`),
+  KEY `dipendente_regola_calcolo_dipendente_id_index` (`dipendente_id`),
+  KEY `dipendente_regola_calcolo_regola_calcolo_contratto_id_index` (`regola_calcolo_contratto_id`),
+  CONSTRAINT `dipendente_regola_calcolo_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `dipendente_regola_calcolo_regola_calcolo_contratto_id_foreign` FOREIGN KEY (`regola_calcolo_contratto_id`) REFERENCES `regole_calcolo_contratto` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -218,10 +220,15 @@ CREATE TABLE `presenze` (
   `data_fine_cassa_integrazione` date DEFAULT NULL,
   `percentuale_cassa_integrazione` decimal(5,2) DEFAULT NULL,
   `warning` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usa_qr` tinyint(1) NOT NULL DEFAULT '0',
+  `ora_ingresso` time DEFAULT NULL,
+  `ora_uscita` time DEFAULT NULL,
+  `pausa_ore` decimal(5,2) NOT NULL DEFAULT '0.00',
+  `fonte_dato` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'MANUALE',
   PRIMARY KEY (`id`),
   UNIQUE KEY `presenze_dipendente_id_data_unique` (`dipendente_id`,`data`),
   CONSTRAINT `presenze_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=200 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -299,7 +306,7 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -458,4 +465,4 @@ CREATE TABLE `personal_access_tokens` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-30 07:50:00
+-- Dump completed on 2026-07-23 10:00:00

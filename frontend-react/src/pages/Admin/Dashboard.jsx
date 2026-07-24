@@ -11,6 +11,18 @@ function AdminDashboard() {
   const [error, setError] = useState(null)
   const [meseSelezionato, setMeseSelezionato] = useState(new Date().getMonth() + 1)
   const [annoSelezionato, setAnnoSelezionato] = useState(new Date().getFullYear())
+  const [isMobile, setIsMobile] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Rileva se è mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
 
@@ -121,121 +133,295 @@ function AdminDashboard() {
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <div>
-          <h1 style={{ margin: '0 0 2rem 0' }}>Dashboard di Amministrazione</h1>
-          <p>Benvenuto, <strong>{user?.name}</strong></p>
-          <p>Ruolo: <strong>{user?.role}</strong></p>
+          <h1 style={{ margin: '0 0 1rem 0', lineHeight: '1.2' }}>Dashboard di Amministrazione</h1>
+          <p style={{ margin: '0 0 0.5rem 0' }}>Benvenuto, <strong>{user?.name}</strong></p>
+          <p style={{ margin: 0 }}>Ruolo: <strong>{user?.role}</strong></p>
         </div>
-        <button onClick={handleLogout} style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: '#dc2626',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}>
-          Logout
-        </button>
+        {!isMobile && (
+          <button onClick={handleLogout} style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#dc2626',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}>
+            Logout
+          </button>
+        )}
       </div>
+
+      {isMobile && (
+        <>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            style={{
+              position: 'fixed',
+              top: '1rem',
+              right: '1rem',
+              zIndex: 1001,
+              padding: '0.5rem',
+              backgroundColor: '#374151',
+              color: '#f3f4f6',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              fontWeight: 'bold'
+            }}
+          >
+            ☰
+          </button>
+          
+          {sidebarOpen && (
+            <div
+              onClick={() => setSidebarOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                zIndex: 1000
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '70%',
+                  maxWidth: '300px',
+                  height: '100%',
+                  backgroundColor: '#374151',
+                  zIndex: 1001,
+                  padding: '2rem 1rem',
+                  boxShadow: '2px 0 8px rgba(0,0,0,0.1)'
+                }}
+              >
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: '#f3f4f6'
+                  }}
+                >
+                  ×
+                </button>
+                
+                <nav style={{ marginTop: '3rem', height: 'calc(100% - 4rem)', display: 'flex', flexDirection: 'column' }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/utenti'); setSidebarOpen(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#f3f4f6',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Gestione Utenti
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/dipendenti'); setSidebarOpen(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#f3f4f6',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Anagrafica Dipendenti
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/contratti'); setSidebarOpen(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#f3f4f6',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Gestione CCNL
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/approvazioni'); setSidebarOpen(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#f3f4f6',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Approvazione Fogli Ore
+                      </button>
+                    </li>
+                  </ul>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      padding: '0.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      color: 'white',
+                      fontSize: '1rem',
+                      marginLeft: 'auto',
+                      marginTop: 'auto',
+                      marginBottom: '2rem'
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '2rem' }}>
-        <nav style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={() => navigate('/admin/utenti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px 4px 0 0',
-              cursor: 'pointer',
-              fontWeight: '500',
-              borderBottom: '3px solid transparent'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#374151';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            Gestione Utenti
-          </button>
-          <button
-            onClick={() => navigate('/admin/dipendenti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px 4px 0 0',
-              cursor: 'pointer',
-              fontWeight: '500',
-              borderBottom: '3px solid transparent'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#374151';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            Anagrafica Dipendenti
-          </button>
-          <button
-            onClick={() => navigate('/admin/contratti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px 4px 0 0',
-              cursor: 'pointer',
-              fontWeight: '500',
-              borderBottom: '3px solid transparent'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#374151';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            Gestione CCNL
-          </button>
-          <button
-            onClick={() => navigate('/admin/approvazioni')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px 4px 0 0',
-              cursor: 'pointer',
-              fontWeight: '500',
-              borderBottom: '3px solid transparent'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = '#374151';
-              e.currentTarget.style.color = 'white';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            Approvazione Fogli Ore
-          </button>
-        </nav>
+        {!isMobile && (
+          <nav style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => navigate('/admin/utenti')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: '4px 4px 0 0',
+                cursor: 'pointer',
+                fontWeight: '500',
+                borderBottom: '3px solid transparent'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#374151';
+              }}
+            >
+              Gestione Utenti
+            </button>
+            <button
+              onClick={() => navigate('/admin/dipendenti')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: '4px 4px 0 0',
+                cursor: 'pointer',
+                fontWeight: '500',
+                borderBottom: '3px solid transparent'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#374151';
+              }}
+            >
+              Anagrafica Dipendenti
+            </button>
+            <button
+              onClick={() => navigate('/admin/contratti')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: '4px 4px 0 0',
+                cursor: 'pointer',
+                fontWeight: '500',
+                borderBottom: '3px solid transparent'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#374151';
+              }}
+            >
+              Gestione CCNL
+            </button>
+            <button
+              onClick={() => navigate('/admin/approvazioni')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: '4px 4px 0 0',
+                cursor: 'pointer',
+                fontWeight: '500',
+                borderBottom: '3px solid transparent'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#374151';
+              }}
+            >
+              Approvazione Fogli Ore
+            </button>
+          </nav>
+        )}
       </div>
 
-      <p style={{ color: 'white', fontSize: '1.125rem', marginBottom: '2rem' }}>
-        Benvenuto nella Dashboard di Amministrazione. Seleziona una sezione dal menu sopra per gestire contratti, dipendenti o per approvare i fogli presenze.
+      <p style={{ color: 'white', fontSize: '0.85rem', marginBottom: '2rem' }}>
+        Benvenuto nella Dashboard di Amministrazione. {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti o per approvare i fogli presenze.
       </p>
 
       {loading ? (
@@ -282,18 +468,29 @@ function AdminDashboard() {
               <table style={{
                 width: '100%',
                 borderCollapse: 'collapse',
-                minWidth: '800px'
+                minWidth: '800px',
+                tableLayout: 'fixed'
               }}>
+                <colgroup>
+                  <col style={{ width: '120px' }} />
+                  <col style={{ width: '100px' }} />
+                  <col style={{ width: '100px' }} />
+                  <col style={{ width: '100px' }} />
+                  <col style={{ width: '100px' }} />
+                  <col style={{ width: '100px' }} />
+                  <col style={{ width: '80px' }} />
+                  <col style={{ width: '80px' }} />
+                </colgroup>
                 <thead>
                   <tr style={{ backgroundColor: '#f3f4f6' }}>
-                    <th style={tableHeaderStyle}>Sigla CCNL</th>
+                    <th style={tableHeaderStyle}>{isMobile ? 'CCNL' : 'Sigla CCNL'}</th>
                     <th style={tableHeaderStyle}>Dipendenti</th>
-                    <th style={tableHeaderStyle}>Tempo Pieno</th>
-                    <th style={tableHeaderStyle}>Tempo Parziale</th>
-                    <th style={tableHeaderStyle}>Tempo Det.</th>
-                    <th style={tableHeaderStyle}>Tempo Indet.</th>
-                    <th style={tableHeaderStyle}>5 gg.</th>
-                    <th style={tableHeaderStyle}>6 gg.</th>
+                    <th style={tableHeaderStyle}>{isMobile ? 'TP' : 'Tempo Pieno'}</th>
+                    <th style={tableHeaderStyle}>{isMobile ? 'PT' : 'Tempo Parziale'}</th>
+                    <th style={tableHeaderStyle}>{isMobile ? 'Det.' : 'Tempo Det.'}</th>
+                    <th style={tableHeaderStyle}>{isMobile ? 'Indet.' : 'Tempo Indet.'}</th>
+                    <th style={tableHeaderStyle}>{isMobile ? '5g' : '5 gg.'}</th>
+                    <th style={tableHeaderStyle}>{isMobile ? '6g' : '6 gg.'}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -341,7 +538,6 @@ const tableHeaderStyle = {
   fontWeight: '600',
   color: '#374151',
   fontSize: '0.875rem',
-  textTransform: 'uppercase',
   letterSpacing: '0.05em'
 }
 

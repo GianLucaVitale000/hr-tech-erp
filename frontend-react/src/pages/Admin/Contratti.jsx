@@ -386,7 +386,7 @@ function Contratti() {
           ← Dashboard
         </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <h1 style={{ margin: 0 }}>Gestione CCNL</h1>
+          <h1 style={{ margin: 0, lineHeight: '1.2' }}>Gestione CCNL</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <input
               type="text"

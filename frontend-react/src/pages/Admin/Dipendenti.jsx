@@ -5,7 +5,18 @@ import { getDipendenti } from '../../services/dipendentiService'
 function Dipendenti() {
   const [dipendenti, setDipendenti] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
   const navigate = useNavigate()
+
+  // Rileva se è mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
@@ -47,7 +58,7 @@ function Dipendenti() {
           ← Dashboard
         </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0 }}>Anagrafica Dipendenti</h1>
+          <h1 style={{ margin: 0, lineHeight: '1.2' }}>Anagrafica Dipendenti</h1>
           <button
             onClick={() => navigate('/admin/dipendenti/nuovo')}
             style={{
@@ -71,15 +82,15 @@ function Dipendenti() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
             <thead>
               <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Nome</th>
+                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Nome e Cognome</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>CF</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Mansione</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Ore Sett.</th>
-                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Livello</th>
+                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Liv.</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>CCNL</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>% PT</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>GG.</th>
-                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Data</th>
+                <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Data Assunz.</th>
                 <th style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>Azioni</th>
               </tr>
             </thead>
@@ -87,8 +98,13 @@ function Dipendenti() {
               {dipendenti.map((d) => (
                 <tr key={d.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.user?.name}</td>
-                  <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.codice_fiscale || '-'}</td>
-                  <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>{d.mansione || '-'}</td>
+                  <td style={{ padding: '0.4rem', whiteSpace: 'nowrap', fontSize: '0.7rem' }}>{d.codice_fiscale || '-'}</td>
+                  <td 
+                    style={{ padding: '0.4rem', whiteSpace: 'nowrap', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.7rem' }}
+                    title={!isMobile ? (d.mansione || '-') : undefined}
+                  >
+                    {d.mansione || '-'}
+                  </td>
                   <td style={{ padding: '0.4rem', whiteSpace: 'nowrap' }}>
                     {d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0 ? (
                       d.ore_settimanali

@@ -74,7 +74,7 @@ useEffect(() => {
         ← Dashboard
       </button>
 
-      <h1 style={{ margin: '0 0 2rem 0' }}>Approvazione Fogli Ore</h1>
+      <h1 style={{ margin: '0 0 2rem 0', lineHeight: '1.2' }}>Approvazione Fogli Ore</h1>
 
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>

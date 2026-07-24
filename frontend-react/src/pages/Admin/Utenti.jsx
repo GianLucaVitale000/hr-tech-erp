@@ -52,7 +52,7 @@ function Utenti() {
           ← Dashboard
         </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0 }}>Gestione Utenti</h1>
+          <h1 style={{ margin: 0, lineHeight: '1.2' }}>Gestione Utenti</h1>
           <button
             onClick={() => navigate('/admin/utenti/nuovo')}
             style={{
