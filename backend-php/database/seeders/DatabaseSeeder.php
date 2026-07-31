@@ -22,9 +22,11 @@ class DatabaseSeeder extends Seeder
             RegoleCalcoloContrattoSeeder::class,
             RolesAndUsersSeeder::class,
             DipendentiSeeder::class,
-        ]);
 
-        // User::factory(10)->create();
+        // Nuovi seeders per le tabelle aggiuntive
+            MariaCartaSeeder::class,
+            PresenzeTableSeeder::class,
+        ]);
 
         User::firstOrCreate(
             ['email' => 'test@example.com'],

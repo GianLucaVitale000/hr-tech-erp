@@ -131,7 +131,7 @@ function RigaGiorno({
           type="number"
           min="0"
           step="0.25"
-          value={riga.ore_ordinarie || 0}
+          value={Number(riga.ore_ordinarie || 0).toFixed(2)}
           onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           disabled={disabled || isOreDisabled}
           style={{ width: '60px', padding: '0.25rem' }}
@@ -145,7 +145,7 @@ function RigaGiorno({
             type="number"
             min="0"
             step="0.25"
-            value={riga.ore_eccedenti || 0}
+            value={Number(riga.ore_eccedenti || 0).toFixed(2)}
             onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             disabled={disabled || isOreDisabled}
             style={{ width: '60px', padding: '0.25rem' }}
@@ -160,7 +160,7 @@ function RigaGiorno({
             type="number"
             min="0"
             step="0.25"
-            value={riga.ore_straordinarie || 0}
+            value={Number(riga.ore_straordinarie || 0).toFixed(2)}
             onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             disabled={disabled || isOreDisabled}
             style={{ width: '60px', padding: '0.25rem' }}
@@ -214,7 +214,7 @@ function RigaGiorno({
           min="0"
           max="8"
           step="0.25"
-          value={riga.ore_causale || 0}
+          value={Number(riga.ore_causale || 0).toFixed(2)}
           onChange={(e) => onChange({ ...riga, ore_causale: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           disabled={disabled}
           style={{ width: '60px', padding: '0.25rem' }}
@@ -544,7 +544,7 @@ function ModaleQrSettings({
             min="0"
             max="8"
             step="0.25"
-            value={riga.pausa_ore || 0}
+            value={Number(riga.pausa_ore || 0).toFixed(2)}
             onChange={(e) => handlePausaChange(e.target.value)}
             disabled={disabled}
             style={{ 
@@ -608,9 +608,9 @@ function ModaleQrSettings({
                 ✓ Ingresso: {riga.ora_ingresso} - Uscita: {riga.ora_uscita}
                 {riga.ore_ordinarie && (
                   <div style={{ marginTop: '0.25rem', fontSize: '0.7rem' }}>
-                    Ore ordinarie: {riga.ore_ordinarie} h
+                    Ore ordinarie: {Number(riga.ore_ordinarie).toFixed(2)} h
                     {riga.ore_straordinarie > 0 && (
-                      <span>, Straordinarie: {riga.ore_straordinarie} h</span>
+                      <span>, Straordinarie: {Number(riga.ore_straordinarie).toFixed(2)} h</span>
                     )}
                   </div>
                 )}
@@ -710,12 +710,19 @@ function Timesheet() {
       dataNormalizzata = dataNormalizzata.split(' ')[0];
     }
     
+    // Arrotonda tutti i valori numerici a 2 decimali per evitare problemi di floating-point
+    const round2 = (val) => {
+      if (val === null || val === undefined) return 0;
+      const num = parseFloat(val);
+      return Math.round(num * 100) / 100;
+    };
+    
     return {
       data: dataNormalizzata,
-      ore_ordinarie: p.ore_ordinarie || 0,
-      ore_eccedenti: p.ore_eccedenti || 0,
-      ore_straordinarie: p.ore_straordinarie || 0,
-      ore_causale: p.ore_causale || 0,
+      ore_ordinarie: round2(p.ore_ordinarie),
+      ore_eccedenti: round2(p.ore_eccedenti),
+      ore_straordinarie: round2(p.ore_straordinarie),
+      ore_causale: round2(p.ore_causale),
       causale: p.causale || 'lavoro',
       modalita_lavoro: p.modalita_lavoro || null,
       giustificativo_trasferta_path: p.giustificativo_trasferta_path || null,
@@ -730,7 +737,7 @@ function Timesheet() {
       warning: p.warning || null,
       // 🔹 Nuovi campi per QR Code
       usa_qr: p.usa_qr || false,
-      pausa_ore: p.pausa_ore || 0,
+      pausa_ore: round2(p.pausa_ore),
       ora_ingresso: p.ora_ingresso || null,
       ora_uscita: p.ora_uscita || null,
       fonte_dato: p.fonte_dato || 'MANUALE',

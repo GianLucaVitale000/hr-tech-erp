@@ -101,16 +101,16 @@ function DettaglioMese() {
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>
-          <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
+          <strong>Ore Ordinarie:</strong> {Number(totaleOrdinarie).toFixed(2)}
         </div>
         {!isFullTime && (
           <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-            <strong>Ore Eccedenti:</strong> {totaleEccedenti}
+            <strong>Ore Eccedenti:</strong> {Number(totaleEccedenti).toFixed(2)}
           </div>
         )}
         {isFullTime && (
           <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
-            <strong>Straordinari:</strong> {totaleStraordinarie}
+            <strong>Straordinari:</strong> {Number(totaleStraordinarie).toFixed(2)}
           </div>
         )}
         <div style={{ padding: '1rem', backgroundColor: getStatoColor(), borderRadius: '6px' }}>
@@ -133,11 +133,11 @@ function DettaglioMese() {
           {presenze.map((p) => (
             <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
               <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
-              <td style={{ padding: '0.5rem' }}>{p.ore_ordinarie}</td>
-              {!isFullTime && <td style={{ padding: '0.5rem' }}>{p.ore_eccedenti || 0}</td>}
-              {isFullTime && <td style={{ padding: '0.5rem' }}>{p.ore_straordinarie || 0}</td>}
+              <td style={{ padding: '0.5rem' }}>{Number(p.ore_ordinarie || 0).toFixed(2)}</td>
+              {!isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_eccedenti || 0).toFixed(2)}</td>}
+              {isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_straordinarie || 0).toFixed(2)}</td>}
               <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
-              <td style={{ padding: '0.5rem' }}>{p.ore_causale}</td>
+              <td style={{ padding: '0.5rem' }}>{Number(p.ore_causale || 0).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

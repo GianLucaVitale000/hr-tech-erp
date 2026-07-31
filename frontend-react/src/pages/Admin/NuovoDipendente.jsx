@@ -15,6 +15,7 @@ function NuovoDipendente() {
     livello: '',
     mansione: '',
     data_assunzione: '',
+    sesso: '',
     tipo_contratto: 'indeterminato',
     data_scadenza_contratto: '',
     percentuale_part_time: 100,
@@ -313,7 +314,7 @@ function NuovoDipendente() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
             Data Assunzione
           </label>
@@ -324,6 +325,22 @@ function NuovoDipendente() {
             onChange={handleChange}
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
           />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Sesso
+          </label>
+          <select
+            name="sesso"
+            value={form.sesso}
+            onChange={handleChange}
+            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          >
+            <option value="">-- Seleziona sesso --</option>
+            <option value="M">Maschio</option>
+            <option value="F">Femmina</option>
+          </select>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem' }}>

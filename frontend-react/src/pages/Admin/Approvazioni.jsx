@@ -240,9 +240,9 @@ useEffect(() => {
                   </td>
                   <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
                   <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
-                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_ordinarie}</td>
-                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_eccedenti || 0}</td>
-                  <td style={{ padding: '0.75rem' }}>{m.totale_ore_straordinarie || 0}</td>
+                  <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</td>
+                  <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</td>
+                  <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</td>
                   <td style={{ padding: '0.75rem' }}>
                     <span style={{
                       padding: '0.25rem 0.6rem',

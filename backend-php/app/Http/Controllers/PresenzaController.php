@@ -550,9 +550,9 @@ class PresenzaController extends Controller
                     'mese' => substr($prima->data, 5, 2),
                     'anno' => substr($prima->data, 0, 4),
                     'totale_giorni' => $gruppo->count(),
-                    'totale_ore_ordinarie' => $gruppo->sum('ore_ordinarie'),
-                    'totale_ore_straordinarie' => $gruppo->sum('ore_straordinarie'),
-                    'totale_ore_eccedenti' => $gruppo->sum('ore_eccedenti'),
+                    'totale_ore_ordinarie' => round($gruppo->sum('ore_ordinarie'), 2),
+                    'totale_ore_straordinarie' => round($gruppo->sum('ore_straordinarie'), 2),
+                    'totale_ore_eccedenti' => round($gruppo->sum('ore_eccedenti'), 2),
                     'percentuale_part_time' => $prima->dipendente->percentuale_part_time ?? 100,
                     'stato' => $prima->stato,
                 ];

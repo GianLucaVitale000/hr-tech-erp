@@ -17,6 +17,7 @@ class Dipendente extends Model
         'livello',
         'mansione',
         'data_assunzione',
+        'sesso',
         'tipo_contratto',
         'data_scadenza_contratto',
         'percentuale_part_time',

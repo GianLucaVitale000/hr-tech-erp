@@ -11,6 +11,10 @@ class Presenza extends Model
     protected $casts = [
         'usa_qr' => 'boolean',
         'pausa_ore' => 'decimal:2',
+        'ore_ordinarie' => 'decimal:2',
+        'ore_straordinarie' => 'decimal:2',
+        'ore_eccedenti' => 'decimal:2',
+        'ore_causale' => 'decimal:2',
     ];
 
     protected $dates = [

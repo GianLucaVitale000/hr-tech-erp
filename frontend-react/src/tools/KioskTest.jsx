@@ -82,12 +82,12 @@ function KioskTest() {
           <strong>{result.message}</strong>
           {result.data?.ore && (
             <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-              Ore lavorate: {result.data.ore}h
+              Ore lavorate: {Number(result.data.ore || 0).toFixed(2)}h
               {result.data.ore_ordinarie && (
-                <span>, Ordinarie: {result.data.ore_ordinarie}h</span>
+                <span>, Ordinarie: {Number(result.data.ore_ordinarie).toFixed(2)}h</span>
               )}
               {result.data.ore_straordinarie && (
-                <span>, Straordinarie: {result.data.ore_straordinarie}h</span>
+                <span>, Straordinarie: {Number(result.data.ore_straordinarie).toFixed(2)}h</span>
               )}
             </div>
           )}
