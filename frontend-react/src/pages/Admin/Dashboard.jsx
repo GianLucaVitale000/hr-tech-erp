@@ -123,6 +123,94 @@ function AdminDashboard() {
 
   const datiCCNL = aggregaPerCCNL()
 
+  // Funzione per generare il pie chart SVG con label esterni
+  const renderPieChart = (data) => {
+    const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
+    const total = data.reduce((sum, c) => sum + c.totale, 0)
+    
+    if (total === 0) return null
+    
+    // Ordina per valore decrescente in modo che le label più grandi siano posizionate prima
+    const sortedData = [...data].sort((a, b) => b.totale - a.totale)
+    
+    let cumulativeAngle = 0
+    const chartRadius = 80
+    const labelRadius = 90
+    const svgSize = 280
+    const centerX = svgSize / 2
+    const centerY = svgSize / 2
+    
+    const elements = []
+    
+    sortedData.forEach((ccnl, index) => {
+      const value = ccnl.totale
+      const angle = (value / total) * 360
+      const startAngle = cumulativeAngle
+      cumulativeAngle += angle
+      const endAngle = cumulativeAngle
+      
+      // Converti angoli a radianti
+      const startRad = (startAngle - 90) * Math.PI / 180
+      const endRad = (endAngle - 90) * Math.PI / 180
+      
+      // Calcola coordinate per lo spicchio
+      const x1 = centerX + chartRadius * Math.cos(startRad)
+      const y1 = centerY + chartRadius * Math.sin(startRad)
+      const x2 = centerX + chartRadius * Math.cos(endRad)
+      const y2 = centerY + chartRadius * Math.sin(endRad)
+      
+      // Flag per arc grande (> 180 gradi)
+      const largeArcFlag = angle > 180 ? 1 : 0
+      
+      // Punto medio dello spicchio
+      const midAngle = startAngle + (angle / 2)
+      const midRad = (midAngle - 90) * Math.PI / 180
+      
+      // Posizione per il label (all'esterno)
+      const labelX = centerX + labelRadius * Math.cos(midRad)
+      const labelY = centerY + labelRadius * Math.sin(midRad)
+      
+      const color = colors[index % colors.length]
+      
+      // Spicchio del pie chart
+      elements.push(
+        <path
+          key={`slice-${ccnl.sigla}`}
+          d={`M ${centerX} ${centerY} L ${x1} ${y1} A ${chartRadius} ${chartRadius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
+          fill={color}
+          stroke="#1f2937"
+          strokeWidth="1"
+        />
+      )
+      
+      // Label esterno con colore dello spicchio
+      const cosMid = Math.cos(midRad)
+      const sinMid = Math.sin(midRad)
+      const textAnchor = cosMid > 0 ? 'start' : 'end'
+      const labelYAdjust = sinMid > 0.15 ? 4 : (sinMid < -0.15 ? -4 : 0)
+      
+      elements.push(
+        <text
+          key={`label-${ccnl.sigla}`}
+          x={labelX}
+          y={labelY + labelYAdjust}
+          textAnchor={textAnchor}
+          fill={color}
+          fontSize="11"
+          fontWeight="bold"
+        >
+          {ccnl.sigla} = {value}
+        </text>
+      )
+    })
+    
+    return (
+      <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
+        {elements}
+      </svg>
+    )
+  }
+
   const handleLogout = async () => {
     await api.post('/logout')
     logout()
@@ -421,7 +509,7 @@ function AdminDashboard() {
       </div>
 
       <p style={{ color: 'white', fontSize: '0.85rem', marginBottom: '2rem' }}>
-        Benvenuto nella Dashboard di Amministrazione. {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti o per approvare i fogli presenze.
+        {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti o per approvare i fogli presenze.
       </p>
 
       {loading ? (
@@ -461,66 +549,146 @@ function AdminDashboard() {
           </p>
           
           {datiCCNL.length > 0 ? (
-            <div style={{
-              overflowX: 'auto',
-              borderRadius: '8px',
-            }}>
-              <table style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                minWidth: '800px',
-                tableLayout: 'fixed'
-              }}>
-                <colgroup>
-                  <col style={{ width: '120px' }} />
-                  <col style={{ width: '100px' }} />
-                  <col style={{ width: '100px' }} />
-                  <col style={{ width: '100px' }} />
-                  <col style={{ width: '100px' }} />
-                  <col style={{ width: '100px' }} />
-                  <col style={{ width: '80px' }} />
-                  <col style={{ width: '80px' }} />
-                </colgroup>
-                <thead>
-                  <tr style={{ backgroundColor: '#f3f4f6' }}>
-                    <th style={tableHeaderStyle}>{isMobile ? 'CCNL' : 'Sigla CCNL'}</th>
-                    <th style={tableHeaderStyle}>Dipendenti</th>
-                    <th style={tableHeaderStyle}>{isMobile ? 'TP' : 'Tempo Pieno'}</th>
-                    <th style={tableHeaderStyle}>{isMobile ? 'PT' : 'Tempo Parziale'}</th>
-                    <th style={tableHeaderStyle}>{isMobile ? 'Det.' : 'Tempo Det.'}</th>
-                    <th style={tableHeaderStyle}>{isMobile ? 'Indet.' : 'Tempo Indet.'}</th>
-                    <th style={tableHeaderStyle}>{isMobile ? '5g' : '5 gg.'}</th>
-                    <th style={tableHeaderStyle}>{isMobile ? '6g' : '6 gg.'}</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <>
+              {isMobile ? (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '1rem',
+                  marginTop: '1rem'
+                }}>
                   {datiCCNL.map((ccnl) => (
-                    <tr key={ccnl.sigla} style={{ backgroundColor: '#374151', borderBottom: '1px solid #4b5563' }}>
-                      <td style={bodyCellStyle}><strong>{ccnl.sigla}</strong></td>
-                      <td style={bodyCellStyle}>{ccnl.totale}</td>
-                      <td style={bodyCellStyle}>{ccnl.tempoPieno}</td>
-                      <td style={bodyCellStyle}>{ccnl.tempoParziale}</td>
-                      <td style={bodyCellStyle}>{ccnl.tempoDeterminato}</td>
-                      <td style={bodyCellStyle}>{ccnl.tempoIndeterminato}</td>
-                      <td style={bodyCellStyle}>{ccnl.giorni5}</td>
-                      <td style={bodyCellStyle}>{ccnl.giorni6}</td>
-                    </tr>
+                    <div key={ccnl.sigla} style={mobileWidgetStyle}>
+                      <h3 style={mobileWidgetTitleStyle}>{ccnl.sigla}</h3>
+                      <div style={mobileWidgetGrid}>
+                        <div style={mobileWidgetItem}>
+                          <span style={mobileWidgetLabel}>TP</span>
+                          <div style={mobileWidgetValue}>{ccnl.tempoPieno}</div>
+                        </div>
+                        <div style={mobileWidgetItem}>
+                          <span style={mobileWidgetLabel}>PT</span>
+                          <div style={mobileWidgetValue}>{ccnl.tempoParziale}</div>
+                        </div>
+                        <div style={mobileWidgetItem}>
+                          <span style={mobileWidgetLabel}>Det.</span>
+                          <div style={mobileWidgetValue}>{ccnl.tempoDeterminato}</div>
+                        </div>
+                        <div style={mobileWidgetItem}>
+                          <span style={mobileWidgetLabel}>Indet.</span>
+                          <div style={mobileWidgetValue}>{ccnl.tempoIndeterminato}</div>
+                        </div>
+                        <div style={mobileWidgetItem}>
+                          <span style={mobileWidgetLabel}>5g</span>
+                          <div style={mobileWidgetValue}>{ccnl.giorni5}</div>
+                        </div>
+                        <div style={mobileWidgetItem}>
+                          <span style={mobileWidgetLabel}>6g</span>
+                          <div style={mobileWidgetValue}>{ccnl.giorni6}</div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-                <tfoot>
-                  <tr style={{ backgroundColor: '#1f2937' }}>
-                    <td style={footerCellStyle}>Totali</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
-                    <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                  <div style={{...mobileWidgetStyle, gridColumn: '1 / -1'}}>
+                    <h3 style={mobileWidgetTitleStyle}>TOTALE = {datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</h3>
+                    <div style={{...mobileWidgetGrid, gridTemplateColumns: 'repeat(3, 1fr)'}}>
+                      <div style={mobileWidgetItem}>
+                        <span style={mobileWidgetLabel}>TP</span>
+                        <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</div>
+                      </div>
+                      <div style={mobileWidgetItem}>
+                        <span style={mobileWidgetLabel}>PT</span>
+                        <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</div>
+                      </div>
+                      <div style={mobileWidgetItem}>
+                        <span style={mobileWidgetLabel}>Det.</span>
+                        <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</div>
+                      </div>
+                      <div style={mobileWidgetItem}>
+                        <span style={mobileWidgetLabel}>Indet.</span>
+                        <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</div>
+                      </div>
+                      <div style={mobileWidgetItem}>
+                        <span style={mobileWidgetLabel}>5g</span>
+                        <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</div>
+                      </div>
+                      <div style={mobileWidgetItem}>
+                        <span style={mobileWidgetLabel}>6g</span>
+                        <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  {datiCCNL.length > 0 && (
+                    <div style={{...mobileWidgetStyle, gridColumn: '1 / -1'}}>
+                      <h3 style={mobileWidgetTitleStyle}>Composizione CCNL</h3>
+                      <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem 0' }}>
+                        {renderPieChart(datiCCNL)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{
+                  overflowX: 'auto',
+                  borderRadius: '8px',
+                }}>
+                  <table style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    minWidth: '800px',
+                    tableLayout: 'fixed'
+                  }}>
+                    <colgroup>
+                      <col style={{ width: '120px' }} />
+                      <col style={{ width: '100px' }} />
+                      <col style={{ width: '100px' }} />
+                      <col style={{ width: '100px' }} />
+                      <col style={{ width: '100px' }} />
+                      <col style={{ width: '100px' }} />
+                      <col style={{ width: '80px' }} />
+                      <col style={{ width: '80px' }} />
+                    </colgroup>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f3f4f6' }}>
+                        <th style={tableHeaderStyle}>Sigla CCNL</th>
+                        <th style={tableHeaderStyle}>Dipendenti</th>
+                        <th style={tableHeaderStyle}>Tempo Pieno</th>
+                        <th style={tableHeaderStyle}>Tempo Parziale</th>
+                        <th style={tableHeaderStyle}>Tempo Det.</th>
+                        <th style={tableHeaderStyle}>Tempo Indet.</th>
+                        <th style={tableHeaderStyle}>5 gg.</th>
+                        <th style={tableHeaderStyle}>6 gg.</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {datiCCNL.map((ccnl) => (
+                        <tr key={ccnl.sigla} style={{ backgroundColor: '#374151', borderBottom: '1px solid #4b5563' }}>
+                          <td style={bodyCellStyle}><strong>{ccnl.sigla}</strong></td>
+                          <td style={bodyCellStyle}>{ccnl.totale}</td>
+                          <td style={bodyCellStyle}>{ccnl.tempoPieno}</td>
+                          <td style={bodyCellStyle}>{ccnl.tempoParziale}</td>
+                          <td style={bodyCellStyle}>{ccnl.tempoDeterminato}</td>
+                          <td style={bodyCellStyle}>{ccnl.tempoIndeterminato}</td>
+                          <td style={bodyCellStyle}>{ccnl.giorni5}</td>
+                          <td style={bodyCellStyle}>{ccnl.giorni6}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ backgroundColor: '#1f2937' }}>
+                        <td style={footerCellStyle}>Totali</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
+                        <td style={footerCellStyle}>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </>
           ) : (
             <p style={{ color: 'white', fontStyle: 'italic' }}>
               Nessun dipendente attivo nel periodo selezionato
@@ -553,6 +721,51 @@ const footerCellStyle = {
   textAlign: 'center',
   color: 'white',
   fontSize: '0.875rem'
+}
+
+// Mobile Widget Styles
+const mobileWidgetStyle = {
+  backgroundColor: '#374151',
+  borderRadius: '8px',
+  padding: '1rem',
+  border: '1px solid #4b5563'
+}
+
+const mobileWidgetTitleStyle = {
+  color: 'white',
+  margin: '0 0 1rem 0',
+  fontSize: '1.1rem',
+  borderBottom: '1px solid #4b5563',
+  paddingBottom: '0.5rem'
+}
+
+const mobileWidgetGrid = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.75rem'
+}
+
+const mobileWidgetItem = {
+  backgroundColor: '#1f2937',
+  borderRadius: '4px',
+  padding: '0.5rem',
+  textAlign: 'center',
+  flex: '1 0 calc(50% - 0.375rem)',
+  boxSizing: 'border-box',
+  minWidth: 'calc(50% - 0.375rem)'
+}
+
+const mobileWidgetLabel = {
+  display: 'block',
+  color: '#9ca3af',
+  fontSize: '0.75rem',
+  marginBottom: '0.25rem'
+}
+
+const mobileWidgetValue = {
+  color: 'white',
+  fontSize: '1rem',
+  fontWeight: '600'
 }
 
 export default AdminDashboard
