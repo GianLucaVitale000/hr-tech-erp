@@ -14,6 +14,7 @@ import Contratti from './pages/Admin/Contratti'
 import Utenti from './pages/Admin/Utenti'
 import NuovoUtente from './pages/Admin/NuovoUtente'
 import EditUtente from './pages/Admin/EditUtente'
+import AnalisiHR from './pages/Admin/AnalisiHR'
 import Kiosk from './pages/Kiosk'
 import KioskTest from './tools/KioskTest'
 
@@ -81,6 +82,12 @@ function App() {
           <Route path="/admin/approvazioni/:dipendenteId/:mese/:anno" element={
             <ProtectedRoute role="admin">
               <DettaglioMese />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/analisi-hr" element={
+            <ProtectedRoute role="admin">
+              <AnalisiHR />
             </ProtectedRoute>
           } />
 

@@ -379,6 +379,24 @@ function AdminDashboard() {
                         Approvazione Fogli Ore
                       </button>
                     </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/analisi-hr'); setSidebarOpen(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#f3f4f6',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        Analisi HR
+                      </button>
+                    </li>
                   </ul>
                   <button
                     onClick={handleLogout}
@@ -504,12 +522,35 @@ function AdminDashboard() {
             >
               Approvazione Fogli Ore
             </button>
+            <button
+              onClick={() => navigate('/admin/analisi-hr')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                border: 'none',
+                borderRadius: '4px 4px 0 0',
+                cursor: 'pointer',
+                fontWeight: '500',
+                borderBottom: '3px solid transparent'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#374151';
+                e.currentTarget.style.color = 'white';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#f3f4f6';
+                e.currentTarget.style.color = '#374151';
+              }}
+            >
+              Analisi HR
+            </button>
           </nav>
         )}
       </div>
 
       <p style={{ color: 'white', fontSize: '0.85rem', marginBottom: '2rem' }}>
-        {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti o per approvare i fogli presenze.
+        {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti, approvare i fogli presenze o visualizzare le analisi HR.
       </p>
 
       {loading ? (
