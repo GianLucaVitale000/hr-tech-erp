@@ -14,7 +14,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
 } from 'recharts'
 
 function AnalisiHR() {
@@ -40,9 +40,11 @@ function AnalisiHR() {
     giorniSettimanali: 5,
     giorniAssenzaTotali: { malattia: 0, maternita: 0, infortunio: 0, cig: 0, pnr: 0 },
     totaleGiorniAssenza: 0,
-    assenzePerGiornoSettimana: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-    malattieBreviPerGiorno: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-    assenzeVicinoFestivi: 0
+    assenzePerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+    assenzeIndividualiPerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+    malattieBreviPerGiorno: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+    assenzeVicinoFestivi: 0,
+    modalitaLavoroPerMese: []
   })
 
   // Calcola la data di Pasqua per un dato anno (algoritmo di Gauss)
@@ -145,9 +147,11 @@ function AnalisiHR() {
           giorniSettimanali: 5,
           giorniAssenzaTotali: { malattia: 0, maternita: 0, infortunio: 0, cig: 0, pnr: 0 },
           totaleGiorniAssenza: 0,
-          assenzePerGiornoSettimana: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-          malattieBreviPerGiorno: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-          assenzeVicinoFestivi: 0
+          assenzePerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+          assenzeIndividualiPerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+          malattieBreviPerGiorno: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+          assenzeVicinoFestivi: 0,
+          modalitaLavoroPerMese: []
         })
         return
       }
@@ -215,8 +219,9 @@ function AnalisiHR() {
         }
 
         // Contatori per analisi comportamentale
-        const assenzePerGiornoSettimana = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
-        const malattieBreviPerGiorno = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+        const assenzePerGiornoSettimana = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+        const assenzeIndividualiPerGiornoSettimana = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+        const malattieBreviPerGiorno = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
         
         const isFullTime = Number(tuttePresenze[0]?.dipendente?.percentuale_part_time) === 100
         const giorniSettimanali = tuttePresenze[0]?.dipendente?.giorni_lavorativi_settimanali || 5
@@ -231,9 +236,48 @@ function AnalisiHR() {
         const festivita = getFestivitaItaliane(annoSelezionato)
         const dateToString = (date) => date.toISOString().split('T')[0]
         const festivitaSet = new Set(festivita.map(dateToString))
+        
+        // Determina i giorni di riposo del dipendente
+        const getGiorniDiRiposo = () => {
+          if (isFullTime) {
+            // Tempo pieno: riposi standard basati su giorniSettimanali
+            if (giorniSettimanali === 5) {
+              return new Set([0, 6]) // Domenica e Sabato
+            } else if (giorniSettimanali === 6) {
+              return new Set([0]) // Solo Domenica
+            }
+          }
+          
+          // Part-time: analizza distribuzione oraria - giorni senza lavoro sono riposi
+          const giorniConLavoro = new Set()
+          tuttePresenze.forEach(p => {
+            if (p.causale === 'lavoro' || parseFloat(p.ore_ordinarie || 0) > 0) {
+              const date = new Date(p.data)
+              const dayOfWeek = date.getDay()
+              giorniConLavoro.add(dayOfWeek)
+            }
+          })
+          
+          // I riposi sono i giorni senza nessun record di lavoro
+          const riposi = new Set()
+          for (let i = 0; i <= 6; i++) {
+            if (!giorniConLavoro.has(i)) {
+              riposi.add(i)
+            }
+          }
+          return riposi
+        }
+        
+        const riposiSet = getGiorniDiRiposo()
 
         // Tipologie di assenza da considerare per analisi comportamentale
         const causaliAssenza = ['malattia', 'maternita', 'infortunio', 'cassa_integrazione', 'permesso_non_retribuito']
+        // Tipologie di assenza individuale (escludendo CIG e maternita) per il grafico a barre
+        const causaliAssenzaIndividuale = ['malattia', 'infortunio', 'permesso_non_retribuito']
+        
+        // Aggregazione per modalità di lavoro per mese
+        const modalitaPerMese = {}
+        const nomiMesi = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
         
         tuttePresenze.forEach(p => {
           // Ore ordinarie
@@ -294,14 +338,37 @@ function AnalisiHR() {
             contatori.sindacale += parseFloat(p.ore_causale || 0)
           }
           
+          // Aggregazione modalità di lavoro per mese
+          if (p.modalita_lavoro && (p.causale === 'lavoro' || parseFloat(p.ore_ordinarie || 0) > 0 || parseFloat(p.ore_causale || 0) > 0)) {
+            const data = new Date(p.data)
+            const meseIndex = data.getMonth() // 0-11
+            const nomeMese = nomiMesi[meseIndex]
+            const oreTotali = parseFloat(p.ore_ordinarie || 0) + parseFloat(p.ore_causale || 0)
+            
+            if (!modalitaPerMese[nomeMese]) {
+              modalitaPerMese[nomeMese] = { name: nomeMese, in_sede: 0, smart_working: 0, trasferta: 0 }
+            }
+            
+            if (p.modalita_lavoro === 'in_sede') {
+              modalitaPerMese[nomeMese].in_sede += oreTotali
+            } else if (p.modalita_lavoro === 'smart_working') {
+              modalitaPerMese[nomeMese].smart_working += oreTotali
+            } else if (p.modalita_lavoro === 'trasferta') {
+              modalitaPerMese[nomeMese].trasferta += oreTotali
+            }
+          }
+          
           // Analisi comportamentale: contare assenze per giorno della settimana
           if (causaliAssenza.includes(p.causale)) {
             const date = new Date(p.data)
             const dayOfWeek = date.getDay() // 0=Dom, 1=Lun, 2=Mar, 3=Mer, 4=Gio, 5=Ven, 6=Sab
-            // Escludi domenica e considerare solo giorni lavorativi
-            if (dayOfWeek >= 1 && dayOfWeek <= 6) {
-              assenzePerGiornoSettimana[dayOfWeek]++
-            }
+            assenzePerGiornoSettimana[dayOfWeek]++
+          }
+          // Contare solo assenze individuali (escludendo CIG e maternita) per il grafico a barre
+          if (causaliAssenzaIndividuale.includes(p.causale)) {
+            const date = new Date(p.data)
+            const dayOfWeek = date.getDay()
+            assenzeIndividualiPerGiornoSettimana[dayOfWeek]++
           }
         })
 
@@ -323,12 +390,8 @@ function AnalisiHR() {
           giorniAssenzaTotali.cig +
           giorniAssenzaTotali.pnr
 
-        // Analisi malattie brevi (<=2 giorni) - raggruppare episodi consecutivi
-        const malattiaDates = Array.from(giorniAssenza.malattia).sort()
-        let assenzeVicinoFestivi = 0
-        
-        // Funzione per verificare se una data è vicina a un festivo
-        const isVicinoAFestivo = (dateStr) => {
+        // Funzione per verificare se una data è vicina a un festivo o riposo
+        const isVicinoANonLavorativo = (dateStr) => {
           const date = new Date(dateStr)
           const dayBefore = new Date(date)
           dayBefore.setDate(dayBefore.getDate() - 1)
@@ -337,88 +400,92 @@ function AnalisiHR() {
           
           const dayBeforeStr = dateToString(dayBefore)
           const dayAfterStr = dateToString(dayAfter)
+          const dayBeforeDayOfWeek = dayBefore.getDay()
+          const dayAfterDayOfWeek = dayAfter.getDay()
           
           // Controlla se il giorno prima o dopo è festivo
-          if (festivitaSet.has(dayBeforeStr) || festivitaSet.has(dayAfterStr)) {
-            return true
-          }
+          const isBeforeFestivo = festivitaSet.has(dayBeforeStr)
+          const isAfterFestivo = festivitaSet.has(dayAfterStr)
           
-          // Controlla per "ponti": se festivo è martedì e assenza è lunedì, o festivo è giovedì e assenza è mercoledì/venerdì
-          const dayOfWeek = date.getDay()
+          // Controlla se il giorno prima o dopo è riposo del dipendente
+          const isBeforeRiposo = riposiSet.has(dayBeforeDayOfWeek)
+          const isAfterRiposo = riposiSet.has(dayAfterDayOfWeek)
           
-          // Se assenza è lunedì, controlla se martedì è festivo (ponte)
-          if (dayOfWeek === 1) {
-            const martedi = new Date(date)
-            martedi.setDate(martedi.getDate() + 1)
-            if (festivitaSet.has(dateToString(martedi))) return true
-          }
-          
-          // Se assenza è venerdì, controlla se giovedì è festivo (ponte retroattivo non ha senso, ma controlliamo mercoledì)
-          if (dayOfWeek === 5) {
-            const giovedi = new Date(date)
-            giovedi.setDate(giovedi.getDate() - 1)
-            if (festivitaSet.has(dateToString(giovedi))) return true
-          }
-          
-          // Se assenza è mercoledì, controlla se giovedì è festivo
-          if (dayOfWeek === 3) {
-            const giovedi = new Date(date)
-            giovedi.setDate(giovedi.getDate() + 1)
-            if (festivitaSet.has(dateToString(giovedi))) return true
-          }
-          
-          return false
+          // Assenza è vicina se adiacente a festivo OPPURE riposo
+          // Questo copre tutti i casi: festivo, riposo, e combinazioni (ponti)
+          return isBeforeFestivo || isAfterFestivo || isBeforeRiposo || isAfterRiposo
         }
         
-        // Conta assenze vicine a festivi (tutte le tipologie di assenza)
-        const tutteDateAssenza = [
-          ...Array.from(giorniAssenza.malattia),
-          ...Array.from(giorniAssenza.maternita),
-          ...Array.from(giorniAssenza.infortunio),
-          ...Array.from(giorniAssenza.cig),
-          ...Array.from(giorniAssenza.pnr)
-        ]
-        assenzeVicinoFestivi = tutteDateAssenza.filter(dateStr => isVicinoAFestivo(dateStr)).length
-        
-        // Identifica episodi di malattia brevi (<=2 giorni consecutivi)
-        if (malattiaDates.length > 0) {
-          let currentEpisode = [malattiaDates[0]]
+        // Funzione helper per contare episodi brevi (fino a 3 giorni) vicini a non lavorativo
+        const countEpisodiBreviVicinoNonLavorativo = (dateSet, maxDurata = 3) => {
+          const sortedDates = Array.from(dateSet).sort()
+          if (sortedDates.length === 0) return { total: 0, perGiorno: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 } }
           
-          for (let i = 1; i < malattiaDates.length; i++) {
+          let currentEpisode = [sortedDates[0]]
+          const perGiorno = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+          let count = 0
+          
+          for (let i = 1; i < sortedDates.length; i++) {
             const prevDate = new Date(currentEpisode[currentEpisode.length - 1])
-            const currentDate = new Date(malattiaDates[i])
+            const currentDate = new Date(sortedDates[i])
             const diffDays = (currentDate - prevDate) / (1000 * 60 * 60 * 24)
             
             if (diffDays === 1) {
-              // Giorno consecutivo
-              currentEpisode.push(malattiaDates[i])
+              currentEpisode.push(sortedDates[i])
             } else {
-              // Nuovo episodio
-              // Se l'episodio corrente ha <= 2 giorni, conta per giorno della settimana
-              if (currentEpisode.length <= 2) {
+              // Fine episodio: conta se breve e vicino a non lavorativo
+              if (currentEpisode.length <= maxDurata) {
                 currentEpisode.forEach(episodeDate => {
                   const episodeDateObj = new Date(episodeDate)
                   const dayOfWeek = episodeDateObj.getDay()
-                  if (dayOfWeek >= 1 && dayOfWeek <= 6) {
-                    malattieBreviPerGiorno[dayOfWeek]++
+                  if (isVicinoANonLavorativo(episodeDate)) {
+                    count++
+                    perGiorno[dayOfWeek]++
                   }
                 })
               }
-              currentEpisode = [malattiaDates[i]]
+              currentEpisode = [sortedDates[i]]
             }
           }
           
           // Controlla l'ultimo episodio
-          if (currentEpisode.length <= 2) {
+          if (currentEpisode.length <= maxDurata) {
             currentEpisode.forEach(episodeDate => {
               const episodeDateObj = new Date(episodeDate)
               const dayOfWeek = episodeDateObj.getDay()
-              if (dayOfWeek >= 1 && dayOfWeek <= 6) {
-                malattieBreviPerGiorno[dayOfWeek]++
+              if (isVicinoANonLavorativo(episodeDate)) {
+                count++
+                perGiorno[dayOfWeek]++
               }
             })
           }
+          
+          return { total: count, perGiorno }
         }
+        
+        // Calcola malattie brevi vicine a non lavorativo (fino a 3 giorni)
+        const { total: malattieBreviVicinoCount, perGiorno: malattieBreviVicinoPerGiorno } = 
+          countEpisodiBreviVicinoNonLavorativo(giorniAssenza.malattia, 3)
+        
+        // Calcola infortuni brevi vicini a non lavorativo (fino a 3 giorni)
+        const { total: infortuniBreviVicinoCount } = 
+          countEpisodiBreviVicinoNonLavorativo(giorniAssenza.infortunio, 3)
+        
+        // Somma malattie e infortuni brevi vicini
+        const assenzeVicinoFestivi = malattieBreviVicinoCount + infortuniBreviVicinoCount
+        
+        // Aggiorna malattieBreviPerGiorno con i giorni VICINI a non lavorativo
+        Object.keys(malattieBreviVicinoPerGiorno).forEach(day => {
+          malattieBreviPerGiorno[parseInt(day)] = malattieBreviVicinoPerGiorno[parseInt(day)]
+        })
+
+        // Converti modalitaPerMese in array ordinato per i 12 mesi
+        const modalitaLavoroPerMeseArray = nomiMesi.map(nomeMese => ({
+          name: nomeMese,
+          in_sede: modalitaPerMese[nomeMese]?.in_sede || 0,
+          smart_working: modalitaPerMese[nomeMese]?.smart_working || 0,
+          trasferta: modalitaPerMese[nomeMese]?.trasferta || 0
+        }))
 
         setDatiAnnuali(() => ({
           ...contatori,
@@ -429,8 +496,10 @@ function AnalisiHR() {
           giorniAssenzaTotali,
           totaleGiorniAssenza,
           assenzePerGiornoSettimana,
+          assenzeIndividualiPerGiornoSettimana,
           malattieBreviPerGiorno,
-          assenzeVicinoFestivi
+          assenzeVicinoFestivi,
+          modalitaLavoroPerMese: modalitaLavoroPerMeseArray
         }))
       } catch (err) {
         console.error('Errore nel recupero dati presenze:', err)
@@ -453,9 +522,11 @@ function AnalisiHR() {
           giorniSettimanali: 5,
           giorniAssenzaTotali: { malattia: 0, maternita: 0, infortunio: 0, cig: 0, pnr: 0 },
           totaleGiorniAssenza: 0,
-          assenzePerGiornoSettimana: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-          malattieBreviPerGiorno: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-          assenzeVicinoFestivi: 0
+          assenzePerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+          assenzeIndividualiPerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+          malattieBreviPerGiorno: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+          assenzeVicinoFestivi: 0,
+          modalitaLavoroPerMese: []
         })
       }
     }
@@ -492,21 +563,18 @@ function AnalisiHR() {
   // Genera dati per grafico distribuzione assenze per giorno della settimana
   const getBarChartGiorniSettimana = () => {
     const giorni = [
+      { name: 'Dom', day: 0 },
       { name: 'Lun', day: 1 },
       { name: 'Mar', day: 2 },
       { name: 'Mer', day: 3 },
       { name: 'Gio', day: 4 },
-      { name: 'Ven', day: 5 }
+      { name: 'Ven', day: 5 },
+      { name: 'Sab', day: 6 }
     ]
-    
-    // Aggiungi Sabato se il dipendente lavora 6 giorni
-    if (datiAnnuali.giorniSettimanali === 6) {
-      giorni.push({ name: 'Sab', day: 6 })
-    }
     
     return giorni.map(g => ({
       name: g.name,
-      Assenze: datiAnnuali.assenzePerGiornoSettimana[g.day] || 0,
+      Assenze: datiAnnuali.assenzeIndividualiPerGiornoSettimana[g.day] || 0,
       MalattieBrevi: datiAnnuali.malattieBreviPerGiorno[g.day] || 0
     }))
   }
@@ -731,7 +799,7 @@ function AnalisiHR() {
                 
                 {datiAnnuali.assenzeVicinoFestivi > 0 && (
                   <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.5rem' }}>
-                    Assenze vicine a festivi: {datiAnnuali.assenzeVicinoFestivi}
+                    gg. "assenza ponte" su festivi/riposi: {datiAnnuali.assenzeVicinoFestivi}
                   </div>
                 )}
               </div>
@@ -739,11 +807,12 @@ function AnalisiHR() {
               {/* Grafico a barre distribuzione per giorno della settimana */}
               <div style={{ width: '150px', height: '80px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getBarChartGiorniSettimana()} layout="vertical">
+                  <BarChart data={getBarChartGiorniSettimana()} layout="vertical" activeBar={{ fillOpacity: 1 }}>
                     <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" width={35} tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                    <YAxis dataKey="name" type="category" width={35} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
                     <Bar dataKey="Assenze" fill="#3b82f6" barSize={12} />
                     <Tooltip
+                      wrapperStyle={{ opacity: 1 }}
                       contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
                       formatter={(value) => [value, 'Assenze']}
                     />
@@ -784,6 +853,7 @@ function AnalisiHR() {
                     ))}
                   </Pie>
                   <Tooltip
+                    wrapperStyle={{ opacity: 1 }}
                     contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
                     formatter={(value) => [value, 'Giorni']}
                   />
@@ -795,49 +865,171 @@ function AnalisiHR() {
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.55rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '2px' }} />
-                <span>Malattia: {datiAnnuali.giorniAssenzaTotali.malattia}</span>
+                <span>Malattia: {datiAnnuali.giorniAssenzaTotali.malattia} gg.</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '12px', height: '12px', backgroundColor: '#8b5cf6', borderRadius: '2px' }} />
-                <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita}</span>
+                <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita} gg.</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
-                <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio}</span>
+                <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio} gg.</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
-                <span>CIG: {datiAnnuali.giorniAssenzaTotali.cig}</span>
+                <span>CIG: {datiAnnuali.giorniAssenzaTotali.cig} gg.</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
-                <span>PNR: {datiAnnuali.giorniAssenzaTotali.pnr}</span>
+                <span>PNR: {datiAnnuali.giorniAssenzaTotali.pnr} gg.</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Card 2: Assenze e Permessi */}
+        {/* Card 2: Ripartizione PR, PNR, CIG, Sindacale */}
         <div style={{ backgroundColor: '#374151', color: 'white', border: '1px solid #4b5563', maxWidth: '500px', width: '100%' }}>
           <div style={{ backgroundColor: '#1f2937', borderBottom: '1px solid #4b5563', padding: '1rem 1.5rem' }}>
-            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>PR, PNR, INPS, INAIL, CIG, Sindacale</span>
+            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>PR, PNR, CIG, Sindacale / Modalità lavoro</span>
           </div>
           <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
           <div style={{ padding: '1.5rem', color: '#d1d5db', height: '400px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ textAlign: 'center', color: '#9ca3af' }}>
-                <p>Riepilogo assenze e permessi annuali</p>
-                {datiAnnuali && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <p style={{ fontSize: '0.875rem' }}>
-                      PR: {formatValue(datiAnnuali.pr)} ore | PNR: {formatValue(datiAnnuali.pnr)} ore<br/>
-                      INPS: {formatValue(datiAnnuali.inps)} ore | INAIL: {formatValue(datiAnnuali.inail)} ore<br/>
-                      CIG: {formatValue(datiAnnuali.cig)} ore | Sindacale: {formatValue(datiAnnuali.sindacale)} ore
-                    </p>
+            {/* Totale ore e percentuale - affiancati orizzontalmente */}
+            {(() => {
+              const totale = datiAnnuali.pr + datiAnnuali.pnr + datiAnnuali.cig + datiAnnuali.sindacale
+              const percentuale = datiAnnuali.giorniTeoriciLavorabili > 0 ?
+                ((totale) / (datiAnnuali.giorniTeoriciLavorabili * 8) * 100) : 0
+              return (
+                <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '1rem' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f3f4f6' }}>
+                      {formatValue(totale)} ore
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+                      Tot. anno
+                    </div>
                   </div>
-                )}
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f3f4f6' }}>
+                      {formatValue(percentuale, 1)}%
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+                      % su ore lavorabili
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Grafico a torta */}
+            <div style={{ height: '200px', marginTop: '0.5rem' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
+                      { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
+                      { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
+                      { name: 'Sindacale', value: datiAnnuali.sindacale, color: '#f59e0b' }
+                    ].filter(item => item.value > 0)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={45}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    labelStyle={{ fontSize: 8, fill: '#ffffff' }}
+                  >
+                    {[
+                      { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
+                      { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
+                      { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
+                      { name: 'Sindacale', value: datiAnnuali.sindacale, color: '#f59e0b' }
+                    ].filter(item => item.value > 0).map((entry, index) => (
+                      <Cell key={`cell-pr-pnr-cig-sind-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    wrapperStyle={{ backgroundColor: '#374151', opacity: 1, zIndex: 100 }}
+                    contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
+                    itemStyle={{ color: 'white' }}
+                    labelStyle={{ color: 'white' }}
+                    formatter={(value, name) => [`${name}: ${value} ore`]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Legenda */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.55rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }} />
+                <span>PR: {formatValue(datiAnnuali.pr)} ore</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
+                <span>PNR: {formatValue(datiAnnuali.pnr)} ore</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
+                <span>CIG: {formatValue(datiAnnuali.cig)} ore</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
+                <span>Sindacale: {formatValue(datiAnnuali.sindacale)} ore</span>
               </div>
             </div>
+
+            {/* Grafico istogramma modalità di lavoro per mese */}
+            <div style={{ height: '200px', marginTop: '1rem' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={datiAnnuali.modalitaLavoroPerMese} margin={{ top: 20, right: 30, left: 0, bottom: 0 }} activeBar={{ fillOpacity: 1 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
+                  <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 8 }} />
+                  <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} hide />
+                  <Tooltip
+                    content={({ payload }) => (
+                      <div style={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', padding: '8px 12px', fontSize: '0.75rem', zIndex: 1000 }}>
+                        {payload.map((entry, index) => (
+                          <div key={index} style={{ color: 'white' }}>{`${entry.name}: ${entry.value} ore`}</div>
+                        ))}
+                      </div>
+                    )}
+                    wrapperStyle={{ zIndex: 1000 }}
+                  />
+                  {(() => {
+                    const totaleInSede = datiAnnuali.modalitaLavoroPerMese.reduce((sum, m) => sum + (m.in_sede || 0), 0)
+                    const totaleSmartWorking = datiAnnuali.modalitaLavoroPerMese.reduce((sum, m) => sum + (m.smart_working || 0), 0)
+                    const totaleTrasferta = datiAnnuali.modalitaLavoroPerMese.reduce((sum, m) => sum + (m.trasferta || 0), 0)
+                    const totaleLavorato = totaleInSede + totaleSmartWorking + totaleTrasferta
+                    const pctInSede = totaleLavorato > 0 ? (totaleInSede / totaleLavorato * 100) : 0
+                    const pctSmartWorking = totaleLavorato > 0 ? (totaleSmartWorking / totaleLavorato * 100) : 0
+                    const pctTrasferta = totaleLavorato > 0 ? (totaleTrasferta / totaleLavorato * 100) : 0
+                    return (
+                      <Legend
+                        wrapperStyle={{ color: '#9ca3af', fontSize: '0.6rem' }}
+                        formatter={(value) => {
+                          if (value === 'In Sede') return <span style={{ color: '#3b82f6' }}>{`In Sede: ${pctInSede.toFixed(1)}%`}</span>
+                          if (value === 'SW') return <span style={{ color: '#10b981' }}>{`SW: ${pctSmartWorking.toFixed(1)}%`}</span>
+                          if (value === 'Trasferta') return <span style={{ color: '#f59e0b' }}>{`Trasferta: ${pctTrasferta.toFixed(1)}%`}</span>
+                          return value
+                        }}
+                      />
+                    )
+                  })()}
+                  <Bar dataKey="in_sede" stackId="modalita" fill="#3b82f6" name="In Sede">
+                  </Bar>
+                  <Bar dataKey="smart_working" stackId="modalita" fill="#10b981" name="SW">
+                  </Bar>
+                  <Bar dataKey="trasferta" stackId="modalita" fill="#f59e0b" name="Trasferta">
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Legenda modalità lavoro */}
+            
           </div>
         </div>
       </div>
@@ -863,11 +1055,11 @@ function AnalisiHR() {
             </div>
             <div style={{ height: '200px', marginTop: '1rem' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barChartData}>
+                <BarChart data={barChartData} activeBar={{ fillOpacity: 1 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
                   <XAxis dataKey="name" stroke="#9ca3af" />
                   <YAxis stroke="#9ca3af" />
-                  <Tooltip contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }} />
+                  <Tooltip wrapperStyle={{ opacity: 1 }} contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }} />
                   <Legend wrapperStyle={{ color: '#9ca3af' }} />
                   <Bar dataKey="Ferie" fill="#3b82f6" />
                   <Bar dataKey="Permessi" fill="#10b981" />
