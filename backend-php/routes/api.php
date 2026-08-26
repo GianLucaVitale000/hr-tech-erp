@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class)->except(['show']);
 
     Route::get('/dipendenti/me', [DipendenteController::class, 'me']);
+    Route::get('/dipendenti/{dipendente}/analisi-ferie', [DipendenteController::class, 'analisiFerie']);
     Route::get('/contratti/vigenti', [ContrattoController::class, 'vigenti']);
     Route::apiResource('contratti', ContrattoController::class)->parameters(['contratti' => 'contratto']);
     Route::apiResource('dipendenti', DipendenteController::class)->parameters(['dipendenti' => 'dipendente']);

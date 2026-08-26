@@ -86,6 +86,9 @@ CREATE TABLE `contratti` (
   `ultimo_accordo_vigente` tinyint(1) NOT NULL DEFAULT '0',
   `tipologia_contratto` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ore_settimanali_teoriche` decimal(5,2) DEFAULT NULL,
+  `rateo_mensile_ferie` decimal(8,5) DEFAULT NULL,
+  `rateo_mensile_permessi_rol` decimal(8,5) DEFAULT NULL,
+  `rateo_mensile_ex_festivita` decimal(8,5) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)

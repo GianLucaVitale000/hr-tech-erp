@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contratto;
-use App\Models\RegolaCalcoloContratto;
 use Illuminate\Http\Request;
 
 class ContrattoController extends Controller
@@ -96,6 +95,9 @@ class ContrattoController extends Controller
             'data_scadenza' => 'nullable|date',
             'ultimo_accordo_vigente' => 'boolean',
             'ore_settimanali_teoriche' => 'nullable|numeric',
+            'rateo_mensile_ferie' => 'nullable|numeric|decimal:0,5|min:0',
+            'rateo_mensile_permessi_rol' => 'nullable|numeric|decimal:0,5|min:0',
+            'rateo_mensile_ex_festivita' => 'nullable|numeric|decimal:0,5|min:0',
         ]);
 
         return Contratto::create($validated);
@@ -116,6 +118,9 @@ class ContrattoController extends Controller
             'data_scadenza' => 'nullable|date',
             'ultimo_accordo_vigente' => 'boolean',
             'ore_settimanali_teoriche' => 'nullable|numeric',
+            'rateo_mensile_ferie' => 'nullable|numeric|decimal:0,5|min:0',
+            'rateo_mensile_permessi_rol' => 'nullable|numeric|decimal:0,5|min:0',
+            'rateo_mensile_ex_festivita' => 'nullable|numeric|decimal:0,5|min:0',
         ]);
 
         $contratto->update($validated);

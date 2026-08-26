@@ -54,6 +54,11 @@ class Dipendente extends Model
         return $this->hasMany(Presenza::class);
     }
 
+    public function condizioniContrattuali()
+    {
+        return $this->hasMany(DipendenteCondizioneContrattuale::class);
+    }
+
     public function orariSettimanali()
     {
         return $this->hasMany(DipendenteOrarioSettimanale::class);
