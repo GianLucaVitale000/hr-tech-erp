@@ -67,6 +67,7 @@ function EditDipendente() {
     livello: '',
     mansione: '',
     data_assunzione: '',
+    data_decorrenza_variazione: '',
     sesso: '',
     tipo_contratto: 'indeterminato',
     data_scadenza_contratto: '',
@@ -128,6 +129,7 @@ function EditDipendente() {
           livello: d.livello || '',
           mansione: d.mansione || '',
           data_assunzione: formatDateForInput(d.data_assunzione) || '',
+          data_decorrenza_variazione: '',
           sesso: d.sesso || '',
           tipo_contratto: d.tipo_contratto || 'indeterminato',
           data_scadenza_contratto: formatDateForInput(d.data_scadenza_contratto) || '',
@@ -339,7 +341,8 @@ function EditDipendente() {
         tipo_contratto: form.tipo_contratto,
         data_scadenza_contratto: form.tipo_contratto === 'determinato' ? form.data_scadenza_contratto : null,
         percentuale_part_time: Number(form.percentuale_part_time) || 100,
-        giorni_lavorativi_settimanali: Number(form.giorni_lavorativi_settimanali) || 5
+        giorni_lavorativi_settimanali: Number(form.giorni_lavorativi_settimanali) || 5,
+        data_decorrenza_variazione: form.data_decorrenza_variazione || null
       }
       
       await updateDipendente(id, submitData)
@@ -603,6 +606,22 @@ function EditDipendente() {
             placeholder="100"
             style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
           />
+        </div>
+
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+            Decorrenza variazione contrattuale
+          </label>
+          <input
+            type="date"
+            name="data_decorrenza_variazione"
+            value={form.data_decorrenza_variazione}
+            onChange={handleChange}
+            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+          />
+          <small style={{ display: 'block', marginTop: '0.35rem', color: '#6b7280' }}>
+            Compilala solo se cambi CCNL o percentuale part-time.
+          </small>
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>

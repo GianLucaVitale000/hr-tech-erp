@@ -18,6 +18,11 @@ function Contratti() {
   const [modalOpen, setModalOpen] = useState(false)
   const [currentContratto, setCurrentContratto] = useState(null)
   const [contrattoOre, setContrattoOre] = useState(null)
+  const [rateiMensili, setRateiMensili] = useState({
+    rateo_mensile_ferie: null,
+    rateo_mensile_permessi_rol: null,
+    rateo_mensile_ex_festivita: null
+  })
   const [profili, setProfili] = useState([])
   const [modalLoading, setModalLoading] = useState(false)
   const [regoleMap, setRegoleMap] = useState({})
@@ -267,6 +272,11 @@ function Contratti() {
       
       // Imposta ore base del contratto
       setContrattoOre(contratto.ore_settimanali_teoriche ?? null)
+      setRateiMensili({
+        rateo_mensile_ferie: contratto.rateo_mensile_ferie ?? null,
+        rateo_mensile_permessi_rol: contratto.rateo_mensile_permessi_rol ?? null,
+        rateo_mensile_ex_festivita: contratto.rateo_mensile_ex_festivita ?? null
+      })
       
       // Carica i profili esistenti (regole di calcolo per questo contratto)
       const regoleContratto = regoleMap[contratto.id] || []
@@ -291,6 +301,11 @@ function Contratti() {
     } catch (error) {
       console.error('Errore nel caricamento:', error)
       setAllDipendenti([])
+      setRateiMensili({
+        rateo_mensile_ferie: null,
+        rateo_mensile_permessi_rol: null,
+        rateo_mensile_ex_festivita: null
+      })
       setContrattoOre(null)
       setProfili([{
         id: null,
@@ -309,6 +324,11 @@ function Contratti() {
     setModalOpen(false)
     setCurrentContratto(null)
     setContrattoOre(null)
+    setRateiMensili({
+      rateo_mensile_ferie: null,
+      rateo_mensile_permessi_rol: null,
+      rateo_mensile_ex_festivita: null
+    })
     setProfili([])
     setAllDipendenti([])
   }
@@ -316,6 +336,14 @@ function Contratti() {
   const handleContrattoOreChange = (e) => {
     const value = e.target.value
     setContrattoOre(value === '' ? null : Number(value))
+  }
+
+  const handleRateoMensileChange = (e) => {
+    const { name, value } = e.target
+    setRateiMensili(prev => ({
+      ...prev,
+      [name]: value === '' ? null : Number(value)
+    }))
   }
 
   const handleSave = async () => {
@@ -332,8 +360,11 @@ function Contratti() {
       // 1. Aggiorna le ore settimanali teoriche del contratto
       if (contrattoOre !== null && contrattoOre !== currentContratto.ore_settimanali_teoriche) {
         await updateContratto(currentContratto.id, {
-          ore_settimanali_teoriche: contrattoOre
+          ore_settimanali_teoriche: contrattoOre,
+          ...rateiMensili
         })
+      } else {
+        await updateContratto(currentContratto.id, rateiMensili)
       }
       
       // 2. Gestisce i profili orario
@@ -692,6 +723,45 @@ function Contratti() {
                   color: 'white'
                 }}
               />
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: '500', color: '#d1d5db' }}>
+                Ratei mensili previsti dal CCNL
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                {[
+                  ['rateo_mensile_ferie', 'Rateo mensile ferie'],
+                  ['rateo_mensile_permessi_rol', 'Rateo mensile permessi/ROL'],
+                  ['rateo_mensile_ex_festivita', 'Rateo mensile ex-festività']
+                ].map(([name, label]) => (
+                  <div key={name}>
+                    <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                      {label}
+                    </label>
+                    <input
+                      type="number"
+                      name={name}
+                      value={rateiMensili[name] === null ? '' : rateiMensili[name]}
+                      onChange={handleRateoMensileChange}
+                      step="0.00001"
+                      min="0"
+                      max="999.99999"
+                      inputMode="decimal"
+                      placeholder="0.00000"
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #4b5563',
+                        borderRadius: '4px',
+                        backgroundColor: '#374151',
+                        color: 'white'
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div style={{ borderTop: '1px solid #374151', paddingTop: '1.5rem', marginBottom: '1rem' }}>

@@ -10,6 +10,7 @@ export const deleteUser = (id) => api.delete(`/users/${id}`)
 // === DIPENDENTI ===
 export const getDipendenti = () => api.get('/dipendenti')
 export const getDipendente = (id) => api.get(`/dipendenti/${id}`)
+export const getAnalisiFerie = (id, anno) => api.get(`/dipendenti/${id}/analisi-ferie`, { params: { anno } })
 export const createDipendente = (data) => api.post('/dipendenti', data)
 export const updateDipendente = (id, data) => api.put(`/dipendenti/${id}`, data)
 export const deleteDipendente = (id) => api.delete(`/dipendenti/${id}`)
