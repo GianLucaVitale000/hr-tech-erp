@@ -612,10 +612,8 @@ function AnalisiHR() {
       !isNaN(rawAnno) && rawAnno > 0 ? rawAnno : annoCorrente
     )
 
-    // Se l'anno attuale non è valido o è precedente all'assunzione, imposta quello di assunzione
-    if (!annoSelezionato || annoSelezionato < annoAssunzione) {
-      setAnnoSelezionato(annoAssunzione)
-    }
+    // SEMPRE imposta l'anno all'anno di assunzione del dipendente selezionato
+    setAnnoSelezionato(annoAssunzione)
   }
 
   // Genera dati per grafico distribuzione assenze per giorno della settimana
@@ -691,7 +689,7 @@ function AnalisiHR() {
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <div>
           <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
-            Seleziona Dipendente
+            Filtra per Dipendente
           </label>
           <select
             value={dipendenteSelezionato}
@@ -715,7 +713,7 @@ function AnalisiHR() {
         
         <div>
           <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
-            Seleziona Anno
+            Anno di Riferimento (dal {annoAssunzioneSelezionato} al {annoCorrente})
           </label>
           <select
             value={annoSelezionato}
@@ -728,6 +726,7 @@ function AnalisiHR() {
                 setAnnoSelezionato(selectedYear)
               }
             }}
+            disabled={!dipendenteSelezionato}
             style={{
               padding: '0.5rem',
               borderRadius: '4px',
@@ -736,7 +735,6 @@ function AnalisiHR() {
               width: '150px'
             }}
           >
-            <option value="">-- Seleziona un anno --</option>
             {Array.from({ length: Math.max(0, annoCorrente - annoAssunzioneSelezionato + 1) }, (_, i) => {
               const y = annoAssunzioneSelezionato + i
               return <option key={y} value={y}>{y}</option>
