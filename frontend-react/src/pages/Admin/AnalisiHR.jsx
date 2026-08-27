@@ -575,18 +575,24 @@ function AnalisiHR() {
   const dipendenteCorrente = dipendenti.find(
     (dipendente) => String(dipendente.id) === String(dipendenteSelezionato)
   )
-  const annoAssunzioneSelezionato = dipendenteCorrente?.data_assunzione
-    ? Number(dipendenteCorrente.data_assunzione.split('-')[0])
-    : annoCorrente
+  const annoAssunzioneSelezionato = Math.min(
+    annoCorrente,
+    dipendenteCorrente?.data_assunzione
+      ? parseInt(dipendenteCorrente.data_assunzione.split('-')[0]) || annoCorrente
+      : annoCorrente
+  )
 
   const handleDipendenteChange = (e) => {
     const dipendenteId = e.target.value
     setDipendenteSelezionato(dipendenteId)
 
     const dipendente = dipendenti.find((item) => String(item.id) === String(dipendenteId))
-    const annoAssunzione = dipendente?.data_assunzione
-      ? Number(dipendente.data_assunzione.split('-')[0])
-      : annoCorrente
+    const annoAssunzione = Math.min(
+      annoCorrente,
+      dipendente?.data_assunzione
+        ? parseInt(dipendente.data_assunzione.split('-')[0]) || annoCorrente
+        : annoCorrente
+    )
 
     if (annoSelezionato < annoAssunzione) {
       setAnnoSelezionato(annoAssunzione)
@@ -704,7 +710,7 @@ function AnalisiHR() {
             }}
           >
             <option value="">-- Seleziona un anno --</option>
-            {Array.from({ length: annoCorrente - annoAssunzioneSelezionato + 1 }, (_, i) => {
+            {Array.from({ length: Math.max(0, annoCorrente - annoAssunzioneSelezionato + 1) }, (_, i) => {
               const y = annoAssunzioneSelezionato + i
               return <option key={y} value={y}>{y}</option>
             })}
