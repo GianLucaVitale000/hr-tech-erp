@@ -28,13 +28,17 @@ class PermessiFerieService
                 ($mese->year === $inizioAssunzione->year && $mese->month >= $inizioAssunzione->month);
             $matura = $attivo && $this->maturaNelMese($mese, $inizioAssunzione, $condizione);
             $percentuale = (float) ($condizione?->percentuale_part_time ?? $dipendente->percentuale_part_time ?? 100);
-            $contratto = $condizione?->contratto;
+            
+            // Usa i ratei dal dipendente invece che dal contratto
+            $rateoFerie = (float) ($dipendente->rateo_mensile_ferie ?? 0);
+            $rateoPermessiRol = (float) ($dipendente->rateo_mensile_permessi_rol ?? 0);
+            $rateoExFestivita = (float) ($dipendente->rateo_mensile_ex_festivita ?? 0);
 
             $ratei[] = [
                 'anno' => $mese->year,
                 'mese' => $mese->month,
-                'ferie' => $matura ? $this->riproporziona($contratto?->rateo_mensile_ferie, $percentuale) : 0,
-                'permessi' => $matura ? $this->riproporziona((float) ($contratto?->rateo_mensile_permessi_rol ?? 0) + (float) ($contratto?->rateo_mensile_ex_festivita ?? 0), $percentuale) : 0,
+                'ferie' => $matura ? $this->riproporziona($rateoFerie, $percentuale) : 0,
+                'permessi' => $matura ? $this->riproporziona($rateoPermessiRol + $rateoExFestivita, $percentuale) : 0,
             ];
             $mese->addMonth();
         }

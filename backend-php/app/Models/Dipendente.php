@@ -23,11 +23,17 @@ class Dipendente extends Model
         'percentuale_part_time',
         'giorni_lavorativi_settimanali',
         'ore_settimanali',
+        'rateo_mensile_ferie',
+        'rateo_mensile_permessi_rol',
+        'rateo_mensile_ex_festivita',
     ];
 
     protected $casts = [
         'data_assunzione' => 'date',
         'data_scadenza_contratto' => 'date',
+        'rateo_mensile_ferie' => 'decimal:5',
+        'rateo_mensile_permessi_rol' => 'decimal:5',
+        'rateo_mensile_ex_festivita' => 'decimal:5',
     ];
 
     /**

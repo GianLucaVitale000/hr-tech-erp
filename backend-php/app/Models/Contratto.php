@@ -18,9 +18,6 @@ class Contratto extends Model
         'ultimo_accordo_vigente',
         'tipologia_contratto',
         'ore_settimanali_teoriche',
-        'rateo_mensile_ferie',
-        'rateo_mensile_permessi_rol',
-        'rateo_mensile_ex_festivita',
     ];
 
     protected $casts = [
@@ -30,9 +27,6 @@ class Contratto extends Model
         'partiDatorialiFirmatarie' => 'array',
         'partiSindacaliFirmatarie' => 'array',
         'ore_settimanali_teoriche' => 'decimal:2',
-        'rateo_mensile_ferie' => 'decimal:5',
-        'rateo_mensile_permessi_rol' => 'decimal:5',
-        'rateo_mensile_ex_festivita' => 'decimal:5',
     ];
 
     public function dipendenti()
