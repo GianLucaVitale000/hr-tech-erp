@@ -19,8 +19,8 @@ class DipendenteCondizioneContrattuale extends Model
 
     protected $casts = [
         'percentuale_part_time' => 'decimal:2',
-        'data_inizio' => 'date',
-        'data_fine' => 'date',
+        'data_inizio' => 'datetime:Y-m-d',
+        'data_fine' => 'datetime:Y-m-d',
     ];
 
     public function dipendente(): BelongsTo

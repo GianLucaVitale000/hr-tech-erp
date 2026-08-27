@@ -21,8 +21,8 @@ class Contratto extends Model
     ];
 
     protected $casts = [
-        'data_decorrenza' => 'date',
-        'data_scadenza' => 'date',
+        'data_decorrenza' => 'datetime:Y-m-d',
+        'data_scadenza' => 'datetime:Y-m-d',
         'ultimo_accordo_vigente' => 'boolean',
         'partiDatorialiFirmatarie' => 'array',
         'partiSindacaliFirmatarie' => 'array',

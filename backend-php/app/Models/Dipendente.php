@@ -29,8 +29,8 @@ class Dipendente extends Model
     ];
 
     protected $casts = [
-        'data_assunzione' => 'date',
-        'data_scadenza_contratto' => 'date',
+        'data_assunzione' => 'datetime:Y-m-d',
+        'data_scadenza_contratto' => 'datetime:Y-m-d',
         'rateo_mensile_ferie' => 'decimal:5',
         'rateo_mensile_permessi_rol' => 'decimal:5',
         'rateo_mensile_ex_festivita' => 'decimal:5',

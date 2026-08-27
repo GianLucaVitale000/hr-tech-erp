@@ -9,6 +9,11 @@ class Presenza extends Model
     protected $table = 'presenze';
 
     protected $casts = [
+        'data' => 'datetime:Y-m-d',
+        'data_inizio_malattia' => 'datetime:Y-m-d',
+        'data_fine_malattia' => 'datetime:Y-m-d',
+        'data_inizio_cassa_integrazione' => 'datetime:Y-m-d',
+        'data_fine_cassa_integrazione' => 'datetime:Y-m-d',
         'usa_qr' => 'boolean',
         'pausa_ore' => 'decimal:2',
         'ore_ordinarie' => 'decimal:2',
