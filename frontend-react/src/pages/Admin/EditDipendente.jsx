@@ -51,6 +51,23 @@ const formatDateForInput = (dateString) => {
   }
 }
 
+// Helper per formattare giorni in anni, mesi, giorni
+const formatGiorni = (giorni) => {
+  if (!giorni || giorni === 0) return "0 giorni"
+  
+  const anni = Math.floor(giorni / 365)
+  const restoDopoAnni = giorni % 365
+  const mesi = Math.floor(restoDopoAnni / 30)
+  const giorniRimasenti = restoDopoAnni % 30
+  
+  const parti = []
+  if (anni > 0) parti.push(`${anni} ${anni === 1 ? 'anno' : 'anni'}`)
+  if (mesi > 0) parti.push(`${mesi} ${mesi === 1 ? 'mese' : 'mesi'}`)
+  if (giorniRimasenti > 0) parti.push(`${giorniRimasenti} ${giorniRimasenti === 1 ? 'giorno' : 'giorni'}`)
+  
+  return parti.join(', ')
+}
+
 
 
 function EditDipendente() {
@@ -72,7 +89,10 @@ function EditDipendente() {
     tipo_contratto: 'indeterminato',
     data_scadenza_contratto: '',
     percentuale_part_time: 100,
-    giorni_lavorativi_settimanali: 5
+    giorni_lavorativi_settimanali: 5,
+    rateo_mensile_ferie: null,
+    rateo_mensile_permessi_rol: null,
+    rateo_mensile_ex_festivita: null
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -95,6 +115,16 @@ function EditDipendente() {
   
   // Calcola il totale settimanale
   const totaleSettimanale = orariSettimanali.reduce((sum, giorno) => sum + (giorno.totaleGiorno || 0), 0)
+  
+  // Calcola giorni dall'assunzione alla data odierna (per visualizzazione admin)
+  const giorniDallAssunzione = useMemo(() => {
+    if (!form.data_assunzione) return 0
+    const assunzioneDate = new Date(form.data_assunzione)
+    const today = new Date()
+    const diffTime = Math.abs(today - assunzioneDate)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }, [form.data_assunzione])
   
   // Calcola ore settimanali full-time e part-time in base al contratto e percentuale
   const { oreSettimanaliFullTime, oreSettimanaliPartTime } = useMemo(() => {
@@ -134,7 +164,10 @@ function EditDipendente() {
           tipo_contratto: d.tipo_contratto || 'indeterminato',
           data_scadenza_contratto: formatDateForInput(d.data_scadenza_contratto) || '',
           percentuale_part_time: d.percentuale_part_time || 100,
-          giorni_lavorativi_settimanali: d.giorni_lavorativi_settimanali || 5
+          giorni_lavorativi_settimanali: d.giorni_lavorativi_settimanali || 5,
+          rateo_mensile_ferie: d.rateo_mensile_ferie ?? null,
+          rateo_mensile_permessi_rol: d.rateo_mensile_permessi_rol ?? null,
+          rateo_mensile_ex_festivita: d.rateo_mensile_ex_festivita ?? null
         })
         
         // Assicurati che il contratto del dipendente sia nella lista
@@ -317,8 +350,12 @@ function EditDipendente() {
         data_scadenza_contratto: value === 'indeterminato' ? '' : prev.data_scadenza_contratto
       }))
     } else {
+      // Per i campi ratei, sostituisci la virgola con il punto
+      const fieldValue = ['rateo_mensile_ferie', 'rateo_mensile_permessi_rol', 'rateo_mensile_ex_festivita'].includes(name)
+        ? value.replace(',', '.')
+        : value
       setForm(prev => {
-        const newForm = { ...prev, [name]: value }
+        const newForm = { ...prev, [name]: fieldValue }
         if (name === 'contratto_id') {
           console.log('Form aggiornato, contratto_id:', newForm.contratto_id)
         }
@@ -639,6 +676,47 @@ function EditDipendente() {
             <option value="5">5 giorni</option>
             <option value="6">6 giorni</option>
           </select>
+        </div>
+
+        {/* Ratei mensili per calcolo ferie e permessi */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: '500', color: '#d1d5db' }}>
+            Ratei mensili per ferie e permessi (in ore full time)
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+            {[
+              ['rateo_mensile_ferie', 'Rateo ferie', 'Es: 2.12345'],
+              ['rateo_mensile_permessi_rol', 'Rateo permessi/ROL', 'Es: 2.12345'],
+              ['rateo_mensile_ex_festivita', 'Rateo ex-festività', 'Es: 2.12345']
+            ].map(([name, label, placeholder]) => (
+              <div key={name}>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                  {label}
+                </label>
+                <input
+                  type="number"
+                  name={name}
+                  value={form[name] === null ? '' : form[name]}
+                  onChange={handleChange}
+                  step="0.00001"
+                  min="0"
+                  max="999.99999"
+                  inputMode="decimal"
+                  placeholder={placeholder}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px'
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <small style={{ display: 'block', marginTop: '0.35rem', color: '#6b7280' }}>
+            Anzianità ai fini permessi/ROL: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
+          </small>
         </div>
 
         {/* Configurazione Orari Settimanali per Part-Time - Tabella integrata */}

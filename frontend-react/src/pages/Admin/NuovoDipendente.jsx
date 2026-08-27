@@ -1,6 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createDipendente, getContratti, getUsers } from '../../services/dipendentiService'
+
+// Helper per formattare giorni in anni, mesi, giorni
+const formatGiorni = (giorni) => {
+  if (!giorni || giorni === 0) return "0 giorni"
+  
+  const anni = Math.floor(giorni / 365)
+  const restoDopoAnni = giorni % 365
+  const mesi = Math.floor(restoDopoAnni / 30)
+  const giorniRimasenti = restoDopoAnni % 30
+  
+  const parti = []
+  if (anni > 0) parti.push(`${anni} ${anni === 1 ? 'anno' : 'anni'}`)
+  if (mesi > 0) parti.push(`${mesi} ${mesi === 1 ? 'mese' : 'mesi'}`)
+  if (giorniRimasenti > 0) parti.push(`${giorniRimasenti} ${giorniRimasenti === 1 ? 'giorno' : 'giorni'}`)
+  
+  return parti.join(', ')
+}
 
 function NuovoDipendente() {
   const [contratti, setContratti] = useState([])
@@ -19,10 +36,23 @@ function NuovoDipendente() {
     tipo_contratto: 'indeterminato',
     data_scadenza_contratto: '',
     percentuale_part_time: 100,
-    giorni_lavorativi_settimanali: 5
+    giorni_lavorativi_settimanali: 5,
+    rateo_mensile_ferie: null,
+    rateo_mensile_permessi_rol: null,
+    rateo_mensile_ex_festivita: null
   })
   const [error, setError] = useState('')
   const navigate = useNavigate()
+
+  // Calcola giorni dall'assunzione alla data odierna (per visualizzazione admin)
+  const giorniDallAssunzione = useMemo(() => {
+    if (!form.data_assunzione) return 0
+    const assunzioneDate = new Date(form.data_assunzione)
+    const today = new Date()
+    const diffTime = Math.abs(today - assunzioneDate)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }, [form.data_assunzione])
 
   useEffect(() => {
     Promise.all([
@@ -49,7 +79,11 @@ function NuovoDipendente() {
         data_scadenza_contratto: value === 'indeterminato' ? '' : form.data_scadenza_contratto
       })
     } else {
-      setForm({ ...form, [name]: value })
+      // Per i campi ratei, sostituisci la virgola con il punto
+      const fieldValue = ['rateo_mensile_ferie', 'rateo_mensile_permessi_rol', 'rateo_mensile_ex_festivita'].includes(name)
+        ? value.replace(',', '.')
+        : value
+      setForm({ ...form, [name]: fieldValue })
     }
   }
 
@@ -312,6 +346,47 @@ function NuovoDipendente() {
             <option value="5">5 giorni (lun-ven)</option>
             <option value="6">6 giorni (lun-sab)</option>
           </select>
+        </div>
+
+        {/* Ratei mensili per calcolo ferie e permessi */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: '500', color: '#d1d5db' }}>
+            Ratei mensili per ferie e permessi (in ore full time)
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+            {[
+              ['rateo_mensile_ferie', 'Rateo ferie', 'Es: 2.12345'],
+              ['rateo_mensile_permessi_rol', 'Rateo permessi/ROL', 'Es: 2.12345'],
+              ['rateo_mensile_ex_festivita', 'Rateo ex-festività', 'Es: 2.12345']
+            ].map(([name, label, placeholder]) => (
+              <div key={name}>
+                <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                  {label}
+                </label>
+                <input
+                  type="number"
+                  name={name}
+                  value={form[name] === null ? '' : form[name]}
+                  onChange={handleChange}
+                  step="0.00001"
+                  min="0"
+                  max="999.99999"
+                  inputMode="decimal"
+                  placeholder={placeholder}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px'
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          <small style={{ display: 'block', marginTop: '0.35rem', color: '#6b7280' }}>
+            Anzianità ai fini permessi/ROL: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
+          </small>
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
