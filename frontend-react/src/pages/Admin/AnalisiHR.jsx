@@ -588,20 +588,17 @@ function AnalisiHR() {
       : annoCorrente
   )
 
-  // Reimposta annoSelezionato quando cambia il dipendente o non ce n'è uno selezionato
-  useEffect(() => {
-    if (!dipendenteSelezionato) {
-      setAnnoSelezionato('')
-      return
-    }
-    if (annoAssunzioneSelezionato && (!annoSelezionato || annoSelezionato < annoAssunzioneSelezionato)) {
-      setAnnoSelezionato(annoAssunzioneSelezionato)
-    }
-  }, [dipendenteSelezionato, annoAssunzioneSelezionato, annoSelezionato])
+
 
   const handleDipendenteChange = (e) => {
     const dipendenteId = e.target.value
     setDipendenteSelezionato(dipendenteId)
+
+    // Se non è selezionato alcun dipendente, resetta anche l'anno
+    if (!dipendenteId) {
+      setAnnoSelezionato('')
+      return
+    }
 
     const dipendente = dipendenti.find((item) => dipendenteId && String(item.id) === String(dipendenteId))
     const rawAnno = dipendente?.data_assunzione
@@ -612,7 +609,8 @@ function AnalisiHR() {
       !isNaN(rawAnno) && rawAnno > 0 ? rawAnno : annoCorrente
     )
 
-    if (annoSelezionato < annoAssunzione || !annoSelezionato) {
+    // Se l'anno attuale non è valido o è precedente all'assunzione, imposta quello di assunzione
+    if (!annoSelezionato || annoSelezionato < annoAssunzione) {
       setAnnoSelezionato(annoAssunzione)
     }
   }
