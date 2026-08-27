@@ -768,11 +768,52 @@ function AnalisiHR() {
           </div>
         )}
         
-        {/* Giorni Lavorati */}
-        <div style={widgetStyle}>
+        {/* Giorni Lavorati - Donut Chart */}
+        <div style={{ ...widgetStyle, position: 'relative' }}>
           <div style={widgetTitleStyle}>Giorni Lavorati</div>
-          <div style={widgetValueStyle}>{datiAnnuali.giorniLavorati} gg</div>
-          <div style={widgetSubtitleStyle}>Giorni effettivi</div>
+          <div style={{ height: '100px', margin: '0.5rem 0', position: 'relative' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: 'Lavorati', value: datiAnnuali.giorniLavorati, color: '#3b82f6' },
+                    { 
+                      name: 'Non lavorati', 
+                      value: Math.max(0, datiAnnuali.giorniTeoriciLavorabili - datiAnnuali.giorniLavorati), 
+                      color: '#4b5563' 
+                    }
+                  ]}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={30}
+                  outerRadius={40}
+                  fill="#8884d8"
+                  dataKey="value"
+                  labelLine={false}
+                  isAnimationActive={false}
+                >
+                  {[
+                    { color: '#3b82f6' },
+                    { color: '#4b5563' }
+                  ].map((entry, index) => (
+                    <Cell key={`cell-giorni-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              color: 'white',
+              fontSize: '0.9rem',
+              fontWeight: '700'
+            }}>
+              {datiAnnuali.giorniLavorati} gg
+            </div>
+          </div>
         </div>
         
         {/* Giorni Teorici Lavorabili */}
@@ -876,66 +917,66 @@ function AnalisiHR() {
             </div>
             
             {/* Grafico a torta con composizione assenze */}
-            <div style={{ height: '180px', marginTop: '0.5rem' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
-                      { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
-                      { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
-                      { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
-                      { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
-                    ].filter(item => item.value > 0)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={55}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    labelStyle={{ fontSize: 9, fill: '#ffffff' }}
-                  >
-                    {[
-                      { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
-                      { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
-                      { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
-                      { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
-                      { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
-                    ].filter(item => item.value > 0).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    wrapperStyle={{ opacity: 1 }}
-                    contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
-                    formatter={(value) => [value, 'Giorni']}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            
-            {/* Legenda */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.55rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '2px' }} />
-                <span>Malattia: {datiAnnuali.giorniAssenzaTotali.malattia} gg.</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.5rem' }}>
+              <div style={{ height: '180px', width: '220px', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
+                        { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
+                        { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
+                        { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
+                        { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={55}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      labelStyle={{ fontSize: 7, fill: '#ffffff' }}
+                    >
+                      {[
+                        { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
+                        { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
+                        { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
+                        { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
+                        { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
+                      ].filter(item => item.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      wrapperStyle={{ opacity: 1 }}
+                      contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
+                      formatter={(value) => [value, 'Giorni']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#8b5cf6', borderRadius: '2px' }} />
-                <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita} gg.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
-                <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio} gg.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
-                <span>CIG: {datiAnnuali.giorniAssenzaTotali.cig} gg.</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
-                <span>PNR: {datiAnnuali.giorniAssenzaTotali.pnr} gg.</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.55rem', lineHeight: 0.4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '2px' }} />
+                  <span>Malattia: {datiAnnuali.giorniAssenzaTotali.malattia} gg.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#8b5cf6', borderRadius: '2px' }} />
+                  <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita} gg.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
+                  <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio} gg.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
+                  <span>CIG: {datiAnnuali.giorniAssenzaTotali.cig} gg.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
+                  <span>PNR: {datiAnnuali.giorniAssenzaTotali.pnr} gg.</span>
+                </div>
               </div>
             </div>
           </div>
@@ -944,7 +985,7 @@ function AnalisiHR() {
         {/* Card 2: Ripartizione PR, PNR, CIG, Sindacale */}
         <div style={{ backgroundColor: '#374151', color: 'white', border: '1px solid #4b5563', maxWidth: '500px', width: '100%' }}>
           <div style={{ backgroundColor: '#1f2937', borderBottom: '1px solid #4b5563', padding: '1rem 1.5rem' }}>
-            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>PR, PNR, CIG, Sindacale / Modalità lavoro</span>
+            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>PR, PNR, CIG, Sind / Modalità lavoro</span>
           </div>
           <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
           <div style={{ padding: '1.5rem', color: '#d1d5db', height: '400px', display: 'flex', flexDirection: 'column' }}>
@@ -956,19 +997,19 @@ function AnalisiHR() {
               return (
                 <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '1rem' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f3f4f6' }}>
-                      {formatValue(totale)} ore
+                    <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#f3f4f6' }}>
+                      {formatValue(totale)} h
                     </div>
                     <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
                       Tot. anno
                     </div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f3f4f6' }}>
+                    <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#f3f4f6' }}>
                       {formatValue(percentuale, 1)}%
                     </div>
                     <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                      % su ore lavorabili
+                      % su h lavorabili
                     </div>
                   </div>
                 </div>
@@ -976,69 +1017,69 @@ function AnalisiHR() {
             })()}
 
             {/* Grafico a torta */}
-            <div style={{ height: '200px', marginTop: '0.5rem' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
-                      { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
-                      { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
-                      { name: 'Sindacale', value: datiAnnuali.sindacale, color: '#f59e0b' }
-                    ].filter(item => item.value > 0)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={45}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                    labelStyle={{ fontSize: 8, fill: '#ffffff' }}
-                  >
-                    {[
-                      { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
-                      { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
-                      { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
-                      { name: 'Sindacale', value: datiAnnuali.sindacale, color: '#f59e0b' }
-                    ].filter(item => item.value > 0).map((entry, index) => (
-                      <Cell key={`cell-pr-pnr-cig-sind-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    wrapperStyle={{ backgroundColor: '#374151', opacity: 1, zIndex: 100 }}
-                    contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
-                    itemStyle={{ color: 'white' }}
-                    labelStyle={{ color: 'white' }}
-                    formatter={(value, name) => [`${name}: ${value} ore`]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Legenda */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.55rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }} />
-                <span>PR: {formatValue(datiAnnuali.pr)} ore</span>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: '0.5rem', gap: '0.5rem' }}>
+              <div style={{ height: '200px', width: '200px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
+                        { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
+                        { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
+                        { name: 'Sind', value: datiAnnuali.sindacale, color: '#f59e0b' }
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={45}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      labelStyle={{ fontSize: 1, fill: '#ffffff' }}
+                    >
+                      {[
+                        { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
+                        { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
+                        { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
+                        { name: 'Sind', value: datiAnnuali.sindacale, color: '#f59e0b' }
+                      ].filter(item => item.value > 0).map((entry, index) => (
+                        <Cell key={`cell-pr-pnr-cig-sind-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      wrapperStyle={{ backgroundColor: '#374151', opacity: 1, zIndex: 100 }}
+                      contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
+                      itemStyle={{ color: 'white' }}
+                      labelStyle={{ color: 'white' }}
+                      formatter={(value, name) => [`${name}: ${formatValue(value, 2)} h`]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
-                <span>PNR: {formatValue(datiAnnuali.pnr)} ore</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
-                <span>CIG: {formatValue(datiAnnuali.cig)} ore</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
-                <span>Sindacale: {formatValue(datiAnnuali.sindacale)} ore</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', fontSize: '0.55rem', lineHeight: 0.4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }} />
+                  <span>PR: {formatValue(datiAnnuali.pr)} h</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
+                  <span>PNR: {formatValue(datiAnnuali.pnr)} h</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
+                  <span>CIG: {formatValue(datiAnnuali.cig)} h</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
+                  <span>Sind: {formatValue(datiAnnuali.sindacale)} h</span>
+                </div>
               </div>
             </div>
 
             {/* Grafico istogramma modalità di lavoro per mese */}
-            <div style={{ height: '200px', marginTop: '1rem' }}>
+            <div style={{ height: '240px', minHeight: '130px', flex: 1}}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={datiAnnuali.modalitaLavoroPerMese} margin={{ top: 20, right: 30, left: 0, bottom: 0 }} activeBar={{ fillOpacity: 1 }}>
+                <BarChart data={datiAnnuali.modalitaLavoroPerMese} margin={{ top: 2, right: 0, left: 0, bottom: 0 }} activeBar={{ fillOpacity: 1 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
                   <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 8 }} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} hide />
@@ -1046,7 +1087,7 @@ function AnalisiHR() {
                     content={({ payload }) => (
                       <div style={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', padding: '8px 12px', fontSize: '0.75rem', zIndex: 1000 }}>
                         {payload.map((entry, index) => (
-                          <div key={index} style={{ color: 'white' }}>{`${entry.name}: ${entry.value} ore`}</div>
+                          <div key={index} style={{ color: 'white' }}>{`${entry.name}: ${formatValue(entry.value, 2)} h`}</div>
                         ))}
                       </div>
                     )}
@@ -1062,7 +1103,7 @@ function AnalisiHR() {
                     const pctTrasferta = totaleLavorato > 0 ? (totaleTrasferta / totaleLavorato * 100) : 0
                     return (
                       <Legend
-                        wrapperStyle={{ color: '#9ca3af', fontSize: '0.6rem' }}
+                        wrapperStyle={{ color: '#9ca3af', fontSize: '0.6rem', marginBottom: 0 }}
                         formatter={(value) => {
                           if (value === 'In Sede') return <span style={{ color: '#3b82f6' }}>{`In Sede: ${pctInSede.toFixed(1)}%`}</span>
                           if (value === 'SW') return <span style={{ color: '#10b981' }}>{`SW: ${pctSmartWorking.toFixed(1)}%`}</span>
@@ -1127,7 +1168,7 @@ function AnalisiHR() {
                         contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
                         formatter={(value, name) => [formatValue(value, 2) + ' ore', name === 'ferie' || name === 'Ferie' ? 'Ferie' : 'Permessi/ROL-ex festività']}
                       />
-                      <Legend wrapperStyle={{ fontSize: '0.7rem' }} />
+                      <Legend wrapperStyle={{ fontSize: '0.7rem', marginBottom: 0 }} />
                       <Bar dataKey="ferie" name="Ferie" fill="#3b82f6" radius={[2, 2, 0, 0]} />
                       <Bar dataKey="permessi" name="Permessi/ROL-ex festività" fill="#10b981" radius={[2, 2, 0, 0]} />
                     </BarChart>

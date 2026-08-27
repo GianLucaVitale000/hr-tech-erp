@@ -550,7 +550,7 @@ function AdminDashboard() {
       </div>
 
       <p style={{ color: 'white', fontSize: '0.85rem', marginBottom: '2rem' }}>
-        {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti, approvare i fogli presenze o visualizzare le analisi HR.
+        {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti, approvazione presenze o visualizzare le analisi HR.
       </p>
 
       {loading ? (
@@ -585,9 +585,6 @@ function AdminDashboard() {
               </select>
             </div>
           </div>
-          <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '1rem' }}>
-            Dati riferiti a {NOMI_MESI[meseSelezionato - 1]} {annoSelezionato}
-          </p>
           
           {datiCCNL.length > 0 ? (
             <>
