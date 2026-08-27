@@ -21,7 +21,7 @@ function AnalisiHR() {
   const navigate = useNavigate()
   const [dipendenti, setDipendenti] = useState([])
   const [dipendenteSelezionato, setDipendenteSelezionato] = useState('')
-  const [annoSelezionato, setAnnoSelezionato] = useState(new Date().getFullYear())
+  const [annoSelezionato, setAnnoSelezionato] = useState('')
   const [analisiFerie, setAnalisiFerie] = useState(null)
   const [datiAnnuali, setDatiAnnuali] = useState({
     oreOrdinarie: 0,
@@ -588,12 +588,16 @@ function AnalisiHR() {
       : annoCorrente
   )
 
-  // Assicurati che annoSelezionato sia sempre >= annoAssunzioneSelezionato
+  // Reimposta annoSelezionato quando cambia il dipendente o non ce n'è uno selezionato
   useEffect(() => {
-    if (dipendenteSelezionato && annoAssunzioneSelezionato && annoSelezionato < annoAssunzioneSelezionato) {
+    if (!dipendenteSelezionato) {
+      setAnnoSelezionato('')
+      return
+    }
+    if (annoAssunzioneSelezionato && (!annoSelezionato || annoSelezionato < annoAssunzioneSelezionato)) {
       setAnnoSelezionato(annoAssunzioneSelezionato)
     }
-  }, [dipendenteSelezionato, annoAssunzioneSelezionato, annoSelezionato, annoCorrente])
+  }, [dipendenteSelezionato, annoAssunzioneSelezionato, annoSelezionato])
 
   const handleDipendenteChange = (e) => {
     const dipendenteId = e.target.value
@@ -608,7 +612,7 @@ function AnalisiHR() {
       !isNaN(rawAnno) && rawAnno > 0 ? rawAnno : annoCorrente
     )
 
-    if (annoSelezionato < annoAssunzione) {
+    if (annoSelezionato < annoAssunzione || !annoSelezionato) {
       setAnnoSelezionato(annoAssunzione)
     }
   }
@@ -713,7 +717,7 @@ function AnalisiHR() {
             Seleziona Anno
           </label>
           <select
-            value={annoSelezionato || ''}
+            value={annoSelezionato}
             onChange={(e) => {
               const selectedYear = e.target.value ? parseInt(e.target.value) : ''
               // Previeni la selezione di anni precedenti all'assunzione
