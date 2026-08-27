@@ -575,10 +575,16 @@ function AnalisiHR() {
   const dipendenteCorrente = dipendenti.find(
     (dipendente) => dipendenteSelezionato && String(dipendente.id) === String(dipendenteSelezionato)
   )
+  
+  // Estrai anno di assunzione in modo sicuro, con fallback a annoCorrente solo se dati non disponibili
+  const rawAnnoAssunzione = dipendenteCorrente?.data_assunzione
+    ? parseInt(dipendenteCorrente.data_assunzione.split('-')[0])
+    : null
+  
   const annoAssunzioneSelezionato = Math.min(
     annoCorrente,
-    dipendenteCorrente?.data_assunzione
-      ? parseInt(dipendenteCorrente.data_assunzione.split('-')[0]) || annoCorrente
+    !isNaN(rawAnnoAssunzione) && rawAnnoAssunzione > 0 
+      ? rawAnnoAssunzione 
       : annoCorrente
   )
 
@@ -594,11 +600,12 @@ function AnalisiHR() {
     setDipendenteSelezionato(dipendenteId)
 
     const dipendente = dipendenti.find((item) => dipendenteId && String(item.id) === String(dipendenteId))
+    const rawAnno = dipendente?.data_assunzione
+      ? parseInt(dipendente.data_assunzione.split('-')[0])
+      : null
     const annoAssunzione = Math.min(
       annoCorrente,
-      dipendente?.data_assunzione
-        ? parseInt(dipendente.data_assunzione.split('-')[0]) || annoCorrente
-        : annoCorrente
+      !isNaN(rawAnno) && rawAnno > 0 ? rawAnno : annoCorrente
     )
 
     if (annoSelezionato < annoAssunzione) {
