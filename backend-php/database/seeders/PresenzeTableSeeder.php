@@ -14,6 +14,9 @@ class PresenzeTableSeeder extends Seeder
 {
     public function run()
     {
+        // Pulizia dati esistenti per evitare duplicati
+        Presenza::truncate();
+        
         $faker = Faker::create('it_IT');
         $today = Carbon::today();
         
@@ -45,34 +48,142 @@ class PresenzeTableSeeder extends Seeder
             $dataFineInfortunio = null;
             $dataFineMaternita = null;
             $dataFineSciopero = null;
+            
+            // --- 2b. Variabili per gestione ferie estate ---
+            $ferieEstateGiorni = 0;
+            $maxFerieEstate = 15; // Massimo 15 giorni di ferie in giugno-luglio-agosto
+            $ferieEstateAssegnate = false;
+            $ferieEstateInCorso = false;
+            $ferieEstateConsecutive = 0;
+            
+            // --- 2c. Flag per Maria Carta ---
+            $isMariaCarta = ($dipendente->user && ($dipendente->user->name === 'Maria Carta' || $dipendente->user->name === 'Maria Carte')) || 
+                           ($dipendente->user && ($dipendente->user->email === 'maria.carta@example.com' || $dipendente->user->email === 'maria.carte@example.com'));
+            $maternitaMariaCartaAssegnata = false;
+            $postMaternitaFerieSmaltite = false;
+            $inSmaltimentoFerieMariaCarta = false;
+            $smaltimentoFerieConsecutive = 0;
 
-            // --- 3. MATERNITÀ: solo per donne (F) - 150 giorni DI CALENDARIO ---
-            if ($dipendente->sesso === 'F' && $faker->boolean(80)) {
-                $inizioMaternita = $faker->dateTimeBetween($dataInizio, $dataFine);
-                $inizioMaternita = Carbon::parse($inizioMaternita);
-                $dataFineMaternita = $inizioMaternita->copy()->addDays(150); // 150 giorni DI CALENDARIO
-                $inMaternita = true;
+            // --- 3. MATERNITÀ: solo per donne (F) ---
+            // Per Maria Carta: sola maternità nel 2024
+            if ($dipendente->sesso === 'F') {
+                if ($isMariaCarta) {
+                    // Maria Carta: maternità solo nel 2024, 150 giorni di calendario
+                    $anno2024Inizio = Carbon::create(2024, 1, 1);
+                    $anno2024Fine = Carbon::create(2024, 12, 31);
+                    
+                    // Verifica se il 2024 è nel suo periodo di attività
+                    if ($dataInizio->lte($anno2024Fine) && $dataFine->gte($anno2024Inizio)) {
+                        $inizioMaternita = $faker->dateTimeBetween(
+                            $dataInizio->copy()->max($anno2024Inizio),
+                            $dataFine->copy()->min($anno2024Fine->copy()->subDays(150))
+                        );
+                        $inizioMaternita = Carbon::parse($inizioMaternita);
+                        $dataFineMaternita = $inizioMaternita->copy()->addDays(150);
+                        $inMaternita = true;
+                        $maternitaMariaCartaAssegnata = true;
+                    }
+                } else {
+                    // Altre donne: 80% di probabilità
+                    if ($faker->boolean(80)) {
+                        $inizioMaternita = $faker->dateTimeBetween($dataInizio, $dataFine);
+                        $inizioMaternita = Carbon::parse($inizioMaternita);
+                        $dataFineMaternita = $inizioMaternita->copy()->addDays(150);
+                        $inMaternita = true;
+                    }
+                }
             }
 
             // --- 4. Itera giorno per giorno ---
             for ($date = $dataInizio->copy(); $date->lte($dataFine); $date->addDay()) {
+                // Inizializza variabili estate per ogni anno
+                if ($date->month === 6 && $date->day === 1) {
+                    $inizioEstate = Carbon::create($date->year, 6, 1);
+                    $fineEstate = Carbon::create($date->year, 8, 31);
+                }
+                
                 if ($this->isWeekend($date, $dipendente->giorni_lavorativi_settimanali)) {
                     continue;
+                }
+
+                // --- 4b. Gestione ferie estate (giugno-luglio-agosto) ---
+                // Se siamo in estate e non abbiamo ancora assegnato le ferie estive per quest'anno
+                if ($date->month >= 6 && $date->month <= 8 && !$ferieEstateAssegnate) {
+                    // Decide se assegnare ferie in estate (70% probabilità)
+                    if ($faker->boolean(70)) {
+                        // Assegna tra 5 e 15 giorni di ferie in estate
+                        $durataFerieEstate = $faker->numberBetween(5, $maxFerieEstate);
+                        $ferieEstateAssegnate = true;
+                        $ferieEstateInCorso = true;
+                        $ferieEstateConsecutive = 1;
+                        
+                        // Inizia le ferie estive dalla data corrente
+                        $inFerie = true;
+                        $ferieConsecutive = 1;
+                    } else {
+                        $ferieEstateAssegnate = true; // Non assegnare ferie in estate
+                    }
+                }
+                
+                // Gestione fine ferie estate
+                if ($ferieEstateInCorso && $ferieEstateConsecutive >= $durataFerieEstate ?? 15) {
+                    $ferieEstateInCorso = false;
+                    $ferieEstateConsecutive = 0;
                 }
 
                 // --- 5. Gestione fine stati continuativi ---
                 if ($inMalattia && $date->gte($dataFineMalattia)) $inMalattia = false;
                 if ($inInfortunio && $date->gte($dataFineInfortunio)) $inInfortunio = false;
-                if ($inMaternita && $date->gte($dataFineMaternita)) $inMaternita = false;
+                if ($inMaternita && $date->gte($dataFineMaternita)) {
+                    $inMaternita = false;
+                    // Per Maria Carta: dopo la maternità, smaltisci ferie e permessi
+                    if ($isMariaCarta && $maternitaMariaCartaAssegnata && !$postMaternitaFerieSmaltite) {
+                        $inSmaltimentoFerieMariaCarta = true;
+                        $smaltimentoFerieConsecutive = 0;
+                        // Inizia lo smaltimento con ferie
+                        $inFerie = true;
+                        $ferieConsecutive = 1;
+                    }
+                }
                 if ($inFerie && $ferieConsecutive >= 15) {
                     $inFerie = false;
                     $ferieConsecutive = 0;
                 }
+                if ($ferieEstateInCorso) {
+                    $ferieEstateConsecutive++;
+                }
                 if ($inSciopero && $date->gte($dataFineSciopero)) $inSciopero = false;
+                
+                // Gestione fine smaltimento ferie Maria Carta
+                if ($isMariaCarta && $inSmaltimentoFerieMariaCarta) {
+                    $smaltimentoFerieConsecutive++;
+                    // Smaltisci per circa 10-20 giorni di ferie/permessi
+                    if ($smaltimentoFerieConsecutive >= $faker->numberBetween(10, 20)) {
+                        $inSmaltimentoFerieMariaCarta = false;
+                        $postMaternitaFerieSmaltite = true;
+                        $inFerie = false;
+                        $ferieConsecutive = 0;
+                    }
+                }
 
                 // --- 6. Decidi la causale ---
                 $causale = 'lavoro';
                 $modalita = $faker->randomElement(['in_sede', 'smart_working', 'trasferta']);
+
+                // --- 6a. Gestione Maria Carta durante smaltimento ferie post-maternità ---
+                if ($isMariaCarta && $inSmaltimentoFerieMariaCarta) {
+                    // Durante lo smaltimento, alterna tra ferie, permesso_rol e permesso_retribuito
+                    $causale = $faker->randomElement([
+                        'ferie', 'ferie', 'ferie', 'ferie',
+                        'permesso_rol', 'permesso_rol', 'permesso_rol',
+                        'permesso_retribuito', 'permesso_retribuito'
+                    ]);
+                    
+                    if ($causale === 'ferie' && !$inFerie) {
+                        $inFerie = true;
+                        $ferieConsecutive = 1;
+                    }
+                }
 
                 if ($inMaternita) {
                     $causale = 'maternita';
@@ -86,21 +197,28 @@ class PresenzeTableSeeder extends Seeder
                 } elseif ($inSciopero) {
                     $causale = 'sciopero';
                 } else {
-                    $causale = $faker->randomElement([
-                        'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
-                        'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
-                        'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
-                        'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
-                        'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
-                        'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
-                        'ferie',
-                        'malattia',
-                        'infortunio',
-                        'permesso_retribuito',
-                        'permesso_non_retribuito',
-                        'assemblea',
-                        'sciopero',
-                    ]);
+                    // --- 6b. Pesi modificati: ridurre infortunio e malattia, aumentare permesso_rol ---
+                    // Per Maria Carta: tutto il resto è lavorato (tranne ferie estate)
+                    if ($isMariaCarta && !$inMaternita && !$inSmaltimentoFerieMariaCarta && !$ferieEstateInCorso) {
+                        $causale = 'lavoro';
+                    } else {
+                        $causale = $faker->randomElement([
+                            'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
+                            'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
+                            'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
+                            'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
+                            'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
+                            'lavoro', 'lavoro', 'lavoro', 'lavoro', 'lavoro',
+                            'ferie', 'ferie',
+                            'permesso_rol', 'permesso_rol', 'permesso_rol', 'permesso_rol',
+                            'permesso_retribuito', 'permesso_retribuito',
+                            'malattia',
+                            'infortunio',
+                            'permesso_non_retribuito',
+                            'assemblea',
+                            'sciopero',
+                        ]);
+                    }
 
                     if ($causale === 'ferie') {
                         $inFerie = true;
@@ -111,10 +229,10 @@ class PresenzeTableSeeder extends Seeder
                         }
                     } elseif ($causale === 'malattia') {
                         $inMalattia = true;
-                        $dataFineMalattia = $date->copy()->addDays($faker->numberBetween(1, 30));
+                        $dataFineMalattia = $date->copy()->addDays($faker->numberBetween(1, 15)); // Ridotto da 30 a 15
                     } elseif ($causale === 'infortunio') {
                         $inInfortunio = true;
-                        $dataFineInfortunio = $date->copy()->addDays($faker->numberBetween(5, 60));
+                        $dataFineInfortunio = $date->copy()->addDays($faker->numberBetween(2, 30)); // Ridotto da 5-60 a 2-30
                     } elseif ($causale === 'sciopero') {
                         $inSciopero = true;
                         $dataFineSciopero = $date->copy()->addDays($faker->numberBetween(1, 3));
@@ -236,6 +354,18 @@ class PresenzeTableSeeder extends Seeder
                 break;
 
             case 'maternita':
+                $presenza['ore_causale'] = $oreGiornaliere;
+                break;
+
+            case 'permesso_rol':
+                $presenza['ore_causale'] = $oreGiornaliere;
+                break;
+
+            case 'permesso_retribuito':
+                $presenza['ore_causale'] = $oreGiornaliere;
+                break;
+
+            case 'permesso_non_retribuito':
                 $presenza['ore_causale'] = $oreGiornaliere;
                 break;
 

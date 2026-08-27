@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         // Nuovi seeders per le tabelle aggiuntive
             MariaCartaSeeder::class,
             PresenzeTableSeeder::class,
+            MariaCartaPresenzeSeeder::class, // Sovrascrive le presenze di Maria Carta con regole specifiche
         ]);
 
         User::firstOrCreate(
