@@ -573,7 +573,7 @@ function AnalisiHR() {
 
   const annoCorrente = new Date().getFullYear()
   const dipendenteCorrente = dipendenti.find(
-    (dipendente) => String(dipendente.id) === String(dipendenteSelezionato)
+    (dipendente) => dipendenteSelezionato && String(dipendente.id) === String(dipendenteSelezionato)
   )
   const annoAssunzioneSelezionato = Math.min(
     annoCorrente,
@@ -593,7 +593,7 @@ function AnalisiHR() {
     const dipendenteId = e.target.value
     setDipendenteSelezionato(dipendenteId)
 
-    const dipendente = dipendenti.find((item) => String(item.id) === String(dipendenteId))
+    const dipendente = dipendenti.find((item) => dipendenteId && String(item.id) === String(dipendenteId))
     const annoAssunzione = Math.min(
       annoCorrente,
       dipendente?.data_assunzione
