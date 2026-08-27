@@ -689,7 +689,7 @@ function AnalisiHR() {
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <div>
           <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
-            Filtra per Dipendente
+            Filtro per Dipendente
           </label>
           <select
             value={dipendenteSelezionato}
@@ -713,7 +713,7 @@ function AnalisiHR() {
         
         <div>
           <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
-            Anno di Riferimento (dal {annoAssunzioneSelezionato} al {annoCorrente})
+            Anno di riferimento ({annoAssunzioneSelezionato} - {annoCorrente})
           </label>
           <select
             value={annoSelezionato}
