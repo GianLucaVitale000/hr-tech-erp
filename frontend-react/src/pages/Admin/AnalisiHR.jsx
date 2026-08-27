@@ -124,6 +124,8 @@ function AnalisiHR() {
       .then((res) => setDipendenti(res.data))
       .catch(() => console.error('Errore nel caricamento dipendenti'))
   }, [])
+  
+
 
   // Recupera e aggrega i dati annuali quando dipendente o anno cambiano
   useEffect(() => {
@@ -188,8 +190,9 @@ function AnalisiHR() {
             giorniSettimanali: 5,
             giorniAssenzaTotali: { malattia: 0, maternita: 0, infortunio: 0, cig: 0, pnr: 0 },
             totaleGiorniAssenza: 0,
-            assenzePerGiornoSettimana: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
-            malattieBreviPerGiorno: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+            assenzePerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+            assenzeIndividualiPerGiornoSettimana: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
+            malattieBreviPerGiorno: { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 },
             assenzeVicinoFestivi: 0
           })
           return
