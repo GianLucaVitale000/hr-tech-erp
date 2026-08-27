@@ -582,6 +582,13 @@ function AnalisiHR() {
       : annoCorrente
   )
 
+  // Assicurati che annoSelezionato sia sempre >= annoAssunzioneSelezionato
+  useEffect(() => {
+    if (dipendenteSelezionato && annoAssunzioneSelezionato && annoSelezionato < annoAssunzioneSelezionato) {
+      setAnnoSelezionato(annoAssunzioneSelezionato)
+    }
+  }, [dipendenteSelezionato, annoAssunzioneSelezionato, annoSelezionato, annoCorrente])
+
   const handleDipendenteChange = (e) => {
     const dipendenteId = e.target.value
     setDipendenteSelezionato(dipendenteId)
@@ -700,7 +707,15 @@ function AnalisiHR() {
           </label>
           <select
             value={annoSelezionato || ''}
-            onChange={(e) => setAnnoSelezionato(e.target.value ? parseInt(e.target.value) : '')}
+            onChange={(e) => {
+              const selectedYear = e.target.value ? parseInt(e.target.value) : ''
+              // Previeni la selezione di anni precedenti all'assunzione
+              if (selectedYear && selectedYear < annoAssunzioneSelezionato) {
+                setAnnoSelezionato(annoAssunzioneSelezionato)
+              } else {
+                setAnnoSelezionato(selectedYear)
+              }
+            }}
             style={{
               padding: '0.5rem',
               borderRadius: '4px',
