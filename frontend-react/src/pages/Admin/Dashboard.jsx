@@ -44,6 +44,15 @@ function AdminDashboard() {
     fetchDipendenti()
   }, [])
 
+  // Calcola il primo anno di assunzione tra tutti i dipendenti
+  const getAnnoMinimoAssunzione = () => {
+    if (dipendenti.length === 0) return new Date().getFullYear()
+    const anniAssunzione = dipendenti
+      .filter(d => d.data_assunzione)
+      .map(d => new Date(d.data_assunzione).getFullYear())
+    return anniAssunzione.length > 0 ? Math.min(...anniAssunzione) : new Date().getFullYear()
+  }
+
   // Funzione per verificare se un dipendente è attivo in un dato mese/anno
   const dipendenteAttivoInPeriodo = (dipendente, mese, anno) => {
     const tipoContratto = dipendente.tipo_contratto || 'indeterminato'
@@ -578,10 +587,15 @@ function AdminDashboard() {
                 onChange={(e) => setAnnoSelezionato(parseInt(e.target.value))}
                 style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'white', color: 'black' }}
               >
-                {Array.from({ length: 5 }, (_, i) => {
-                  const y = new Date().getFullYear() - 2 + i
-                  return <option key={y} value={y}>{y}</option>
-                })}
+                {(() => {
+                  const annoMinimo = getAnnoMinimoAssunzione()
+                  const annoMassimo = new Date().getFullYear()
+                  const anni = []
+                  for (let y = annoMinimo; y <= annoMassimo; y++) {
+                    anni.push(y)
+                  }
+                  return anni.map(y => <option key={y} value={y}>{y}</option>)
+                })()}
               </select>
             </div>
           </div>

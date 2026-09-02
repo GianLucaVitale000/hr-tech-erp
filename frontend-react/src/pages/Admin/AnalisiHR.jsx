@@ -23,6 +23,7 @@ function AnalisiHR() {
   const [dipendenteSelezionato, setDipendenteSelezionato] = useState('')
   const [annoSelezionato, setAnnoSelezionato] = useState('')
   const [analisiFerie, setAnalisiFerie] = useState(null)
+  const [datiMensualiOreExtraordinarie, setDatiMensualiOreExtraordinarie] = useState([])
   const [datiAnnuali, setDatiAnnuali] = useState({
     oreOrdinarie: 0,
     oreStraordinarie: 0,
@@ -117,6 +118,127 @@ function AnalisiHR() {
 
     return count
   }, [getFestivitaItaliane])
+
+  // Calcola supplementari e straordinarie mensili con compensazione intra-mese
+  // Algoritmo corretto:
+  // - Le assenze giustificate (malattia, ferie, etc) NON generano straordinario
+  // - Solo eccedenze dalle ore effettivamente LAVORATE creano straordinario/supplementare
+  // - Eccedenza giornaliera = ore_lavorate - ore_contrattuali_giornaliere
+  // - Deficit (giorni con assenze parziali) compensati da eccedenze successive
+  const calcolaSupplementariEStraordinarieMensili = useCallback((presenzeMese, isFullTime, oreSettimanaliTeoricheFT, percentualePartTime) => {
+    if (!oreSettimanaliTeoricheFT || oreSettimanaliTeoricheFT === 0) {
+      // Fallback: usa direttamente i valori dal DB
+      const totaleOrdinarie = presenzeMese.reduce((sum, p) => sum + parseFloat(p.ore_ordinarie || 0), 0)
+      if (isFullTime) {
+        const totaleStraordinarie = presenzeMese.reduce((sum, p) => sum + parseFloat(p.ore_straordinarie || 0), 0)
+        return { ordinarie: totaleOrdinarie, supplementari: 0, straordinarie: totaleStraordinarie }
+      } else {
+        const totaleEccedenti = presenzeMese.reduce((sum, p) => sum + parseFloat(p.ore_eccedenti || 0), 0)
+        return { ordinarie: totaleOrdinarie, supplementari: totaleEccedenti, straordinarie: 0 }
+      }
+    }
+
+    // Ore contrattuali giornaliere
+    const oreContrattualiGiornaliereFT = oreSettimanaliTeoricheFT / 5
+    const oreSettimanaliPT = (oreSettimanaliTeoricheFT * percentualePartTime) / 100
+    const oreContrattualiGiornalierePT = oreSettimanaliPT / 5
+    
+    // Ore ordinarie attese mensili (4.33 settimane)
+    const oreOrdinarieAttesePT = oreSettimanaliPT * 4.33
+    const oreOrdinarieAtteseFT = oreSettimanaliTeoricheFT * 4.33
+    
+    // Ordina presenze per data
+    const presenzeOrdinate = [...presenzeMese].sort((a, b) => new Date(a.data) - new Date(b.data))
+    
+    if (presenzeOrdinate.length === 0) {
+      return { ordinarie: 0, supplementari: 0, straordinarie: 0 }
+    }
+
+    // PASSO 1: Calcola eccedenza/deficit SOLO dalle ore LAVORATE (no assenze)
+    const giorniDati = []
+    let totaleOrdinarieLavorate = 0
+    
+    presenzeOrdinate.forEach(p => {
+      const oreContrattualiGiornaliere = isFullTime ? oreContrattualiGiornaliereFT : oreContrattualiGiornalierePT
+      
+      // Ore effettivamente LAVORATE (solo se causale = 'lavoro' o ha ore_ordinarie)
+      const oreLavorate = (p.causale === 'lavoro' || p.causale === 'assemblea' || p.causale === 'sciopero') 
+        ? parseFloat(p.ore_ordinarie || 0)
+        : 0
+      
+      totaleOrdinarieLavorate += oreLavorate
+      
+      // Eccedenza/Deficit SOLO dalle ore lavorate
+      const eccedenza = Math.max(0, oreLavorate - oreContrattualiGiornaliere)
+      const deficit = Math.max(0, oreContrattualiGiornaliere - oreLavorate)
+      
+      giorniDati.push({
+        data: p.data,
+        oreLavorate,
+        eccedenza,
+        deficit,
+        haAssenza: !['lavoro', 'assemblea', 'sciopero'].includes(p.causale) && oreLavorate === 0
+      })
+    })
+
+    // PASSO 2: Raggruppa per settimana (lunedì-domenica)
+    const settimaneMap = new Map()
+    giorniDati.forEach(giorno => {
+      const data = new Date(giorno.data)
+      const giornoSettimana = data.getDay() // 0=Dom, 1=Lun, ..., 6=Sab
+      const giorniALunedi = giornoSettimana === 0 ? 6 : giornoSettimana - 1
+      const dataLunedi = new Date(data)
+      dataLunedi.setDate(data.getDate() - giorniALunedi)
+      const keySettimana = dataLunedi.toISOString().split('T')[0]
+      
+      if (!settimaneMap.has(keySettimana)) {
+        settimaneMap.set(keySettimana, [])
+      }
+      settimaneMap.get(keySettimana).push(giorno)
+    })
+
+    // PASSO 3: Calcola eccedenze settimanali (SENZA compensazione intra-mese)
+    // Le ore straordinarie/supplementari di una settimana NON compensano deficit di altre settimane
+    let supplementariTotali = 0
+
+    // Ordina settimane per data
+    const settimaneOrdinate = Array.from(settimaneMap.entries()).sort((a, b) => a[0].localeCompare(b[0]))
+    
+    settimaneOrdinate.forEach(([, giorniSettimana]) => {
+      // Totali SOLO dalle ore lavorate
+      const eccedenzaSettimanale = giorniSettimana.reduce((sum, g) => sum + g.eccedenza, 0)
+      
+      // Eccedenza diretta (nessuna compensazione)
+      supplementariTotali += eccedenzaSettimanale
+    })
+
+    // PASSO 4: Calcola supplementari e straordinarie finali
+    let supplementari = supplementariTotali
+    let straordinarie = 0
+
+    if (isFullTime) {
+      // Per FT: le eccedenze compensate sono direttamente straordinarie
+      straordinarie = supplementariTotali
+      supplementari = 0
+    } else {
+      // Per PT: verificare se si raggiungono le ore ordinarie di FT
+      if (totaleOrdinarieLavorate >= oreOrdinarieAtteseFT) {
+        // Eccesso oltre le ordinarie FT diventa straordinario
+        straordinarie = totaleOrdinarieLavorate - oreOrdinarieAtteseFT
+        // Le supplementari sono la parte tra ordinarie PT e ordinarie FT
+        supplementari = Math.max(0, oreOrdinarieAtteseFT - oreOrdinarieAttesePT)
+      } else if (totaleOrdinarieLavorate >= oreOrdinarieAttesePT) {
+        // Solo supplementari (tra ordinarie PT e ordinarie FT)
+        supplementari = totaleOrdinarieLavorate - oreOrdinarieAttesePT
+      }
+    }
+
+    return {
+      ordinarie: totaleOrdinarieLavorate,
+      supplementari: Math.round(Math.max(0, supplementari) * 100) / 100,
+      straordinarie: Math.round(Math.max(0, straordinarie) * 100) / 100
+    }
+  }, [])
 
   // Recupera i dipendenti
   useEffect(() => {
@@ -229,6 +351,13 @@ function AnalisiHR() {
         
         const isFullTime = Number(tuttePresenze[0]?.dipendente?.percentuale_part_time) === 100
         const giorniSettimanali = tuttePresenze[0]?.dipendente?.giorni_lavorativi_settimanali || 5
+        const percentualePartTime = Number(tuttePresenze[0]?.dipendente?.percentuale_part_time) || 100
+        
+        // Estrai ore settimanali teoriche dal CCNL (regola di calcolo)
+        let oreSettimanaliTeoricheFT = 40 // default: 40h settimanali
+        if (tuttePresenze[0]?.dipendente?.contratto?.ore_settimanali_teoriche) {
+          oreSettimanaliTeoricheFT = parseFloat(tuttePresenze[0].dipendente.contratto.ore_settimanali_teoriche)
+        }
         
         // Calcola giorni teorici lavorabili dal calendario
         const giorniTeoriciLavorabili = calcolaGiorniTeoriciLavorabili(annoSelezionato, giorniSettimanali)
@@ -284,15 +413,8 @@ function AnalisiHR() {
         const nomiMesi = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
         
         tuttePresenze.forEach(p => {
-          // Ore ordinarie
-          contatori.oreOrdinarie += parseFloat(p.ore_ordinarie || 0)
-          
-          // Ore straordinarie/eccedenti
-          if (!isFullTime) {
-            contatori.oreEccedenti += parseFloat(p.ore_eccedenti || 0)
-          } else {
-            contatori.oreStraordinarie += parseFloat(p.ore_straordinarie || 0)
-          }
+          // Nota: Ore ordinarie, straordinarie e eccedenti verranno calcolate 
+          // in base alle medie mensili nel nuovo loop (datiMensualiGrafico)
 
           // Giorni lavorati - conta giorni unici con causale lavoro o ore ordinarie > 0
           if (p.causale === 'lavoro' || parseFloat(p.ore_ordinarie || 0) > 0) {
@@ -378,6 +500,59 @@ function AnalisiHR() {
 
         // Imposta il conteggio dei giorni unici
         contatori.giorniLavorati = giorniUniciSet.size
+
+        // CALCOLO DATI MENSILI PER GRAFICO ORE STRAORDINARIE/ECCEDENTI
+        const nomiMesiArray = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic']
+        const datiMensualiGrafico = []
+        
+        // Raggruppa presenze per mese
+        const presenzePerMese = {}
+        risultati.forEach((risultato, meseIndex) => {
+          const presenzeMese = risultato.data || []
+          const nomeMese = nomiMesiArray[meseIndex]
+          presenzePerMese[nomeMese] = presenzeMese
+        })
+        
+        // Per ogni mese, calcola supplementari/straordinarie
+        nomiMesiArray.forEach((nomeMese) => {
+          const presenzeMese = presenzePerMese[nomeMese] || []
+          
+          if (presenzeMese.length === 0) {
+            // Mese senza dati
+            datiMensualiGrafico.push({
+              name: nomeMese,
+              ordinarie: 0,
+              supplementari: 0,
+              straordinarie: 0
+            })
+            return
+          }
+
+          const { ordinarie, supplementari, straordinarie } = calcolaSupplementariEStraordinarieMensili(
+            presenzeMese,
+            isFullTime,
+            oreSettimanaliTeoricheFT,
+            percentualePartTime
+          )
+
+          datiMensualiGrafico.push({
+            name: nomeMese,
+            ordinarie: Math.round(ordinarie * 100) / 100,
+            supplementari: Math.round(supplementari * 100) / 100,
+            straordinarie: Math.round(straordinarie * 100) / 100
+          })
+
+          // Aggiorna i totali annuali
+          contatori.oreOrdinarie += ordinarie
+          if (isFullTime) {
+            contatori.oreStraordinarie += straordinarie
+          } else {
+            contatori.oreEccedenti += (supplementari + straordinarie)
+          }
+        })
+
+        // Aggiorna lo stato con i dati mensili
+        setDatiMensualiOreExtraordinarie(datiMensualiGrafico)
 
         // Calcola giorni di assenza per tipologia e totale
         const giorniAssenzaTotali = {
@@ -536,7 +711,7 @@ function AnalisiHR() {
     }
 
     fetchDatiAnnuali()
-  }, [dipendenteSelezionato, annoSelezionato, calcolaGiorniTeoriciLavorabili, getFestivitaItaliane])
+  }, [dipendenteSelezionato, annoSelezionato, calcolaGiorniTeoriciLavorabili, getFestivitaItaliane, calcolaSupplementariEStraordinarieMensili])
 
   useEffect(() => {
     if (!dipendenteSelezionato || !annoSelezionato) {
@@ -907,6 +1082,7 @@ function AnalisiHR() {
                     <YAxis dataKey="name" type="category" width={35} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
                     <Bar dataKey="Assenze" fill="#3b82f6" barSize={12} />
                     <Tooltip
+                      cursor={false}
                       wrapperStyle={{ opacity: 1 }}
                       contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
                       formatter={(value) => [value, 'Assenze']}
@@ -1047,6 +1223,7 @@ function AnalisiHR() {
                       ))}
                     </Pie>
                     <Tooltip
+                      cursor={false}
                       wrapperStyle={{ backgroundColor: '#374151', opacity: 1, zIndex: 100 }}
                       contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
                       itemStyle={{ color: 'white' }}
@@ -1084,6 +1261,7 @@ function AnalisiHR() {
                   <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 8 }} />
                   <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} hide />
                   <Tooltip
+                    cursor={false}
                     content={({ payload }) => (
                       <div style={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', padding: '8px 12px', fontSize: '0.75rem', zIndex: 1000 }}>
                         {payload.map((entry, index) => (
@@ -1164,6 +1342,7 @@ function AnalisiHR() {
                       <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 10 }} />
                       <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} width={42} />
                       <Tooltip
+                        cursor={false}
                         wrapperStyle={{ opacity: 1 }}
                         contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
                         formatter={(value, name) => [formatValue(value, 2) + ' ore', name === 'ferie' || name === 'Ferie' ? 'Ferie' : 'Permessi/ROL-ex festività']}
@@ -1185,20 +1364,60 @@ function AnalisiHR() {
             <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>{datiAnnuali.isFullTime ? 'Ore Straordinarie' : 'Ore Eccedenti'}</span>
           </div>
           <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
-          <div style={{ padding: '1.5rem', color: '#d1d5db', height: '400px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ textAlign: 'center', color: '#9ca3af' }}>
-                <p>Totale ore {datiAnnuali.isFullTime ? 'straordinarie' : 'eccedenti'}</p>
-                {datiAnnuali && (
-                  <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                    {datiAnnuali.isFullTime ? 
-                      `Straordinari: ${formatValue(datiAnnuali.oreStraordinarie)} ore` :
-                      `Eccedenti: ${formatValue(datiAnnuali.oreEccedenti)} ore (PT)`
-                    }
-                  </p>
-                )}
+          <div style={{ padding: '1.5rem', color: '#d1d5db', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+            {!dipendenteSelezionato || !annoSelezionato || datiMensualiOreExtraordinarie.length === 0 ? (
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <p style={{ textAlign: 'center', color: '#9ca3af' }}>Seleziona un dipendente per visualizzare i dati.</p>
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                {/* Totali annuali */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.72rem', color: '#d1d5db', marginBottom: '0.5rem' }}>
+                  {datiAnnuali.isFullTime ? (
+                    <div><strong>Straordinarie:</strong> <span>{formatValue(datiAnnuali.oreStraordinarie)} h</span></div>
+                  ) : (
+                    <>
+                      <div><strong>Supplementari:</strong> <span>{formatValue(datiMensualiOreExtraordinarie.reduce((s, m) => s + m.supplementari, 0))} h</span></div>
+                      <div><strong>Straordinarie:</strong> <span>{formatValue(datiMensualiOreExtraordinarie.reduce((s, m) => s + m.straordinarie, 0))} h</span></div>
+                    </>
+                  )}
+                </div>
+
+                {/* Grafico istogramma ore straordinarie/eccedenti mensili */}
+                <div style={{ height: '280px', marginTop: '0.5rem' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={datiMensualiOreExtraordinarie}
+                      margin={{ top: 8, right: 8, left: -18, bottom: 4 }}
+                      barGap={0}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
+                      <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 10 }} />
+                      <YAxis stroke="#9ca3af" tick={{ fontSize: 10 }} width={42} />
+                      <Tooltip
+                        cursor={false}
+                        wrapperStyle={{ opacity: 1 }}
+                        contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
+                        formatter={(value, name) => {
+                          let label = ''
+                          if (name === 'ordinarie') label = 'Ordinarie'
+                          else if (name === 'supplementari') label = 'Supplementari'
+                          else if (name === 'straordinarie') label = 'Straordinarie'
+                          return [formatValue(value, 2) + ' h', label]
+                        }}
+                        labelFormatter={(label) => `${label}`}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '0.7rem', marginBottom: 0 }} />
+                      <Bar dataKey="ordinarie" name="Ordinarie" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+                      {!datiAnnuali.isFullTime && (
+                        <Bar dataKey="supplementari" name="Supplementari" fill="#8b5cf6" radius={[2, 2, 0, 0]} />
+                      )}
+                      <Bar dataKey="straordinarie" name="Straordinarie" fill="#ef4444" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
