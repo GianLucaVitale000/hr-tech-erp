@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             MariaCartaSeeder::class,
             PresenzeTableSeeder::class,
             MariaCartaPresenzeSeeder::class, // Sovrascrive le presenze di Maria Carta con regole specifiche
+            MarcoGialliPresenzeSeeder::class, // Genera presenze di Marco Gialli con supplementari/straordinarie
         ]);
 
         User::firstOrCreate(
