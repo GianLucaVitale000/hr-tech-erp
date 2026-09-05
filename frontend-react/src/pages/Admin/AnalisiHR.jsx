@@ -987,10 +987,10 @@ function AnalisiHR() {
       <h1 style={{ margin: '0 0 2rem 0', lineHeight: '1.2', color: 'white' }}>Analisi HR</h1>
 
       {/* Selezione Dipendente e Anno */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', flexDirection:'column', flexcontent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <div>
           <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
-            Filtro per Dipendente
+            Dipendente
           </label>
           <select
             value={dipendenteSelezionato}
@@ -1000,7 +1000,7 @@ function AnalisiHR() {
               borderRadius: '4px',
               backgroundColor: 'white',
               color: 'black',
-              width: '420px'
+              width: '300px'
             }}
           >
             <option value="">-- Seleziona un dipendente --</option>
@@ -1014,7 +1014,7 @@ function AnalisiHR() {
         
         <div>
           <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
-            Anno di riferimento ({annoAssunzioneSelezionato} - {annoCorrente})
+            Periodo ({annoAssunzioneSelezionato} - {annoCorrente})
           </label>
           <select
             value={annoSelezionato}
@@ -1033,7 +1033,7 @@ function AnalisiHR() {
               borderRadius: '4px',
               backgroundColor: 'white',
               color: 'black',
-              width: '150px'
+              width: '80px'
             }}
           >
             {Array.from({ length: Math.max(0, annoCorrente - annoAssunzioneSelezionato + 1) }, (_, i) => {
