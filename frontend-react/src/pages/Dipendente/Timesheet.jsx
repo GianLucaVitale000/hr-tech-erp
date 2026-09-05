@@ -28,7 +28,8 @@ const CAUSALI = [
   { value: 'cassa_integrazione', label: 'Cassa Integrazione' },
 ]
 
-const GIORNI_SETTIMANA = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+const GIORNI_SETTIMANA_SHORT = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+const GIORNI_SETTIMANA_FULL = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
 
 const CAUSALI_CON_MODALITA = ['lavoro', 'permesso_rol', 'permesso_retribuito', 'permesso_non_retribuito', 'assemblea']
 
@@ -36,9 +37,9 @@ function getGiorniDelMese(mese, anno) {
   return new Date(anno, mese, 0).getDate()
 }
 
-function getNomeGiornoSettimana(anno, mese, giorno) {
+function getNomeGiornoSettimana(anno, mese, giorno, esteso = false) {
   const data = new Date(anno, mese - 1, giorno)
-  return GIORNI_SETTIMANA[data.getDay()]
+  return esteso ? GIORNI_SETTIMANA_FULL[data.getDay()] : GIORNI_SETTIMANA_SHORT[data.getDay()]
 }
 
 function formattaData(dataIso) {
@@ -646,6 +647,304 @@ function ModaleQrSettings({
   )
 }
 
+
+function CardGiorno({
+  giorno,
+  nomeGiorno,
+  nomeMese,
+  riga,
+  onChange,
+  onSalva,
+  salvando,
+  onApriModaleMalattia,
+  onApriModaleCassaIntegrazione,
+  onUploadTrasferta,
+  onUploadInfortunio,
+  onApriModaleQrSettings,
+  isFullTime,
+  statoFoglio,
+  orariSettimanali,
+  anno,
+  mese,
+  disabled
+}) {
+  const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale) ||
+                        (riga.causale === 'cassa_integrazione' && (riga.percentuale_cassa_integrazione ?? 100) < 100)
+  const isMalattia = riga.causale === 'malattia'
+  const isInfortunio = riga.causale === 'infortunio'
+  const isTrasferta = riga.modalita_lavoro === 'trasferta'
+  const isSalvato = riga.id !== null && riga.id !== undefined
+  const isFoglioApprovato = statoFoglio === 'approvato'
+  const isFoglioInviato = statoFoglio === 'inviato'
+  const isFoglioRifiutatoOReinviato = statoFoglio === 'rifiutato' || statoFoglio === 'reinviato'
+  const isOreDisabled = riga.usa_qr && riga.fonte_dato === 'QR_CODE'
+
+  const handleCausaleChange = (nuovaCausale) => {
+    const newRiga = { ...riga, causale: nuovaCausale }
+    if (nuovaCausale !== 'lavoro') {
+      newRiga.usa_qr = false
+    }
+    
+    if (nuovaCausale === 'malattia') {
+      onApriModaleMalattia(giorno)
+      return
+    }
+    if (nuovaCausale === 'cassa_integrazione') {
+      onApriModaleCassaIntegrazione(giorno)
+      return
+    }
+    
+    const causaliPiene = ['ferie', 'malattia', 'maternita', 'infortunio', 'sciopero', 'cassa_integrazione']
+    
+    if (causaliPiene.includes(nuovaCausale) && Object.keys(orariSettimanali).length > 0) {
+      const data = new Date(anno, mese - 1, giorno)
+      const giornoSettimana = data.getDay()
+      const orePreviste = orariSettimanali[giornoSettimana] || 0
+      onChange({ ...newRiga, ore_causale: orePreviste, ore_ordinarie: 0, modalita_lavoro: null })
+      return
+    }
+    
+    if (nuovaCausale === 'assemblea' && Object.keys(orariSettimanali).length > 0) {
+      const data = new Date(anno, mese - 1, giorno)
+      const giornoSettimana = data.getDay()
+      const orePreviste = orariSettimanali[giornoSettimana] || 0
+      onChange({ ...newRiga, ore_causale: orePreviste, modalita_lavoro: null })
+      return
+    }
+    
+    onChange({ ...newRiga, modalita_lavoro: null })
+  }
+
+  return (
+    <div style={{ backgroundColor: '#1f2937', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+      {/* Header con data */}
+      <div style={{ textAlign: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #374151' }}>
+        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f3f4f6' }}>{giorno} {nomeMese}</div>
+        <div style={{ fontSize: '0.9rem', color: '#9ca3af' }}>{nomeGiorno}</div>
+      </div>
+
+      {/* Campo Ore Ordinarie */}
+      <div style={{ marginBottom: '1rem' }}>
+        <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Ordinarie</label>
+        <input
+          type="number"
+          min="0"
+          step="0.25"
+          value={Number(riga.ore_ordinarie || 0).toFixed(2)}
+          onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          disabled={disabled || isOreDisabled}
+          style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+        />
+      </div>
+
+      {/* Campo Ore */}
+      {!isFullTime && (
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Eccedenti</label>
+          <input
+            type="number"
+            min="0"
+            step="0.25"
+            value={Number(riga.ore_eccedenti || 0).toFixed(2)}
+            onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+            disabled={disabled || isOreDisabled}
+            style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+          />
+        </div>
+      )}
+
+      {isFullTime && (
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Straordinarie</label>
+          <input
+            type="number"
+            min="0"
+            step="0.25"
+            value={Number(riga.ore_straordinarie || 0).toFixed(2)}
+            onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+            disabled={disabled || isOreDisabled}
+            style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+          />
+        </div>
+      )}
+
+      {/* Causale */}
+      <div style={{ marginBottom: '1rem' }}>
+        <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Causale (altro da Lavoro)</label>
+        <select
+          value={riga.causale}
+          onChange={(e) => handleCausaleChange(e.target.value)}
+          disabled={disabled}
+          style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+        >
+          {CAUSALI.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
+
+        {isMalattia && riga.protocollo_malattia && (
+          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#9ca3af' }}>
+            Prot. {riga.protocollo_malattia}<br/>
+            Dal {formattaData(riga.data_inizio_malattia)} al {formattaData(riga.data_fine_malattia)}
+          </div>
+        )}
+
+        {isInfortunio && (
+          <div style={{ marginTop: '0.5rem' }}>
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => onUploadInfortunio(giorno, e.target.files[0])}
+              style={{ fontSize: '0.75rem', width: '100%', color: '#9ca3af' }}
+            />
+            {riga.giustificativo_infortunio_path && (
+              <div style={{ fontSize: '0.75rem', color: '#34d399' }}>✓ Allegato caricato</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Ore Causale */}
+      <div style={{ marginBottom: '1rem' }}>
+        <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Causale</label>
+        <input
+          type="number"
+          min="0"
+          max="8"
+          step="0.25"
+          value={Number(riga.ore_causale || 0).toFixed(2)}
+          onChange={(e) => onChange({ ...riga, ore_causale: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          disabled={disabled}
+          style={{ width: '80px', padding: '0.6rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+        />
+      </div>
+
+      {/* Modalità */}
+      {mostraModalita && (
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Modalità</label>
+          
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem', backgroundColor: riga.modalita_lavoro === 'in_sede' ? '#2563eb' : '#374151', borderRadius: '6px', cursor: disabled ? 'not-allowed' : 'pointer', color: '#f3f4f6', fontSize: '0.85rem' }}>
+              <input
+                type="radio"
+                name={`modalita-mobile-${giorno}`}
+                checked={riga.modalita_lavoro === 'in_sede'}
+                onChange={() => onChange({ ...riga, modalita_lavoro: 'in_sede' })}
+                disabled={disabled}
+                style={{ display: 'none' }}
+              />
+              In sede
+            </label>
+            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem', backgroundColor: riga.modalita_lavoro === 'smart_working' ? '#2563eb' : '#374151', borderRadius: '6px', cursor: disabled ? 'not-allowed' : 'pointer', color: '#f3f4f6', fontSize: '0.85rem' }}>
+              <input
+                type="radio"
+                name={`modalita-mobile-${giorno}`}
+                checked={riga.modalita_lavoro === 'smart_working'}
+                onChange={() => onChange({ ...riga, modalita_lavoro: 'smart_working', usa_qr: false })}
+                disabled={disabled}
+                style={{ display: 'none' }}
+              />
+              SW
+            </label>
+            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem', backgroundColor: riga.modalita_lavoro === 'trasferta' ? '#2563eb' : '#374151', borderRadius: '6px', cursor: disabled ? 'not-allowed' : 'pointer', color: '#f3f4f6', fontSize: '0.85rem' }}>
+              <input
+                type="radio"
+                name={`modalita-mobile-${giorno}`}
+                checked={riga.modalita_lavoro === 'trasferta'}
+                onChange={() => onChange({ ...riga, modalita_lavoro: 'trasferta', usa_qr: false })}
+                disabled={disabled}
+                style={{ display: 'none' }}
+              />
+              Trasferta
+            </label>
+          </div>
+
+          {isTrasferta && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => onUploadTrasferta(giorno, e.target.files[0])}
+                style={{ fontSize: '0.75rem', width: '100%', color: '#9ca3af' }}
+              />
+              {riga.giustificativo_trasferta_path && (
+                <div style={{ fontSize: '0.75rem', color: '#34d399' }}>✓ Allegato caricato</div>
+              )}
+            </div>
+          )}
+
+          {/* QR Code Checkbox */}
+          {isFullTime && riga.causale === 'lavoro' && riga.modalita_lavoro === 'in_sede' && (
+            <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input
+                type="checkbox"
+                checked={riga.usa_qr || false}
+                onChange={(e) => {
+                  const nuovaRiga = { ...riga, usa_qr: e.target.checked }
+                  onChange(nuovaRiga)
+                  if (e.target.checked) {
+                    setTimeout(() => onApriModaleQrSettings(giorno), 100)
+                  }
+                }}
+                disabled={disabled}
+                id={`qr-checkbox-mobile-${giorno}`}
+              />
+              <label 
+                htmlFor={`qr-checkbox-mobile-${giorno}`}
+                style={{ color: riga.usa_qr ? '#60a5fa' : '#9ca3af', cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}
+              >
+                QR Code
+              </label>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stato timbrature QR */}
+      {riga.usa_qr && isSalvato && (
+        <div style={{ 
+          marginBottom: '1rem',
+          padding: '0.75rem',
+          borderRadius: '6px',
+          backgroundColor: riga.ora_ingresso && riga.ora_uscita ? 'rgba(52, 211, 153, 0.1)' : 'rgba(251, 191, 36, 0.1)',
+          color: riga.ora_ingresso && riga.ora_uscita ? '#34d399' : '#fbbf24',
+          fontSize: '0.85rem',
+          textAlign: 'center'
+        }}>
+          {riga.ora_ingresso && riga.ora_uscita && (
+            <span>In: {riga.ora_ingresso} - Out: {riga.ora_uscita}</span>
+          )}
+          {riga.ora_ingresso && !riga.ora_uscita && (
+            <span>In: {riga.ora_ingresso} - Out: --:--</span>
+          )}
+          {!riga.ora_ingresso && (
+            <span>In: --:-- - Out: --:--</span>
+          )}
+        </div>
+      )}
+
+      {/* Pulsante Salva */}
+      <button
+        onClick={onSalva}
+        disabled={salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          backgroundColor: (isFoglioApprovato || disabled || isSalvato) ? '#4b5563' : '#2563eb',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: (salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled) ? 'not-allowed' : 'pointer',
+          fontSize: '1rem',
+          fontWeight: 'bold'
+        }}
+      >
+        {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
+      </button>
+    </div>
+  )
+}
 function Timesheet() {
   const navigate = useNavigate()
   const oggi = new Date()
@@ -666,6 +965,7 @@ function Timesheet() {
   const [showQrModal, setShowQrModal] = useState(false)
   const [showQrInfoModal, setShowQrInfoModal] = useState(false)
   const [qrToken, setQrToken] = useState('')
+  const [giornoSelezionato, setGiornoSelezionato] = useState(oggi.getDate())
   const [selectedPresence, setSelectedPresence] = useState(null)
 
   // 🔹 Funzione per calcolare le ore lavorate da ora_ingresso e ora_uscita
@@ -1234,8 +1534,10 @@ useEffect(() => {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Foglio Presenze - {NOMI_MESI[mese - 1]} {anno}</h1>
+<div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <h1 className="page-title" style={{ margin: 0, fontSize: '1.5rem', lineHeight: '1.4', flex: '1 1 200px' }}>
+          Foglio Presenze - {NOMI_MESI[mese - 1]} {anno}
+        </h1>
         <button
           onClick={() => navigate('/dipendente')}
           style={{
@@ -1309,7 +1611,7 @@ useEffect(() => {
             cursor: 'pointer'
           }}
         >
-        Come usare il QR Code
+        Come usi il QR Code?
         </button>
       </div>
 
@@ -1373,6 +1675,67 @@ useEffect(() => {
 
       {messaggio && <p style={{ color: 'green' }}>{messaggio}</p>}
       {errore && <p style={{ color: 'red' }}>{errore}</p>}
+      {/* Selettore giorno per Mobile - Calendario */}
+      <div className="mobile-day-selector" style={{ display: 'none', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+          <label style={{ color: '#d1d5db', fontSize: '0.9rem' }}> seleziona il giorno:</label>
+          <input
+            type="date"
+            value={`${anno}-${String(mese).padStart(2, '0')}-${String(giornoSelezionato).padStart(2, '0')}`}
+            min={`${anno}-${String(mese).padStart(2, '0')}-01`}
+            max={`${anno}-${String(mese).padStart(2, '0')}-${String(giorni.length).padStart(2, '0')}`}
+            onChange={(e) => {
+              const [y, m, d] = e.target.value.split('-')
+              if (parseInt(y) === anno && parseInt(m) === mese) {
+                setGiornoSelezionato(parseInt(d))
+              }
+            }}
+            style={{
+              padding: '0.5rem',
+              borderRadius: '6px',
+              border: '1px solid #4b5563',
+              backgroundColor: '#374151',
+              color: '#f3f4f6',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              colorScheme: 'dark'
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Card Giorno per Mobile */}
+      <div className="mobile-day-card" style={{ display: 'none' }}>
+        {(() => {
+          const dataStr = getDataStr(anno, mese, giornoSelezionato)
+          const riga = getRiga(dataStr)
+          return (
+            <CardGiorno
+              giorno={giornoSelezionato}
+              nomeGiorno={getNomeGiornoSettimana(anno, mese, giornoSelezionato, true)}
+              nomeMese={NOMI_MESI[mese - 1]}
+              riga={riga}
+              onChange={(nuovaRiga) => handleChange(dataStr, nuovaRiga)}
+              onSalva={() => handleSalva(dataStr)}
+              salvando={salvataggioInCorso === dataStr}
+              onApriModaleMalattia={handleApriModaleMalattia}
+              onApriModaleCassaIntegrazione={handleApriModaleCassaIntegrazione}
+              onUploadTrasferta={handleUploadTrasferta}
+              onUploadInfortunio={handleUploadInfortunio}
+              onApriModaleQrSettings={handleApriModaleQrSettings}
+              isFullTime={isFullTime}
+              statoFoglio={statoFoglio}
+              orariSettimanali={orariSettimanali}
+              anno={anno}
+              mese={mese}
+              disabled={!puoInserirePresenze()}
+            />
+          )
+        })()}
+      </div>
+
+      {/* Tabella Desktop */}
+      <div className="desktop-table">
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
@@ -1381,7 +1744,7 @@ useEffect(() => {
             <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
             {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
             {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
-            <th style={{ padding: '0.5rem' }}>Causale</th>
+            <th style={{ padding: '0.5rem' }}>Causale (altro da Lavoro)</th>
             <th style={{ padding: '0.5rem' }}>Altro</th>
             <th style={{ padding: '0.5rem' }}>Modalità</th>
             <th style={{ padding: '0.5rem' }}></th>
@@ -1417,6 +1780,7 @@ useEffect(() => {
           })}
         </tbody>
       </table>
+      </div>
 
       {modaleMalattiaGiorno && (
         <ModaleMalattia
@@ -1467,6 +1831,48 @@ useEffect(() => {
           onClose={() => setShowQrInfoModal(false)}
         />
       )}
+      <style>
+        {`
+          .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+          }
+          .page-title {
+            margin: 0;
+            font-size: 1.5rem;
+            line-height: 1.4;
+            flex: 1 1 200px;
+          }
+          @media (max-width: 768px) {
+            .page-title {
+              font-size: 1.25rem;
+              line-height: 1.5;
+              width: 100%;
+              margin-bottom: 0.5rem;
+            }
+            .mobile-day-selector,
+            .mobile-day-card {
+              display: block !important;
+            }
+            .desktop-table {
+              display: none !important;
+            }
+          }
+          @media (min-width: 769px) {
+            .mobile-day-selector,
+            .mobile-day-card {
+              display: none !important;
+            }
+            .desktop-table {
+              display: block !important;
+            }
+          }
+        `}
+      </style>
     </div>
   )
 }
