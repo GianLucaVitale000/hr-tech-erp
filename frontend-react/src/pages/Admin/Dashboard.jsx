@@ -703,12 +703,12 @@ function AdminDashboard() {
                       <tr style={{ backgroundColor: '#f3f4f6' }}>
                         <th style={tableHeaderStyle}>Sigla CCNL</th>
                         <th style={tableHeaderStyle}>Dipendenti</th>
-                        <th style={tableHeaderStyle}>Tempo Pieno</th>
-                        <th style={tableHeaderStyle}>Tempo Parziale</th>
-                        <th style={tableHeaderStyle}>Tempo Det.</th>
-                        <th style={tableHeaderStyle}>Tempo Indet.</th>
-                        <th style={tableHeaderStyle}>5 gg.</th>
-                        <th style={tableHeaderStyle}>6 gg.</th>
+                        <th style={tableHeaderStyle}>Full-time</th>
+                        <th style={tableHeaderStyle}>Part-time</th>
+                        <th style={tableHeaderStyle}>Tempo Determinato</th>
+                        <th style={tableHeaderStyle}>Tempo Indeterminato</th>
+                        <th style={tableHeaderStyle}>orario su 5 gg.</th>
+                        <th style={tableHeaderStyle}>orario su 6 gg.</th> 
                       </tr>
                     </thead>
                     <tbody>
@@ -753,11 +753,11 @@ function AdminDashboard() {
 }
 
 const tableHeaderStyle = {
-  padding: '0.75rem 1rem',
+  padding: '0.2rem 1rem',
   textAlign: 'center',
   fontWeight: '600',
   color: '#374151',
-  fontSize: '0.875rem',
+  fontSize: '0.75rem',
   letterSpacing: '0.05em'
 }
 
