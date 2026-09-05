@@ -68,11 +68,12 @@ Il sistema di rilevazione presenze con QR Code consente ai dipendenti di timbrar
 
 **Processo:**
 
-1. Il dipendente accede al foglio presenze (`Timesheet.jsx`)
-2. Seleziona un giorno e imposta causale = `lavoro`, modalita = `in_sede`
-3. Il checkbox **USA QR** diventa disponibile
-4. Il dipendente attiva il checkbox **USA QR**
-5. Il dipendente salva la riga (pulsante **Salva**)
+1. Il dipendente accede al foglio presenze (`Timesheet.jsx`) e trova di default, in corrisponenza allo specifico giorno per il quale deve essere inserita la presenza, la causale "-- Nessuna --", equivalente a `lavoro`
+2. il dipendente sceglie la modalità di lavoro, selezionando il radiobutton `in_sede`: a quel punto il checkbox **QR Code** diventa visibile (ma se sceglie `SW` o `trasferta`, il checkbox **QR Code** non comparirà o, se già attivo, verrà disattivato automaticamente)
+3. il dipendente clicca sul pulsante **Salva** per salvare le impostazioni della riga
+4. il dipendente spunta il checkbox **QR Code** per attivare la generazione del QR Code
+5. si apre la modale di configurazione (per impostare le ore di pausa, se necessario)
+6. Il dipendente salva nuovamente la riga (pulsante **Salva**) per confermare
 
 **Stato della riga dopo il salvataggio:**
 
