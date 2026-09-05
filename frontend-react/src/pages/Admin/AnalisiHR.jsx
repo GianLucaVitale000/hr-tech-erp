@@ -1543,7 +1543,8 @@ function AnalisiHR() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Analisi supplementari continuativi: select + risultato */}
+                {/* Analisi supplementari continuativi: visibile solo per part-time */}
+                {!datiAnnuali.isFullTime && (
                 <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: '#d1d5db' }}>
                     <label htmlFor="mesi-consecutivi-select" style={{ fontWeight: '500' }}>
@@ -1570,8 +1571,6 @@ function AnalisiHR() {
                   </div>
 
                   {(() => {
-                    if (datiAnnuali.isFullTime) return null
-
                     const risultato = calcolaMediaSupplementari(
                       datiMensualiOreExtraordinarie,
                       mesiConsecutiviSelezionati
@@ -1612,6 +1611,7 @@ function AnalisiHR() {
                     )
                   })()}
                 </div>
+                )}
               </div>
             )}
           </div>
