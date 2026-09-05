@@ -143,9 +143,9 @@ function AdminDashboard() {
     const sortedData = [...data].sort((a, b) => b.totale - a.totale)
     
     let cumulativeAngle = 0
-    const chartRadius = 80
-    const labelRadius = 90
-    const svgSize = 280
+    const chartRadius = 65
+    const labelRadius = 75
+    const svgSize = 300
     const centerX = svgSize / 2
     const centerY = svgSize / 2
     

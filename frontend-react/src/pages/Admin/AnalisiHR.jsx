@@ -967,6 +967,21 @@ function AnalisiHR() {
     marginTop: '0.25rem'
   }
 
+  const datiAssenzeChart = [
+    { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
+    { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
+    { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
+    { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
+    { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
+  ].filter(item => item.value > 0)
+
+  const datiPRPNRChart = [
+    { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
+    { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
+    { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
+    { name: 'Sind', value: datiAnnuali.sindacale, color: '#f59e0b' }
+  ].filter(item => item.value > 0)
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif', minHeight: '100vh', backgroundColor: '#1f2937' }}>
       <button
@@ -1226,29 +1241,27 @@ function AnalisiHR() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={[
-                        { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
-                        { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
-                        { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
-                        { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
-                        { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
-                      ].filter(item => item.value > 0)}
+                      data={datiAssenzeChart}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={55}
+                      outerRadius={70}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                      labelStyle={{ fontSize: 7, fill: '#ffffff' }}
+                      label={({ percent, x, y, payload }) => (
+                        <text 
+                          x={x} 
+                          y={y} 
+                          fontSize={12}
+                          fill={payload.color}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                        >
+                          {`${(percent * 100).toFixed(0)}%`}
+                        </text>
+                      )}
                     >
-                      {[
-                        { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
-                        { name: 'Maternità', value: datiAnnuali.giorniAssenzaTotali.maternita, color: '#8b5cf6' },
-                        { name: 'Infortunio', value: datiAnnuali.giorniAssenzaTotali.infortunio, color: '#f59e0b' },
-                        { name: 'CIG', value: datiAnnuali.giorniAssenzaTotali.cig, color: '#6b7280' },
-                        { name: 'PNR', value: datiAnnuali.giorniAssenzaTotali.pnr, color: '#10b981' }
-                      ].filter(item => item.value > 0).map((entry, index) => (
+                      {datiAssenzeChart.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -1260,26 +1273,34 @@ function AnalisiHR() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem', fontSize: '0.55rem', lineHeight: 0.4 }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: '0.15rem 1rem', 
+                marginTop: '0.5rem',
+                fontSize: '0.70rem',
+                lineHeight: '2',
+                justifyItems: 'start'
+              }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '2px' }} />
                   <span>Malattia: {datiAnnuali.giorniAssenzaTotali.malattia} gg.</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#8b5cf6', borderRadius: '2px' }} />
-                  <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita} gg.</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
-                  <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio} gg.</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
                   <span>CIG: {datiAnnuali.giorniAssenzaTotali.cig} gg.</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#8b5cf6', borderRadius: '2px' }} />
+                  <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita} gg.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
                   <span>PNR: {datiAnnuali.giorniAssenzaTotali.pnr} gg.</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
+                  <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio} gg.</span>
                 </div>
               </div>
             </div>
@@ -1326,42 +1347,50 @@ function AnalisiHR() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={[
-                        { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
-                        { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
-                        { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
-                        { name: 'Sind', value: datiAnnuali.sindacale, color: '#f59e0b' }
-                      ].filter(item => item.value > 0)}
+                      data={datiPRPNRChart}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={45}
+                      outerRadius={55}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-                      labelStyle={{ fontSize: 1, fill: '#ffffff' }}
+                      label={({ percent, x, y, payload }) => (
+                        <text 
+                          x={x} 
+                          y={y} 
+                          fontSize={12}
+                          fill={payload.color}
+                          textAnchor="middle"
+                          dominantBaseline="central"
+                        >
+                          {`${(percent * 100).toFixed(0)}%`}
+                        </text>
+                      )}
                     >
-                      {[
-                        { name: 'PR', value: datiAnnuali.pr, color: '#3b82f6' },
-                        { name: 'PNR', value: datiAnnuali.pnr, color: '#10b981' },
-                        { name: 'CIG', value: datiAnnuali.cig, color: '#6b7280' },
-                        { name: 'Sind', value: datiAnnuali.sindacale, color: '#f59e0b' }
-                      ].filter(item => item.value > 0).map((entry, index) => (
+                      {datiPRPNRChart.map((entry, index) => (
                         <Cell key={`cell-pr-pnr-cig-sind-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
                       cursor={false}
                       wrapperStyle={{ backgroundColor: '#374151', opacity: 1, zIndex: 100 }}
-                      contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white' }}
-                      itemStyle={{ color: 'white' }}
-                      labelStyle={{ color: 'white' }}
-                      formatter={(value, name) => [`${name}: ${formatValue(value, 2)} h`]}
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload.length) return null
+                        return (
+                          <div style={{ backgroundColor: '#374151', border: '1px solid #4b5563', padding: '0.5rem', borderRadius: '4px' }}>
+                            {payload.map((entry, index) => (
+                              <div key={index} style={{ color: entry.payload.color }}>
+                                {entry.payload.name}: {formatValue(entry.value, 2)} h
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', fontSize: '0.55rem', lineHeight: 0.4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', fontSize: '0.55rem', lineHeight: '2' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }} />
                   <span>PR: {formatValue(datiAnnuali.pr)} h</span>
@@ -1393,7 +1422,7 @@ function AnalisiHR() {
                     content={({ payload }) => (
                       <div style={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', padding: '8px 12px', fontSize: '0.75rem', zIndex: 1000 }}>
                         {payload.map((entry, index) => (
-                          <div key={index} style={{ color: 'white' }}>{`${entry.name}: ${formatValue(entry.value, 2)} h`}</div>
+                          <div key={index} style={{ color: entry.fill || 'white' }}>{`${entry.name}: ${formatValue(entry.value, 2)} h`}</div>
                         ))}
                       </div>
                     )}
