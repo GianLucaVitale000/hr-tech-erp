@@ -12,6 +12,7 @@ import {
   generateQrToken,
 } from '../../services/presenzeService'
 import QrCodeModal from '../../components/QrCodeModal'
+import QrCodeInfoModal from '../../components/QrCodeInfoModal'
 
 const CAUSALI = [
   { value: 'lavoro', label: '-- Nessuna --' },
@@ -663,6 +664,7 @@ function Timesheet() {
   const [orariSettimanali, setOrariSettimanali] = useState({})
   // 🔹 States per QR Code
   const [showQrModal, setShowQrModal] = useState(false)
+  const [showQrInfoModal, setShowQrInfoModal] = useState(false)
   const [qrToken, setQrToken] = useState('')
   const [selectedPresence, setSelectedPresence] = useState(null)
 
@@ -1296,6 +1298,19 @@ useEffect(() => {
         >
           Mese corrente
         </button>
+        <button
+          onClick={() => setShowQrInfoModal(true)}
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#16a34a',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+        Come usare il QR Code
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1443,6 +1458,13 @@ useEffect(() => {
             setQrToken('')
             setSelectedPresence(null)
           }}
+        />
+      )}
+      
+      {/* 🔹 Modale QR Code Info */}
+      {showQrInfoModal && (
+        <QrCodeInfoModal
+          onClose={() => setShowQrInfoModal(false)}
         />
       )}
     </div>
