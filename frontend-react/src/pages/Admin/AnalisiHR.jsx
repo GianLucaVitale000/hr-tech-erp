@@ -42,7 +42,7 @@ function RisultatoAnalisiPartTime({ risultato, datiDipendente }) {
   return (
     <>
       <div>
-        <strong>Periodo selezionato:</strong>{' '}
+        <strong>Periodo:</strong>{' '}
         <span>{risultato.mesiTrovati.join(' → ')}</span>
       </div>
       <div>
@@ -1109,8 +1109,10 @@ function AnalisiHR() {
               transform: 'translate(-50%, -50%)',
               textAlign: 'center',
               color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: '700'
+              fontSize: '0.65rem',
+              fontWeight: '700',
+              paddingLeft: '6px',
+              paddingRight: '6px'
             }}>
               {datiAnnuali.giorniLavorati} gg
             </div>
