@@ -1013,8 +1013,8 @@ function AnalisiHR() {
             style={{
               padding: '0.5rem',
               borderRadius: '4px',
-              backgroundColor: 'white',
-              color: 'black',
+              backgroundColor: '#374151',
+              color: 'white',
               width: '300px'
             }}
           >
@@ -1046,8 +1046,8 @@ function AnalisiHR() {
             style={{
               padding: '0.5rem',
               borderRadius: '4px',
-              backgroundColor: 'white',
-              color: 'black',
+              backgroundColor: '#374151',
+              color: 'white',
               width: '80px'
             }}
           >

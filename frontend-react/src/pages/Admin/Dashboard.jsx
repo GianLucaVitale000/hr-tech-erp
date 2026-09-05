@@ -406,29 +406,29 @@ function AdminDashboard() {
                         Analisi HR
                       </button>
                     </li>
+                    <li style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #4b5563' }}>
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#f3f4f6',
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          gap: '0.75rem',
+                          lineHeight: '1.2'
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                        </svg>
+                      </button>
+                    </li>
                   </ul>
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      padding: '0.75rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                      color: 'white',
-                      fontSize: '1rem',
-                      marginLeft: 'auto',
-                      marginTop: 'auto',
-                      marginBottom: '2rem'
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-                    </svg>
-                  </button>
                 </nav>
               </div>
             </div>
@@ -576,7 +576,7 @@ function AdminDashboard() {
               <select
                 value={meseSelezionato}
                 onChange={(e) => setMeseSelezionato(parseInt(e.target.value))}
-                style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'white', color: 'black' }}
+                style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: '#374151', color: 'white' }}
               >
                 {NOMI_MESI.map((nome, i) => (
                   <option key={i + 1} value={i + 1}>{nome}</option>
@@ -585,7 +585,7 @@ function AdminDashboard() {
               <select
                 value={annoSelezionato}
                 onChange={(e) => setAnnoSelezionato(parseInt(e.target.value))}
-                style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: 'white', color: 'black' }}
+                style={{ padding: '0.5rem', borderRadius: '4px', backgroundColor: '#374151', color: 'white' }}
               >
                 {(() => {
                   const annoMinimo = getAnnoMinimoAssunzione()
