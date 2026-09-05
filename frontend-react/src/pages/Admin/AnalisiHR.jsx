@@ -874,7 +874,7 @@ function AnalisiHR() {
               borderRadius: '4px',
               backgroundColor: 'white',
               color: 'black',
-              width: '250px'
+              width: '420px'
             }}
           >
             <option value="">-- Seleziona un dipendente --</option>
