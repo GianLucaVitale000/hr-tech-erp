@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDipendenti, getAnalisiFerie } from '../../services/dipendentiService'
 import { getPresenze } from '../../services/presenzeService'
@@ -17,6 +17,69 @@ import {
   Legend,
 } from 'recharts'
 
+// Arrotonda un valore al quarto d'ora (0.25)
+const arrotondaQuartoOra = (h) => Math.round((h || 0) * 4) / 4
+
+// Componente che mostra il riepilogo dell'analisi part-time (range trovato, medie, nuove percentuali)
+function RisultatoAnalisiPartTime({ risultato, datiDipendente }) {
+  // oreSettimanaliFT: ore CCNL full-time (100%) dalla regola del contratto (es. 39h)
+  // oreSettimanaliPT: ore settimanali specifiche del dipendente dall'anagrafica (es. 29.25h)
+  const { oreSettimanaliFT, oreSettimanaliPT, percentualePartTime } = datiDipendente
+
+  // Ore PT e supplementari settimanali: valori precisi (NON arrotondati)
+  const orePT = oreSettimanaliPT
+  const suppSett = risultato.mediaSettimanale
+
+  // Solo il totale finale viene arrotondato al quarto d'ora
+  const oreIpoteticheArrotondate = arrotondaQuartoOra(orePT + suppSett)
+
+  const nuovaPercentuale = oreSettimanaliFT > 0
+    ? (oreIpoteticheArrotondate / oreSettimanaliFT) * 100
+    : 0
+  const incrementoPunti = nuovaPercentuale - percentualePartTime
+  const formatValue = (v, d = 2) => Number(v || 0).toFixed(d)
+
+  return (
+    <>
+      <div>
+        <strong>Periodo selezionato:</strong>{' '}
+        <span>{risultato.mesiTrovati.join(' → ')}</span>
+      </div>
+      <div>
+        <strong>Media suppl.:</strong>{' '}
+        <span>{formatValue(risultato.mediaMensile)} h/mese</span>
+        {' = '}
+        <span><strong>{formatValue(suppSett)} h/sett.</strong></span>
+      </div>
+      <div style={{ borderTop: '1px solid #4b5563', paddingTop: '0.4rem', marginTop: '0.2rem' }}>
+        <div>
+          <strong>Tempo Pieno da CCNL :</strong>{' '}
+          <span>{formatValue(oreSettimanaliFT)} h/sett.</span>
+        </div>
+        <div>
+          <strong>% Part-Time attuale:</strong>{' '}
+          <span style={{ color: '#fbbf24', fontWeight: '600' }}>{formatValue(percentualePartTime)}%</span>
+          {' = '}
+          <span>{formatValue(orePT)} h/sett</span>
+        </div>
+        <div style={{ marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: '1px dashed #4b5563' }}>
+          <strong>Nuova % Part-Time:</strong>{' '}
+          <span>{formatValue(orePT)} + {formatValue(suppSett)} = {formatValue(oreIpoteticheArrotondate)} h/sett</span>
+          {' → '}
+          <span style={{ color: '#fbbf24', fontWeight: '600' }}>
+            {formatValue(nuovaPercentuale)}%
+          </span>
+          <span style={{ color: '#9ca3af' }}> (</span>
+          <span style={{ color: '#34d399', fontWeight: '600' }}>
+            +{formatValue(incrementoPunti)} pt
+          </span>
+          <span style={{ color: '#9ca3af' }}>)</span>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function AnalisiHR() {
   const navigate = useNavigate()
   const [dipendenti, setDipendenti] = useState([])
@@ -24,6 +87,7 @@ function AnalisiHR() {
   const [annoSelezionato, setAnnoSelezionato] = useState('')
   const [analisiFerie, setAnalisiFerie] = useState(null)
   const [datiMensualiOreExtraordinarie, setDatiMensualiOreExtraordinarie] = useState([])
+  const [mesiConsecutiviSelezionati, setMesiConsecutiviSelezionati] = useState(3)
   const [datiAnnuali, setDatiAnnuali] = useState({
     oreOrdinarie: 0,
     oreStraordinarie: 0,
@@ -239,6 +303,68 @@ function AnalisiHR() {
       straordinarie: Math.round(Math.max(0, straordinarie) * 100) / 100
     }
   }, [])
+
+  // Calcola la media delle ore supplementari per un periodo continuativo di N mesi consecutivi
+  // Scansiona da sinistra a destra (Gennaio -> Dicembre) e si ferma al primo range trovato
+  const calcolaMediaSupplementari = useCallback((datiMensili, numMesi) => {
+    if (!datiMensili || datiMensili.length === 0) {
+      return { trovato: false, mediaMensile: 0, mediaSettimanale: 0, mesiTrovati: [] }
+    }
+
+    const ORE_SETTIMANALI_MEDIE = 4.33
+
+    // Scansiona da sinistra a destra cercando il primo range di N mesi consecutivi con supplementari > 0
+    for (let i = 0; i <= datiMensili.length - numMesi; i++) {
+      const range = datiMensili.slice(i, i + numMesi)
+      const tuttiConSupplementari = range.every(m => (m.supplementari || 0) > 0)
+
+      if (tuttiConSupplementari) {
+        const sommaSupplementari = range.reduce((sum, m) => sum + (m.supplementari || 0), 0)
+        const mediaMensile = sommaSupplementari / numMesi
+        const mediaSettimanale = mediaMensile / ORE_SETTIMANALI_MEDIE
+
+        return {
+          trovato: true,
+          mediaMensile: Math.round(mediaMensile * 100) / 100,
+          mediaSettimanale: Math.round(mediaSettimanale * 100) / 100,
+          mesiTrovati: range.map(m => m.name)
+        }
+      }
+    }
+
+    return { trovato: false, mediaMensile: 0, mediaSettimanale: 0, mesiTrovati: [] }
+  }, [])
+
+  // Deriva i dati del dipendente selezionato (ore CCNL e % part-time) per il calcolo del nuovo part-time
+  // - oreSettimanaliFT: ore CCNL full-time (= 100%) dalla regola del contratto
+  // - oreSettimanaliPT: ore settimanali specifiche del dipendente (anagrafica)
+  // - percentualePartTime: % part-time attuale (anagrafica)
+  const datiDipendentePerAnalisi = useMemo(() => {
+    const dipendente = dipendenti.find(d => String(d.id) === String(dipendenteSelezionato))
+    if (!dipendente) {
+      return {
+        oreSettimanaliFT: 40,
+        oreSettimanaliPT: 40,
+        percentualePartTime: 100,
+        isFullTime: true
+      }
+    }
+    const percentuale = Number(dipendente.percentuale_part_time) || 100
+    // Ore CCNL full-time: SEMPRE dalla regola del contratto (regola_calcolo_contratto.ore_settimanali_teoriche)
+    const oreSettimanaliFT = parseFloat(
+      dipendente.contratto?.ore_settimanali_teoriche || 40
+    )
+    // Ore settimanali specifiche del dipendente (anagrafica): usate come fallback se > 0
+    const oreSettimanaliPT = (dipendente.ore_settimanali && parseFloat(dipendente.ore_settimanali) > 0)
+      ? parseFloat(dipendente.ore_settimanali)
+      : Math.round((oreSettimanaliFT * percentuale / 100) * 100) / 100
+    return {
+      oreSettimanaliFT,
+      oreSettimanaliPT,
+      percentualePartTime: percentuale,
+      isFullTime: percentuale >= 100
+    }
+  }, [dipendenti, dipendenteSelezionato])
 
   // Recupera i dipendenti
   useEffect(() => {
@@ -1415,6 +1541,76 @@ function AnalisiHR() {
                       <Bar dataKey="straordinarie" name="Straordinarie" fill="#ef4444" radius={[2, 2, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                </div>
+
+                {/* Analisi supplementari continuativi: select + risultato */}
+                <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: '#d1d5db' }}>
+                    <label htmlFor="mesi-consecutivi-select" style={{ fontWeight: '500' }}>
+                      Mesi consecutivi con supplementari:
+                    </label>
+                    <select
+                      id="mesi-consecutivi-select"
+                      value={mesiConsecutiviSelezionati}
+                      onChange={(e) => setMesiConsecutiviSelezionati(Number(e.target.value))}
+                      style={{
+                        backgroundColor: '#1f2937',
+                        color: 'white',
+                        border: '1px solid #4b5563',
+                        borderRadius: '4px',
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.72rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {Array.from({ length: 11 }, (_, i) => i + 2).map(n => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {(() => {
+                    if (datiAnnuali.isFullTime) return null
+
+                    const risultato = calcolaMediaSupplementari(
+                      datiMensualiOreExtraordinarie,
+                      mesiConsecutiviSelezionati
+                    )
+
+                    if (!risultato.trovato) {
+                      return (
+                        <div style={{
+                          backgroundColor: '#1f2937',
+                          border: '1px solid #4b5563',
+                          borderRadius: '4px',
+                          padding: '0.6rem 0.8rem',
+                          fontSize: '0.72rem',
+                          color: '#9ca3af'
+                        }}>
+                          Nessun periodo continuativo di {mesiConsecutiviSelezionati} mesi con ore supplementari.
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div style={{
+                        backgroundColor: '#1f2937',
+                        border: '1px solid #4b5563',
+                        borderRadius: '4px',
+                        padding: '0.6rem 0.8rem',
+                        fontSize: '0.72rem',
+                        color: '#d1d5db',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.3rem'
+                      }}>
+                        <RisultatoAnalisiPartTime
+                          risultato={risultato}
+                          datiDipendente={datiDipendentePerAnalisi}
+                        />
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             )}
