@@ -1,0 +1,178 @@
+/* ==========================================
+   ADMIN NAVBAR & LAYOUT STYLES
+   ========================================== */
+
+/* Admin Navbar - Desktop */
+.admin-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background-color: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 60px;
+  color: var(--text);
+}
+
+.admin-navbar .logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-navbar .logo .icon {
+  font-size: 1.8rem;
+}
+
+.admin-navbar .logo-icon {
+  height: 36px;
+  width: auto;
+  color: var(--accent); /* Stesso colore della scritta */
+}
+
+.admin-navbar .nav-links {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-navbar .nav-links li {
+  font-size: 0.875rem;
+}
+
+.admin-navbar .nav-links a {
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.3s;
+  position: relative;
+}
+
+.admin-navbar .nav-links a:hover {
+  color: var(--accent);
+}
+
+.admin-navbar .nav-links a.active {
+  color: var(--accent);
+}
+
+.admin-navbar .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent);
+  transition: width 0.3s;
+}
+
+.admin-navbar .nav-links a:hover::after,
+.admin-navbar .nav-links a.active::after {
+  width: 100%;
+}
+
+.admin-navbar .user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-navbar .user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.admin-navbar .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+/* Admin Footer - Fixed in basso */
+.admin-footer {
+  padding: 1rem 2rem;
+  background-color: var(--bg);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.875rem;
+  text-align: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+}
+
+.admin-footer > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.admin-footer .hr-text {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.admin-footer .copyright {
+  color: var(--text-h);
+}
+
+.admin-footer .footer-logo {
+  height: 24px;
+  width: auto;
+  color: var(--accent); /* Stesso colore della scritta */
+  margin-right: 0.25rem;
+}
+
+/* Responsive: nascondi navbar su mobile (handled by mobile aside) */
+@media (max-width: 768px) {
+  .admin-navbar {
+    display: none;
+  }
+
+  .admin-footer {
+    display: block;  /* Mostra anche su mobile */
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ==========================================
+   PAGE CONTENT AREA (tra navbar e footer)
+   ========================================== */
+
+.admin-content {
+  margin-top: 60px;      /* Altezza navbar fissa */
+  margin-bottom: 40px;   /* Altezza footer fissa */
+  padding: 2rem;
+  flex: 1;               /* Occupa lo spazio rimanente */
+}
+
+@media (max-width: 768px) {
+  .admin-content {
+    margin-top: 0;
+    margin-bottom: 36px; /* Altezza footer fissa su mobile */
+    padding: 1rem;
+  }
+}

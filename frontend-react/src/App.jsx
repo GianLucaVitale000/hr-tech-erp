@@ -17,6 +17,9 @@ import EditUtente from './pages/Admin/EditUtente'
 import AnalisiHR from './pages/Admin/AnalisiHR'
 import Kiosk from './pages/Kiosk'
 import KioskTest from './tools/KioskTest'
+import AdminLayout from './components/Admin/AdminLayout'
+
+import './styles/admin.css'
 
 function App() {
   return (
@@ -25,72 +28,26 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           
-          <Route path="/admin" element={
+          {/* 🔹 Area Admin con Navbar e Footer */}
+          <Route element={
             <ProtectedRoute role="admin">
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/contratti" element={<Contratti />} />
+            <Route path="/admin/utenti" element={<Utenti />} />
+            <Route path="/admin/utenti/nuovo" element={<NuovoUtente />} />
+            <Route path="/admin/utenti/:id/edit" element={<EditUtente />} />
+            <Route path="/admin/dipendenti" element={<Dipendenti />} />
+            <Route path="/admin/dipendenti/nuovo" element={<NuovoDipendente />} />
+            <Route path="/admin/dipendenti/:id/edit" element={<EditDipendente />} />
+            <Route path="/admin/approvazioni" element={<Approvazioni />} />
+            <Route path="/admin/approvazioni/:dipendenteId/:mese/:anno" element={<DettaglioMese />} />
+            <Route path="/admin/analisi-hr" element={<AnalisiHR />} />
+          </Route>
 
-          <Route path="/admin/contratti" element={
-            <ProtectedRoute role="admin">
-              <Contratti />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/utenti" element={
-            <ProtectedRoute role="admin">
-              <Utenti />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/utenti/nuovo" element={
-            <ProtectedRoute role="admin">
-              <NuovoUtente />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/utenti/:id/edit" element={
-            <ProtectedRoute role="admin">
-              <EditUtente />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/dipendenti" element={
-            <ProtectedRoute role="admin">
-              <Dipendenti />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/dipendenti/nuovo" element={
-            <ProtectedRoute role="admin">
-              <NuovoDipendente />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/dipendenti/:id/edit" element={
-            <ProtectedRoute role="admin">
-              <EditDipendente />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/approvazioni" element={
-            <ProtectedRoute role="admin">
-              <Approvazioni />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/approvazioni/:dipendenteId/:mese/:anno" element={
-            <ProtectedRoute role="admin">
-              <DettaglioMese />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin/analisi-hr" element={
-            <ProtectedRoute role="admin">
-              <AnalisiHR />
-            </ProtectedRoute>
-          } />
-
+          {/* 🔹 Area Dipendente (senza navbar admin per ora) */}
           <Route path="/dipendente" element={
             <ProtectedRoute role="dipendente">
               <DipendenteDashboard />

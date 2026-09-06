@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../../context/useAuth'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import Logo from '../../components/Admin/Logo'
+import { useAuth } from '../../context/useAuth'
+
 
 function AdminDashboard() {
-  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [dipendenti, setDipendenti] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,6 +14,13 @@ function AdminDashboard() {
   const [annoSelezionato, setAnnoSelezionato] = useState(new Date().getFullYear())
   const [isMobile, setIsMobile] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+    const { logout } = useAuth()
+    const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
 
   // Rileva se è mobile
   useEffect(() => {
@@ -220,32 +228,10 @@ function AdminDashboard() {
     )
   }
 
-  const handleLogout = async () => {
-    await api.post('/logout')
-    logout()
-    navigate('/login')
-  }
-
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ margin: '0 0 1rem 0', lineHeight: '1.2' }}>Dashboard di Amministrazione</h1>
-          <p style={{ margin: '0 0 0.5rem 0' }}>Benvenuto, <strong>{user?.name}</strong></p>
-          <p style={{ margin: 0 }}>Ruolo: <strong>{user?.role}</strong></p>
-        </div>
-        {!isMobile && (
-          <button onClick={handleLogout} style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#dc2626',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}>
-            Logout
-          </button>
-        )}
+        
       </div>
 
       {isMobile && (
@@ -313,102 +299,25 @@ function AdminDashboard() {
                 >
                   ×
                 </button>
+                {/* Logo */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  marginTop: '3.5rem',
+                  marginBottom: '1.5rem',
+                  padding: '0 0.5rem'
+                }}>
+                  <Logo style={{ height: '32px', width: 'auto', color: 'var(--accent)' }} />
+                  <span style={{ color: 'var(--accent)', fontSize: '1.25rem', fontWeight: 600 }}>HR-Tech ERP</span>
+                </div>
                 
-                <nav style={{ marginTop: '3rem', height: 'calc(100% - 4rem)', display: 'flex', flexDirection: 'column' }}>
+                <hr/>
+                <nav style={{ marginTop: '1rem', height: 'calc(100% - 4rem)', display: 'flex', flexDirection: 'column' }}>
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0, flex: 1 }}>
                     <li style={{ marginBottom: '1rem' }}>
                       <button
                         onClick={() => { navigate('/admin/utenti'); setSidebarOpen(false); }}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: 'none',
-                          border: 'none',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          color: '#f3f4f6',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Gestione Utenti
-                      </button>
-                    </li>
-                    <li style={{ marginBottom: '1rem' }}>
-                      <button
-                        onClick={() => { navigate('/admin/dipendenti'); setSidebarOpen(false); }}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: 'none',
-                          border: 'none',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          color: '#f3f4f6',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Anagrafica Dipendenti
-                      </button>
-                    </li>
-                    <li style={{ marginBottom: '1rem' }}>
-                      <button
-                        onClick={() => { navigate('/admin/contratti'); setSidebarOpen(false); }}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: 'none',
-                          border: 'none',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          color: '#f3f4f6',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Gestione CCNL
-                      </button>
-                    </li>
-                    <li style={{ marginBottom: '1rem' }}>
-                      <button
-                        onClick={() => { navigate('/admin/approvazioni'); setSidebarOpen(false); }}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: 'none',
-                          border: 'none',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          color: '#f3f4f6',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Approvazione Fogli Ore
-                      </button>
-                    </li>
-                    <li style={{ marginBottom: '1rem' }}>
-                      <button
-                        onClick={() => { navigate('/admin/analisi-hr'); setSidebarOpen(false); }}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          background: 'none',
-                          border: 'none',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          fontSize: '1rem',
-                          color: '#f3f4f6',
-                          lineHeight: '1.2'
-                        }}
-                      >
-                        Analisi HR
-                      </button>
-                    </li>
-                    <li style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #4b5563' }}>
-                      <button
-                        onClick={handleLogout}
                         style={{
                           width: '100%',
                           padding: '0.75rem',
@@ -423,11 +332,65 @@ function AdminDashboard() {
                           lineHeight: '1.2'
                         }}
                       >
+                        Gestione Utenti
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/dipendenti'); setSidebarOpen(false); }}
+                        style={{ width: '100%', padding: '0.75rem', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', fontSize: '1rem', color: '#f3f4f6', lineHeight: '1.2' }}
+                      >
+                        Anagrafica Dipendenti
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/contratti'); setSidebarOpen(false); }}
+                        style={{ width: '100%', padding: '0.75rem', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', fontSize: '1rem', color: '#f3f4f6', lineHeight: '1.2' }}
+                      >
+                        Gestione CCNL
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/approvazioni'); setSidebarOpen(false); }}
+                        style={{ width: '100%', padding: '0.75rem', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', fontSize: '1rem', color: '#f3f4f6', lineHeight: '1.2' }}
+                      >
+                        Approvazione Fogli Ore
+                      </button>
+                    </li>
+                    <li style={{ marginBottom: '1rem' }}>
+                      <button
+                        onClick={() => { navigate('/admin/analisi-hr'); setSidebarOpen(false); }}
+                        style={{ width: '100%', padding: '0.75rem', background: 'none', border: 'none', textAlign: 'right', cursor: 'pointer', fontSize: '1rem', color: '#f3f4f6', lineHeight: '1.2'}}
+                      >
+                        Analisi HR
+                      </button>
+                      <hr style={{ marginTop: '2rem' }} />
+                    </li>
+                    <li style={{ 
+                      marginTop: '1rem', 
+                      display: 'flex',
+                      justifyContent: 'flex-end'
+                    }}>
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          padding: '0.75rem',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '1rem',
+                          color: '#dc2626',
+                          lineHeight: '1.2',
+                        }}
+                      >
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                         </svg>
                       </button>
                     </li>
+
                   </ul>
                 </nav>
               </div>
@@ -436,138 +399,15 @@ function AdminDashboard() {
         </>
       )}
 
-      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '2rem' }}>
-        {!isMobile && (
-          <nav style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => navigate('/admin/utenti')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '4px 4px 0 0',
-                cursor: 'pointer',
-                fontWeight: '500',
-                borderBottom: '3px solid transparent'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#374151';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                e.currentTarget.style.color = '#374151';
-              }}
-            >
-              Gestione Utenti
-            </button>
-            <button
-              onClick={() => navigate('/admin/dipendenti')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '4px 4px 0 0',
-                cursor: 'pointer',
-                fontWeight: '500',
-                borderBottom: '3px solid transparent'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#374151';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                e.currentTarget.style.color = '#374151';
-              }}
-            >
-              Anagrafica Dipendenti
-            </button>
-            <button
-              onClick={() => navigate('/admin/contratti')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '4px 4px 0 0',
-                cursor: 'pointer',
-                fontWeight: '500',
-                borderBottom: '3px solid transparent'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#374151';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                e.currentTarget.style.color = '#374151';
-              }}
-            >
-              Gestione CCNL
-            </button>
-            <button
-              onClick={() => navigate('/admin/approvazioni')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '4px 4px 0 0',
-                cursor: 'pointer',
-                fontWeight: '500',
-                borderBottom: '3px solid transparent'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#374151';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                e.currentTarget.style.color = '#374151';
-              }}
-            >
-              Approvazione Fogli Ore
-            </button>
-            <button
-              onClick={() => navigate('/admin/analisi-hr')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                border: 'none',
-                borderRadius: '4px 4px 0 0',
-                cursor: 'pointer',
-                fontWeight: '500',
-                borderBottom: '3px solid transparent'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = '#374151';
-                e.currentTarget.style.color = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = '#f3f4f6';
-                e.currentTarget.style.color = '#374151';
-              }}
-            >
-              Analisi HR
-            </button>
-          </nav>
-        )}
-      </div>
-
-      <p style={{ color: 'white', fontSize: '0.85rem', marginBottom: '2rem' }}>
-        {isMobile ? 'Apri il menu laterale premendo ☰' : 'Seleziona una sezione dal menu sopra'} per gestire contratti, dipendenti, approvazione presenze o visualizzare le analisi HR.
-      </p>
-
       {loading ? (
         <p style={{ color: 'white' }}>Caricamento dati dipendenti...</p>
       ) : error ? (
         <p style={{ color: '#ef4444' }}>{error}</p>
       ) : (
         <div style={{ marginTop: '2rem' }}>
+            <h1 style={{ color: 'white', marginBottom: '2rem', fontSize: '2rem' }}>
+              Dashboard di Amministrazione
+      </h1>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 style={{ color: 'white', margin: 0, fontSize: '1.25rem' }}>
               Riepilogo Dipendenti
