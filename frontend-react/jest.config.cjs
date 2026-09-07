@@ -2,7 +2,8 @@
 module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
+  testMatch: ['**/__tests__/**/*.(test|spec).[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.cjs'],
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },

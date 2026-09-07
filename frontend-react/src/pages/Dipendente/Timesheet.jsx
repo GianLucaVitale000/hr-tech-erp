@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState, useMemo } from 'react'
 import { getMioProfilo } from '../../services/dipendentiService'
 import {
   getPresenze,
@@ -11,8 +10,8 @@ import {
   uploadGiustificativoInfortunio,
   generateQrToken,
 } from '../../services/presenzeService'
+import { isFoglioCompleto } from '../../utils/foglioCompleto'
 import QrCodeModal from '../../components/QrCodeModal'
-import QrCodeInfoModal from '../../components/QrCodeInfoModal'
 
 const CAUSALI = [
   { value: 'lavoro', label: '-- Nessuna --' },
@@ -96,9 +95,8 @@ function RigaGiorno({
     }
     
     // Causali che sostituiscono completamente il lavoro (ore_ordinarie = 0, ore_causale = orePreviste)
-    // assemblea è esclusa perché può essere combinata con ore_ordinarie
-    const causaliPiene = ['ferie', 'malattia', 'maternita', 'infortunio', 'sciopero', 'cassa_integrazione']
-    
+    const causaliPiene = ['ferie', 'malattia', 'maternita', 'infortunio', 'cassa_integrazione']
+
     // Per causali piene: azzera ore_ordinarie e imposta ore_causale in base alla distribuzione oraria
     if (causaliPiene.includes(nuovaCausale) && Object.keys(orariSettimanali).length > 0) {
       const data = new Date(anno, mese - 1, giorno)
@@ -107,17 +105,17 @@ function RigaGiorno({
       onChange({ ...newRiga, ore_causale: orePreviste, ore_ordinarie: 0, modalita_lavoro: null })
       return
     }
-    
-    // Per assemblea: imposta ore_causale ma NON azzerare ore_ordinarie (può essere combinata)
-    if (nuovaCausale === 'assemblea' && Object.keys(orariSettimanali).length > 0) {
+
+    // Per assemblea e sciopero: imposta ore_causale ma NON azzera ore_ordinarie (possono essere combinati)
+    if ((nuovaCausale === 'assemblea' || nuovaCausale === 'sciopero') && Object.keys(orariSettimanali).length > 0) {
       const data = new Date(anno, mese - 1, giorno)
       const giornoSettimana = data.getDay()
       const orePreviste = orariSettimanali[giornoSettimana] || 0
       onChange({ ...newRiga, ore_causale: orePreviste, modalita_lavoro: null })
       return
     }
-    
-    // Per causali parziali (permesso_rol, permesso_retribuito, permesso_non_retribuito), 
+
+    // Per causali parziali (permesso_rol, permesso_retribuito, permesso_non_retribuito),
     // non azzerare ore_ordinarie: l'utente può inserire entrambi i valori
     onChange({ ...newRiga, modalita_lavoro: null })
   }
@@ -946,7 +944,6 @@ function CardGiorno({
   )
 }
 function Timesheet() {
-  const navigate = useNavigate()
   const oggi = new Date()
   const [mese, setMese] = useState(oggi.getMonth() + 1)
   const [anno, setAnno] = useState(oggi.getFullYear())
@@ -963,7 +960,6 @@ function Timesheet() {
   const [orariSettimanali, setOrariSettimanali] = useState({})
   // 🔹 States per QR Code
   const [showQrModal, setShowQrModal] = useState(false)
-  const [showQrInfoModal, setShowQrInfoModal] = useState(false)
   const [qrToken, setQrToken] = useState('')
   const [giornoSelezionato, setGiornoSelezionato] = useState(oggi.getDate())
   const [selectedPresence, setSelectedPresence] = useState(null)
@@ -1432,8 +1428,49 @@ useEffect(() => {
     }
   }
 
+  // 🔹 Validazione completezza foglio (memoizzata — prima dell'early return)
+  const foglioCompletoInfo = useMemo(() => {
+    if (!dipendente) {
+      return { completo: false, message: 'Anagrafica dipendente mancante' }
+    }
+    return isFoglioCompleto(dipendente, anno, mese, giorni, righe)
+  }, [dipendente, anno, mese, giorni, righe])
+
+  // Funzione per verificare se il dipendente può inserire presenze
+  const puoInserirePresenze = () => {
+    if (!dipendente) return true
+    const tipoContratto = dipendente.tipo_contratto
+    const dataScadenza = dipendente.data_scadenza_contratto
+    if (!dataScadenza && tipoContratto === 'indeterminato') return true
+    if (dataScadenza) {
+      const scadenzaDate = new Date(dataScadenza)
+      const inizioMeseSelezionato = new Date(anno, mese - 1, 1)
+      return inizioMeseSelezionato <= scadenzaDate
+    }
+    return true
+  }
+
+  // Variabile unificata per lo stato disabled del bottone
+  const isDisabled =
+    statoFoglio === 'inviato' ||
+    statoFoglio === 'approvato' ||
+    statoFoglio === 'reinviato' ||
+    !puoInserirePresenze() ||
+    !foglioCompletoInfo.completo
+
   const handleInvia = async () => {
     try {
+      // 🔹 Validazione completezza foglio prima dell'invio
+      if (dipendente) {
+        const check = isFoglioCompleto(dipendente, anno, mese, giorni, righe)
+        if (!check.completo) {
+          const msg = check.message || 'Foglio non completo'
+          setErrore(`⚠️ Impossibile inviare: ${msg}`)
+          setTimeout(() => setErrore(''), 10000)
+          return
+        }
+      }
+
       await inviaMese(dipendente.id, mese, anno)
       // Ricarica le presenze per ottenere lo stato aggiornato (inviato o reinviato)
       const res = await getPresenze(dipendente.id, mese, anno)
@@ -1442,7 +1479,7 @@ useEffect(() => {
       setMessaggio('✅ Mese inviato per approvazione!')
       setErrore('')
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 
+      const errorMessage = error.response?.data?.error ||
                           error.response?.data?.message ||
                           'Errore durante l\'invio. Riprova.'
       setErrore(errorMessage)
@@ -1455,40 +1492,9 @@ useEffect(() => {
   // Determina se il dipendente è full-time (gestisce sia numero che stringa)
   const isFullTime = Number(dipendente?.percentuale_part_time) === 100;
 
-  // Funzione per verificare se il dipendente può inserire presenze per il mese/anno selezionato
-  const puoInserirePresenze = () => {
-    if (!dipendente) return true;
-    
-    const tipoContratto = dipendente.tipo_contratto;
-    const dataScadenza = dipendente.data_scadenza_contratto;
-    
-    // Se non c'è data di scadenza e il contratto è indeterminato, può sempre inserire
-    if (!dataScadenza && tipoContratto === 'indeterminato') {
-      return true;
-    }
-    
-    // Se c'è una data di scadenza (per determinato o per cessazione di indeterminato)
-    if (dataScadenza) {
-      // Converte la data di scadenza in oggetto Date
-      const scadenzaDate = new Date(dataScadenza);
-      // L'inizio del mese selezionato
-      const inizioMeseSelezionato = new Date(anno, mese - 1, 1);
-      
-      // Se l'inizio del mese è dopo la scadenza, non può inserire
-      if (inizioMeseSelezionato > scadenzaDate) {
-        return false;
-      }
-      
-      // Se il mese include la data di scadenza o è prima, può inserire
-      return true;
-    }
-    
-    return true;
-  };
-
-  const messaggioBlocco = !puoInserirePresenze() 
+  const messaggioBlocco = !puoInserirePresenze()
     ? `Non puoi inserire presenze. Scadenza contratto: ${dipendente?.data_scadenza_contratto ? new Date(dipendente.data_scadenza_contratto).toLocaleDateString('it-IT') : 'N/D'}.`
-    : null;
+    : null
 
   // Funzione per ottenere le ore previste per un giorno specifico
   const getOrePrevistePerGiorno = (anno, mese, giorno) => {
@@ -1536,21 +1542,8 @@ useEffect(() => {
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
 <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 className="page-title" style={{ margin: 0, fontSize: '1.5rem', lineHeight: '1.4', flex: '1 1 200px' }}>
-          Foglio Presenze - {NOMI_MESI[mese - 1]} {anno}
+          Presenze - {NOMI_MESI[mese - 1]} {anno}
         </h1>
-        <button
-          onClick={() => navigate('/dipendente')}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Dashboard
-        </button>
       </div>
       
       {messaggioBlocco && (
@@ -1600,19 +1593,6 @@ useEffect(() => {
         >
           Mese corrente
         </button>
-        <button
-          onClick={() => setShowQrInfoModal(true)}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#16a34a',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-        Come usi il QR Code?
-        </button>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -1652,25 +1632,56 @@ useEffect(() => {
       <div style={{ marginBottom: '1.5rem' }}>
         <button
           onClick={handleInvia}
-          disabled={statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato' || !puoInserirePresenze()}
+          disabled={isDisabled}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato' || !puoInserirePresenze()) ? '#93c5fd' : '#2563eb',
+            backgroundColor: isDisabled ? '#93c5fd' : '#2563eb',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: (statoFoglio === 'inviato' || statoFoglio === 'approvato' || statoFoglio === 'reinviato' || !puoInserirePresenze()) ? 'not-allowed' : 'pointer',
+            cursor: isDisabled ? 'not-allowed' : 'pointer',
             fontSize: '0.85rem',
             display: 'block',
             margin: '0 auto'
           }}
-          title={!puoInserirePresenze() ? 'Non puoi inviare: contratto scaduto' : 
-                statoFoglio === 'approvato' ? 'Foglio già approvato. Non è possibile reinviare.' : 
-                statoFoglio === 'reinviato' ? 'Foglio già reinviato. Attendere l\'approvazione.' :
-                statoFoglio === 'inviato' ? 'Foglio già inviato. Attendere l\'approvazione.' : ''}
+          title={
+            !puoInserirePresenze() ? 'Non puoi inviare: contratto scaduto' :
+            statoFoglio === 'approvato' ? 'Foglio già approvato. Non è possibile reinviare.' :
+            statoFoglio === 'reinviato' ? 'Foglio già reinviato. Attendere l\'approvazione.' :
+            statoFoglio === 'inviato' ? 'Foglio già inviato. Attendere l\'approvazione.' :
+            !foglioCompletoInfo.completo ? `Foglio non completo: ${foglioCompletoInfo.message}` :
+            ''
+          }
         >
           Invia al Manager
         </button>
+        {/* Banner inline: errore se compilazione incompleta */}
+        {!foglioCompletoInfo.completo && (
+          <p style={{
+            color: '#dc2626',
+            fontSize: '0.8rem',
+            textAlign: 'center',
+            marginTop: '0.5rem',
+            marginBottom: 0,
+          }}>
+            🚫 {foglioCompletoInfo.message}
+          </p>
+        )}
+        {/* Banner inline: warning se saltati riposi */}
+        {foglioCompletoInfo.completo && foglioCompletoInfo.warning && (
+          <p style={{
+            color: '#92400e',
+            backgroundColor: '#fef3c7',
+            fontSize: '0.8rem',
+            textAlign: 'center',
+            marginTop: '0.5rem',
+            marginBottom: 0,
+            padding: '0.25rem 0.5rem',
+            borderRadius: '4px',
+          }}>
+            ⚠️ {foglioCompletoInfo.warning}
+          </p>
+        )}
       </div>
 
       {messaggio && <p style={{ color: 'green' }}>{messaggio}</p>}
@@ -1822,13 +1833,6 @@ useEffect(() => {
             setQrToken('')
             setSelectedPresence(null)
           }}
-        />
-      )}
-      
-      {/* 🔹 Modale QR Code Info */}
-      {showQrInfoModal && (
-        <QrCodeInfoModal
-          onClose={() => setShowQrInfoModal(false)}
         />
       )}
       <style>

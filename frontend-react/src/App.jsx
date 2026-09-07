@@ -18,8 +18,10 @@ import AnalisiHR from './pages/Admin/AnalisiHR'
 import Kiosk from './pages/Kiosk'
 import KioskTest from './tools/KioskTest'
 import AdminLayout from './components/Admin/AdminLayout'
+import DipendenteLayout from './components/DipendenteLayout'
 
 import './styles/admin.css'
+import './styles/dipendente.css'
 
 function App() {
   return (
@@ -47,18 +49,15 @@ function App() {
             <Route path="/admin/analisi-hr" element={<AnalisiHR />} />
           </Route>
 
-          {/* 🔹 Area Dipendente (senza navbar admin per ora) */}
-          <Route path="/dipendente" element={
+          {/* 🔹 Area Dipendente con Navbar e Footer */}
+          <Route element={
             <ProtectedRoute role="dipendente">
-              <DipendenteDashboard />
+              <DipendenteLayout />
             </ProtectedRoute>
-          } />
-
-          <Route path="/dipendente/timesheet" element={
-            <ProtectedRoute role="dipendente">
-              <Timesheet />
-            </ProtectedRoute>
-          } />
+          }>
+            <Route path="/dipendente" element={<DipendenteDashboard />} />
+            <Route path="/dipendente/timesheet" element={<Timesheet />} />
+          </Route>
 
           {/* 🔹 Rotta PUBBLICA per il tablet in modalità kiosk (nessun auth richiesto) */}
           <Route path="/kiosk" element={<Kiosk />} />
