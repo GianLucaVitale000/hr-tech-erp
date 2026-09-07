@@ -117,7 +117,7 @@ class PermessiFerieService
 
     private function godute(Dipendente $dipendente, Carbon $da, Carbon $a): array
     {
-        $presenze = $dipendente->presenze()->whereBetween('data', [$da, $a])->get();
+        $presenze = $dipendente->presenze()->whereBetween('data', [$da, $a])->where('stato', 'approvato')->get();
         $feriePerAnno = [];
         $permessiPerAnno = [];
         $perMese = [];
