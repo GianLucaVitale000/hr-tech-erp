@@ -121,6 +121,20 @@ class PresenzaController extends Controller
             $validated['fonte_dato'] = 'MANUALE';
         }
 
+        // GESTIONE CAUSALI A GIORNATA INTERA: auto-imposta ore_causale = orePreviste
+        // se il frontend non lo ha già valorizzato (o lo ha mandato a 0).
+        // Questo tutela i salvataggi fatti prima del fix del frontend, e i part-time
+        // che hanno distribuzioni orarie settimanali specifiche per giorno.
+        $causaliGiornataIntera = ['ferie', 'malattia', 'maternita', 'infortunio'];
+        if (
+            isset($validated['causale']) &&
+            in_array($validated['causale'], $causaliGiornataIntera, true) &&
+            (float)($validated['ore_causale'] ?? 0) === 0.0
+        ) {
+            $validated['ore_causale'] = $oreOrdinarieMax;
+            $validated['ore_ordinarie'] = 0;
+        }
+
         // GESTIONE CASSA INTEGRAZIONE: calcolo automatico ore_ordinarie per differenza
         // e blocco ore_straordinarie
         if (isset($validated['causale']) && $validated['causale'] === 'cassa_integrazione') {
