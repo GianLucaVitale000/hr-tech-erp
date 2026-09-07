@@ -36,7 +36,7 @@
 .admin-navbar .logo-icon {
   height: 36px;
   width: auto;
-  color: var(--accent); /* Stesso colore della scritta */
+  color: var(--accent);
 }
 
 .admin-navbar .nav-links {
@@ -107,7 +107,7 @@
   flex-shrink: 0;
 }
 
-/* Admin Footer - Fixed in basso */
+/* Admin Footer */
 .admin-footer {
   padding: 1rem 2rem;
   background-color: var(--bg);
@@ -141,7 +141,7 @@
 .admin-footer .footer-logo {
   height: 24px;
   width: auto;
-  color: var(--accent); /* Stesso colore della scritta */
+  color: var(--accent);
   margin-right: 0.25rem;
 }
 
