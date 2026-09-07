@@ -59,21 +59,6 @@ useEffect(() => {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <button
-        onClick={() => navigate('/admin')}
-        style={{
-          padding: '0.5rem 1rem',
-          backgroundColor: '#6b7280',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginBottom: '1rem'
-        }}
-      >
-        ← Dashboard
-      </button>
-
       <h1 style={{ margin: '0 0 2rem 0', lineHeight: '1.2' }}>Approvazione Fogli Ore</h1>
 
       <div style={{ marginBottom: '2rem' }}>

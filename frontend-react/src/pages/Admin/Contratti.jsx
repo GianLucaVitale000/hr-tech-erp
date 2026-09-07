@@ -1,5 +1,4 @@
 import { useState, useEffect, Fragment } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { 
   getContrattiAllVersions, 
   getRegoleCalcolo, 
@@ -26,7 +25,6 @@ function Contratti() {
   const [searchTerm, setSearchTerm] = useState('')
   const [onlyMainUnions, setOnlyMainUnions] = useState(false)
   const [expandedCodes, setExpandedCodes] = useState({})
-  const navigate = useNavigate()
 
   // Funzione per determinare il record principale di un gruppo
   const getMainContratto = (gruppo) => {
@@ -291,11 +289,6 @@ function Contratti() {
     } catch (error) {
       console.error('Errore nel caricamento:', error)
       setAllDipendenti([])
-      setRateiMensili({
-        rateo_mensile_ferie: null,
-        rateo_mensile_permessi_rol: null,
-        rateo_mensile_ex_festivita: null
-      })
       setContrattoOre(null)
       setProfili([{
         id: null,
@@ -376,20 +369,6 @@ function Contratti() {
   return (
     <div style={{ padding: '1.5rem', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <button
-          onClick={() => navigate('/admin')}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginBottom: '1rem'
-          }}
-        >
-          ← Dashboard
-        </button>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <h1 style={{ margin: 0, lineHeight: '1.2' }}>Gestione CCNL</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

@@ -109,20 +109,6 @@ function NuovoDipendente() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '500px' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <button
-          onClick={() => navigate('/admin')}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginBottom: '1rem'
-          }}
-        >
-          ← Dashboard
-        </button>
         <h1 style={{ margin: 0 }}>Nuovo Dipendente</h1>
       </div>
 
@@ -355,9 +341,9 @@ function NuovoDipendente() {
           </label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
             {[
-              ['rateo_mensile_ferie', 'Rateo ferie', 'Es: 2.12345'],
-              ['rateo_mensile_permessi_rol', 'Rateo permessi/ROL', 'Es: 2.12345'],
-              ['rateo_mensile_ex_festivita', 'Rateo ex-festività', 'Es: 2.12345']
+              ['rateo_mensile_ferie', 'Ferie', 'Es: 2.12345'],
+              ['rateo_mensile_permessi_rol', 'Permessi/ROL', 'Es: 2.12345'],
+              ['rateo_mensile_ex_festivita', 'Ex-festività', 'Es: 2.12345']
             ].map(([name, label, placeholder]) => (
               <div key={name}>
                 <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8rem', color: '#9ca3af' }}>
