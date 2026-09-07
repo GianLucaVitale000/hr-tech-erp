@@ -25,6 +25,18 @@ function Contratti() {
   const [searchTerm, setSearchTerm] = useState('')
   const [onlyMainUnions, setOnlyMainUnions] = useState(false)
   const [expandedCodes, setExpandedCodes] = useState({})
+  const [isMobile, setIsMobile] = useState(false)
+  const [expandedCards, setExpandedCards] = useState({})
+
+  // Rileva se è mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Funzione per determinare il record principale di un gruppo
   const getMainContratto = (gruppo) => {
@@ -56,6 +68,13 @@ function Contratti() {
 
   const toggleExpand = (codice) => {
     setExpandedCodes(prev => ({
+      ...prev,
+      [codice]: !prev[codice]
+    }));
+  }
+
+  const toggleCard = (codice) => {
+    setExpandedCards(prev => ({
       ...prev,
       [codice]: !prev[codice]
     }));
@@ -371,7 +390,7 @@ function Contratti() {
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <h1 style={{ margin: 0, lineHeight: '1.2' }}>Gestione CCNL</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
             <input
               type="text"
               placeholder="Cerca per codice o nome..."
@@ -382,10 +401,11 @@ function Contratti() {
                 border: '1px solid #d1d5db',
                 borderRadius: '4px',
                 fontSize: '0.875rem',
-                width: '300px'
+                width: isMobile ? 'calc(90vw - 3rem)' : '300px',
+                boxSizing: 'border-box'
               }}
             />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>
               <input
                 type="checkbox"
                 checked={onlyMainUnions}
@@ -415,7 +435,142 @@ function Contratti() {
         <p>Caricamento...</p>
       ) : contratti.length === 0 ? (
         <p style={{ color: '#6b7280' }}>Nessun contratto trovato. Crea il primo contratto.</p>
+      ) : isMobile ? (
+        // LAYOUT MOBILE: cards incolonnate
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {Object.entries(
+            contratti.reduce((acc, c) => {
+              if (!acc[c.codice_cnel]) acc[c.codice_cnel] = [];
+              acc[c.codice_cnel].push(c);
+              return acc;
+            }, {})
+          )
+            .filter(([, gruppo]) => {
+              if (onlyMainUnions) {
+                const haSindacatoPrincipale = gruppo.some(c => {
+                  const sindacati = c.partiSindacaliFirmatarie || [];
+                  const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
+                  return sindacatiStr.toLowerCase().includes('cgil') ||
+                         sindacatiStr.toLowerCase().includes('cisl') ||
+                         sindacatiStr.toLowerCase().includes('uil');
+                });
+                if (!haSindacatoPrincipale) return false;
+              }
+              if (searchTerm) {
+                const matchesSearch = gruppo.some(c =>
+                  c.nome_contratto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (c.codice_cnel || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  JSON.stringify(c.partiDatorialiFirmatarie || []).toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  JSON.stringify(c.partiSindacaliFirmatarie || []).toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                if (!matchesSearch) return false;
+              }
+              return true;
+            })
+            .map(([codice, gruppo]) => {
+              const main = getMainContratto(gruppo);
+              const isCardExpanded = expandedCards[codice] || false;
+              const altreVersioni = gruppo.filter(c => c.id !== main.id).filter(c => {
+                if (!onlyMainUnions) return true;
+                const sindacati = c.partiSindacaliFirmatarie || [];
+                const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
+                return sindacatiStr.toLowerCase().includes('cgil') ||
+                       sindacatiStr.toLowerCase().includes('cisl') ||
+                       sindacatiStr.toLowerCase().includes('uil');
+              });
+              return (
+                <div key={codice} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome Contratto:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{main.nome_contratto}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Cod. CNEL:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{codice || '-'}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tipo:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>
+                        {main.tipologia_contratto && (
+                          <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getTipologiaColor(main.tipologia_contratto), marginRight: '0.3rem' }} />
+                        )}
+                        {main.tipologia_contratto || '-'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Parte Datoriale:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formatFirmatari(main.partiDatorialiFirmatarie)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Parte Sindacale:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formatFirmatari(main.partiSindacaliFirmatarie)}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Sett.:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>
+                        {Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
+                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Decorrenza:</span>
+                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{main.data_decorrenza ? formatDate(main.data_decorrenza) : '-'}</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    {altreVersioni.length > 0 && (
+                      <button
+                        onClick={() => toggleCard(codice)}
+                        style={{ padding: '0.5rem 0.75rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', flex: '1' }}
+                      >
+                        {isCardExpanded ? '▲ Nascondi' : `▼ Versioni (${altreVersioni.length})`}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => openRegoleModal(main)}
+                      style={{ padding: '0.5rem 0.75rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', flex: '1' }}
+                    >
+                      Regole
+                    </button>
+                  </div>
+                  {isCardExpanded && altreVersioni.length > 0 && (
+                    <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '2px solid #4b5563' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Altre versioni:</div>
+                      {altreVersioni.map((c) => (
+                        <div key={c.id} style={{ backgroundColor: '#1f2937', borderRadius: '6px', padding: '0.6rem', marginBottom: '0.4rem', border: '1px solid #4b5563' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Tipo:</span>
+                              <span style={{ color: 'white', fontSize: '0.75rem' }}>
+                                {c.tipologia_contratto && (
+                                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getTipologiaColor(c.tipologia_contratto), marginRight: '0.25rem' }} />
+                                )}
+                                {c.tipologia_contratto || '-'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Decorrenza:</span>
+                              <span style={{ color: 'white', fontSize: '0.75rem' }}>{c.data_decorrenza ? formatDate(c.data_decorrenza) : '-'}</span>
+                            </div>
+                            <div style={{ marginTop: '0.3rem', display: 'flex', justifyContent: 'center' }}>
+                              <button
+                                onClick={() => openRegoleModal(c)}
+                                style={{ padding: '0.25rem 0.6rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}
+                              >
+                                Regole
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
       ) : (
+        // LAYOUT DESKTOP: tabella
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
             <thead>
@@ -432,27 +587,23 @@ function Contratti() {
             </thead>
             <tbody>
               {Object.entries(
-                contratti
-                  .reduce((acc, c) => {
-                    if (!acc[c.codice_cnel]) acc[c.codice_cnel] = [];
-                    acc[c.codice_cnel].push(c);
-                    return acc;
-                  }, {})
+                contratti.reduce((acc, c) => {
+                  if (!acc[c.codice_cnel]) acc[c.codice_cnel] = [];
+                  acc[c.codice_cnel].push(c);
+                  return acc;
+                }, {})
               )
                 .filter(([, gruppo]) => {
                   if (onlyMainUnions) {
                     const haSindacatoPrincipale = gruppo.some(c => {
                       const sindacati = c.partiSindacaliFirmatarie || [];
-                      const sindacatiStr = typeof sindacati === 'string' 
-                        ? sindacati 
-                        : JSON.stringify(sindacati);
+                      const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
                       return sindacatiStr.toLowerCase().includes('cgil') ||
                              sindacatiStr.toLowerCase().includes('cisl') ||
                              sindacatiStr.toLowerCase().includes('uil');
                     });
                     if (!haSindacatoPrincipale) return false;
                   }
-                  
                   if (searchTerm) {
                     const matchesSearch = gruppo.some(c =>
                       c.nome_contratto.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -462,13 +613,11 @@ function Contratti() {
                     );
                     if (!matchesSearch) return false;
                   }
-                  
                   return true;
                 })
                 .map(([codice, gruppo]) => {
                   const main = getMainContratto(gruppo);
                   const isExpanded = expandedCodes[codice] || false;
-                  
                   return (
                     <Fragment key={codice}>
                       <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -476,137 +625,44 @@ function Contratti() {
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{codice || '-'}</td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
                           {main.tipologia_contratto && (
-                            <span style={{
-                              display: 'inline-block',
-                              width: '12px',
-                              height: '12px',
-                              borderRadius: '50%',
-                              backgroundColor: getTipologiaColor(main.tipologia_contratto),
-                              cursor: 'help'
-                            }} title={main.tipologia_contratto} />
+                            <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: getTipologiaColor(main.tipologia_contratto), cursor: 'help' }} title={main.tipologia_contratto} />
                           )}
                         </td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          {formatFirmatari(main.partiDatorialiFirmatarie)}
-                        </td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          {formatFirmatari(main.partiSindacaliFirmatarie)}
-                        </td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          {Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}
-                        </td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          {main.data_decorrenza && (
-                            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                              {formatDate(main.data_decorrenza)}
-                            </span>
-                          )}
-                        </td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(main.partiDatorialiFirmatarie)}</td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(main.partiSindacaliFirmatarie)}</td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}</td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{main.data_decorrenza && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{formatDate(main.data_decorrenza)}</span>}</td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                            <button
-                              onClick={() => toggleExpand(codice)}
-                              style={{
-                                padding: '0.15rem 0.3rem',
-                                backgroundColor: '#6b7280',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.65rem'
-                              }}
-                            >
-                              {isExpanded ? '▲' : '▼'}
-                            </button>
-                            <button
-                              onClick={() => openRegoleModal(main)}
-                              style={{
-                                padding: '0.15rem 0.3rem',
-                                backgroundColor: '#2563eb',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '0.65rem'
-                              }}
-                            >
-                              Regole
-                            </button>
+                            <button onClick={() => toggleExpand(codice)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>{isExpanded ? '▲' : '▼'}</button>
+                            <button onClick={() => openRegoleModal(main)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button>
                           </div>
                         </td>
                       </tr>
-                      
-                      {isExpanded && gruppo
-                        .filter(c => c.id !== main.id)
-                        .filter(c => {
-                          if (!onlyMainUnions) return true;
-                          const sindacati = c.partiSindacaliFirmatarie || [];
-                          const sindacatiStr = typeof sindacati === 'string' 
-                            ? sindacati 
-                            : JSON.stringify(sindacati);
-                          return sindacatiStr.toLowerCase().includes('cgil') ||
-                                 sindacatiStr.toLowerCase().includes('cisl') ||
-                                 sindacatiStr.toLowerCase().includes('uil');
-                        })
-                        .map((c) => {
-                        return (
-                          <tr key={c.id} style={{ backgroundColor: '#374151', borderBottom: '1px solid #e5e7eb' }}>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem' }}>{c.nome_contratto}</td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
-                              {c.tipologia_contratto && (
-                                <span style={{
-                                  display: 'inline-block',
-                                  width: '12px',
-                                  height: '12px',
-                                  borderRadius: '50%',
-                                  backgroundColor: getTipologiaColor(c.tipologia_contratto),
-                                  cursor: 'help'
-                                }} title={c.tipologia_contratto} />
-                              )}
-                            </td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              {formatFirmatari(c.partiDatorialiFirmatarie)}
-                            </td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              {formatFirmatari(c.partiSindacaliFirmatarie)}
-                            </td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              {Number(c.ore_settimanali_teoriche) === 0 || c.ore_settimanali_teoriche === null ? '-' : c.ore_settimanali_teoriche}
-                            </td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              {c.data_decorrenza && (
-                                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                  {formatDate(c.data_decorrenza)}
-                                </span>
-                              )}
-                            </td>
-                            <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                              <button
-                                onClick={() => openRegoleModal(c)}
-                                style={{
-                                  padding: '0.15rem 0.3rem',
-                                  backgroundColor: '#2563eb',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontSize: '0.65rem'
-                                }}
-                              >
-                                Regole
-                              </button>
-                            </td>
-                          </tr>
-                      );
-                      })}
+                      {isExpanded && gruppo.filter(c => c.id !== main.id).filter(c => {
+                        if (!onlyMainUnions) return true;
+                        const sindacati = c.partiSindacaliFirmatarie || [];
+                        const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
+                        return sindacatiStr.toLowerCase().includes('cgil') || sindacatiStr.toLowerCase().includes('cisl') || sindacatiStr.toLowerCase().includes('uil');
+                      }).map((c) => (
+                        <tr key={c.id} style={{ backgroundColor: '#374151', borderBottom: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem' }}>{c.nome_contratto}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>{c.tipologia_contratto && <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: getTipologiaColor(c.tipologia_contratto), cursor: 'help' }} title={c.tipologia_contratto} />}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(c.partiDatorialiFirmatarie)}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(c.partiSindacaliFirmatarie)}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(c.ore_settimanali_teoriche) === 0 || c.ore_settimanali_teoriche === null ? '-' : c.ore_settimanali_teoriche}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.data_decorrenza && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{formatDate(c.data_decorrenza)}</span>}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}><button onClick={() => openRegoleModal(c)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button></td>
+                        </tr>
+                      ))}
                     </Fragment>
                   );
                 })}
             </tbody>
           </table>
         </div>
-      )}
+        )}
 
       {/* Modale Regole di Calcolo */}
       {modalOpen && (

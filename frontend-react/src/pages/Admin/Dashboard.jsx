@@ -268,38 +268,38 @@ function AdminDashboard() {
             <>
               {isMobile ? (
                 <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  display: 'flex',
+                  flexDirection: 'column',
                   gap: '1rem',
                   marginTop: '1rem'
                 }}>
                   {datiCCNL.map((ccnl) => (
                     <div key={ccnl.sigla} style={mobileWidgetStyle}>
                       <h3 style={mobileWidgetTitleStyle}>{ccnl.sigla}</h3>
-                      <div style={mobileWidgetGrid}>
-                        <div style={mobileWidgetItem}>
-                          <span style={mobileWidgetLabel}>TP</span>
-                          <div style={mobileWidgetValue}>{ccnl.tempoPieno}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tempo Pieno:</span>
+                          <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.tempoPieno}</span>
                         </div>
-                        <div style={mobileWidgetItem}>
-                          <span style={mobileWidgetLabel}>PT</span>
-                          <div style={mobileWidgetValue}>{ccnl.tempoParziale}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tempo Parziale:</span>
+                          <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.tempoParziale}</span>
                         </div>
-                        <div style={mobileWidgetItem}>
-                          <span style={mobileWidgetLabel}>Det.</span>
-                          <div style={mobileWidgetValue}>{ccnl.tempoDeterminato}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tempo Determinato:</span>
+                          <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.tempoDeterminato}</span>
                         </div>
-                        <div style={mobileWidgetItem}>
-                          <span style={mobileWidgetLabel}>Indet.</span>
-                          <div style={mobileWidgetValue}>{ccnl.tempoIndeterminato}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tempo Indeterminato:</span>
+                          <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.tempoIndeterminato}</span>
                         </div>
-                        <div style={mobileWidgetItem}>
-                          <span style={mobileWidgetLabel}>5g</span>
-                          <div style={mobileWidgetValue}>{ccnl.giorni5}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>5 gg.:</span>
+                          <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.giorni5}</span>
                         </div>
-                        <div style={mobileWidgetItem}>
-                          <span style={mobileWidgetLabel}>6g</span>
-                          <div style={mobileWidgetValue}>{ccnl.giorni6}</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0' }}>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>6 gg.:</span>
+                          <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.giorni6}</span>
                         </div>
                       </div>
                     </div>

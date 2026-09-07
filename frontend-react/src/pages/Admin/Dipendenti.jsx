@@ -63,6 +63,68 @@ function Dipendenti() {
 
       {loading ? (
         <p>Caricamento...</p>
+      ) : dipendenti.length === 0 ? (
+        <p style={{ color: '#6b7280' }}>Nessun dipendente trovato.</p>
+      ) : isMobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {dipendenti.map((d) => {
+            const oreSettimanali = d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0
+              ? d.ore_settimanali
+              : d.contratto?.ore_settimanali_teoriche !== null && parseFloat(d.contratto.ore_settimanali_teoriche) !== 0
+              ? d.contratto.ore_settimanali_teoriche
+              : '40'
+            return (
+              <div key={d.id} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.user?.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>CF:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.codice_fiscale || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Mansione:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.mansione || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Sett.:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{oreSettimanali}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Livello:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.livello || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>CCNL:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.contratto?.codice_cnel || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>% PT:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.percentuale_part_time ? `${d.percentuale_part_time}%` : '100%'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>GG.:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.giorni_lavorativi_settimanali || '5'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Data Assunz.:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formatDate(d.data_assunzione)}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => navigate(`/admin/dipendenti/${d.id}/edit`)}
+                    style={{ padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem', flex: '1' }}
+                  >
+                    Modifica
+                  </button>
+                </div>
+              </div> 
+            )
+          })}
+        </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
