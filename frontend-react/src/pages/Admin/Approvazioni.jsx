@@ -58,7 +58,7 @@ useEffect(() => {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '2.5rem', fontFamily: 'sans-serif' }}>
       <h1 style={{ margin: '0 0 2rem 0', lineHeight: '1.2' }}>Approvazione Fogli Ore</h1>
 
       <div style={{ marginBottom: '2rem' }}>

@@ -41,7 +41,7 @@ function Dipendenti() {
   }, [])
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <div style={{ padding: '2.5rem', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ margin: 0, lineHeight: '1.2' }}>Anagrafica Dipendenti</h1>
