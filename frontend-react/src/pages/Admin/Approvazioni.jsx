@@ -26,18 +26,19 @@ function Approvazioni() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Fix per l'errore ESLint: setState in useEffect
   useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true) // Ora è all'interno di una funzione asincrona
-    try {
-      const res = await getPresenzeInAttesa()
-      setMesi(res.data)
-    } finally {
-      setLoading(false)
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const res = await getPresenzeInAttesa()
+        setMesi(res.data)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
-  fetchData()
-}, [])
+    fetchData()
+  }, [])
 
   useEffect(() => {
     const fetchMesiApprovati = async () => {
@@ -77,33 +78,40 @@ function Approvazioni() {
     switch(stato) {
       case 'inviato':
       case 'rifiutato':
-        return 'Da approvare';
+        return 'Da approvare'
       case 'reinviato':
-        return 'Da approvare (Reinviato)';
+        return 'Da approvare (Reinviato)'
       case 'approvato':
-        return 'Approvato';
+        return 'Approvato'
       default:
-        return stato || 'Sconosciuto';
+        return stato || 'Sconosciuto'
     }
-  };
+  }
 
   const getStatoStyle = (stato) => {
     switch(stato) {
       case 'inviato':
       case 'rifiutato':
-        return { backgroundColor: '#fef3c7', color: '#92400e' };
+        return { backgroundColor: '#fef3c7', color: '#92400e' }
       case 'reinviato':
-        return { backgroundColor: '#fde68a', color: '#854d0e' };
+        return { backgroundColor: '#fde68a', color: '#854d0e' }
       case 'approvato':
-        return { backgroundColor: '#dcfce7', color: '#166534' };
+        return { backgroundColor: '#dcfce7', color: '#166534' }
       default:
-        return { backgroundColor: '#f3f4f6', color: '#374151' };
+        return { backgroundColor: '#f3f4f6', color: '#374151' }
     }
-  };
+  }
 
   return (
     <div style={{ padding: '2.5rem', fontFamily: 'sans-serif' }}>
-      <h1 style={{ margin: '0 0 2rem 0', lineHeight: '1.2', fontSize: isMobile ? '1.75rem' : undefined }}>Approvazione Fogli Ore</h1>
+      {/* Titolo con font-size responsive */}
+      <h1 style={{
+        margin: '0 0 2rem 0',
+        lineHeight: '1.2',
+        fontSize: isMobile ? '2.5rem' : undefined // Desktop usa il default di index.css (56px)
+      }}>
+        Approvazione Fogli Ore
+      </h1>
 
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
@@ -167,6 +175,7 @@ function Approvazioni() {
         <p>Nessun foglio ore da visualizzare.</p>
       ) : (
         <>
+          {/* Filtri */}
           <div style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -177,8 +186,8 @@ function Approvazioni() {
                   style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                 >
                   <option value="">Tutti</option>
-                  {[...new Set(mesi.map(m => m.dipendente_nome))].sort().map(nome => (
-                    <option key={nome} value={nome}>{nome}</option>
+                  {[...new Set(mesi.map(m => m.dipendente_nome))].map((nome, index) => (
+                    <option key={`${nome}-${index}`} value={nome}>{nome}</option>
                   ))}
                 </select>
               </div>
@@ -190,8 +199,8 @@ function Approvazioni() {
                   style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                 >
                   <option value="">Tutti</option>
-                  {[...new Set(mesi.map(m => m.mese))].sort().map(mese => (
-                    <option key={mese} value={mese}>{NOMI_MESI[parseInt(mese) - 1]}</option>
+                  {[...new Set(mesi.map(m => m.mese))].map((mese, index) => (
+                    <option key={`${mese}-${index}`} value={mese}>{NOMI_MESI[parseInt(mese) - 1]}</option>
                   ))}
                 </select>
               </div>
@@ -203,16 +212,16 @@ function Approvazioni() {
                   style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
                 >
                   <option value="">Tutti</option>
-                  {[...new Set(mesi.map(m => m.anno))].sort((a, b) => b - a).map(anno => (
-                    <option key={anno} value={anno}>{anno}</option>
+                  {[...new Set(mesi.map(m => m.anno))].sort((a, b) => b - a).map((anno, index) => (
+                    <option key={`${anno}-${index}`} value={anno}>{anno}</option>
                   ))}
                 </select>
               </div>
             </div>
           </div>
 
+          {/* Versione mobile: card */}
           {isMobile ? (
-            // Versione mobile: card
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {mesi
                 .filter(m => (
@@ -221,7 +230,7 @@ function Approvazioni() {
                   (filtroAnno === '' || m.anno === filtroAnno)
                 ))
                 .map((m) => (
-                  <div key={m.dipendente_id} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
+                  <div key={`${m.dipendente_id}-${m.mese}-${m.anno}`} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
                         <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Dipendente:</span>
@@ -286,32 +295,30 @@ function Approvazioni() {
                       (filtroMese === '' || m.mese === filtroMese) &&
                       (filtroAnno === '' || m.anno === filtroAnno)
                     ))
-                    .map((m) => {
-                      return (
-                        <tr key={m.dipendente_id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                          <td
-                            style={{ padding: '0.75rem', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
-                            onClick={() => navigate(`/admin/approvazioni/${m.dipendente_id}/${m.mese}/${m.anno}`)}
-                          >
-                            {m.dipendente_nome}
-                          </td>
-                          <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
-                          <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
-                          <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</td>
-                          <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</td>
-                          <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</td>
-                          <td style={{ padding: '0.75rem' }}>
-                            <span style={{
-                              padding: '0.25rem 0.6rem',
-                              borderRadius: '12px',
-                              ...getStatoStyle(m.stato)
-                            }}>
-                              {getStatoLabel(m.stato)}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    .map((m) => (
+                      <tr key={`${m.dipendente_id}-${m.mese}-${m.anno}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <td
+                          style={{ padding: '0.75rem', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
+                          onClick={() => navigate(`/admin/approvazioni/${m.dipendente_id}/${m.mese}/${m.anno}`)}
+                        >
+                          {m.dipendente_nome}
+                        </td>
+                        <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
+                        <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
+                        <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</td>
+                        <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</td>
+                        <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.6rem',
+                            borderRadius: '12px',
+                            ...getStatoStyle(m.stato)
+                          }}>
+                            {getStatoLabel(m.stato)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
