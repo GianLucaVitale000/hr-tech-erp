@@ -87,7 +87,7 @@ function Utenti() {
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome:</span>
+                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome e Cognome:</span>
                   <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{u.name}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
@@ -146,7 +146,7 @@ function Utenti() {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-                <th style={{ padding: '0.75rem' }}>Nome</th>
+                <th style={{ padding: '0.75rem' }}>Nome e Cognome</th>
                 <th style={{ padding: '0.75rem' }}>Email</th>
                 <th style={{ padding: '0.75rem' }}>Ruolo</th>
                 <th style={{ padding: '0.75rem' }}>Dipendente</th>

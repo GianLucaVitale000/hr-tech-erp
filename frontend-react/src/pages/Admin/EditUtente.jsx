@@ -81,7 +81,7 @@ function EditUtente() {
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-            Nome *
+            Nome e Cognome *
           </label>
           <input
             type="text"

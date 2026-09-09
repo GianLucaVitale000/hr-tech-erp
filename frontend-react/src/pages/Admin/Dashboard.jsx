@@ -294,11 +294,11 @@ function AdminDashboard() {
                           <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.tempoIndeterminato}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>5 gg.:</span>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>orario sett. su 5 giorni:</span>
                           <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.giorni5}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0' }}>
-                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>6 gg.:</span>
+                          <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>orario sett. su 6 giorni:</span>
                           <span style={{ color: 'white', fontSize: '1rem', fontWeight: '600' }}>{ccnl.giorni6}</span>
                         </div>
                       </div>
@@ -308,27 +308,27 @@ function AdminDashboard() {
                     <h3 style={mobileWidgetTitleStyle}>TOTALE = {datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</h3>
                     <div style={{...mobileWidgetGrid, gridTemplateColumns: 'repeat(3, 1fr)'}}>
                       <div style={mobileWidgetItem}>
-                        <span style={mobileWidgetLabel}>TP</span>
+                        <span style={mobileWidgetLabel}>Tempo Pieno</span>
                         <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</div>
                       </div>
                       <div style={mobileWidgetItem}>
-                        <span style={mobileWidgetLabel}>PT</span>
+                        <span style={mobileWidgetLabel}>Part-Time</span>
                         <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</div>
                       </div>
                       <div style={mobileWidgetItem}>
-                        <span style={mobileWidgetLabel}>Det.</span>
+                        <span style={mobileWidgetLabel}>Tempo Determinato</span>
                         <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</div>
                       </div>
                       <div style={mobileWidgetItem}>
-                        <span style={mobileWidgetLabel}>Indet.</span>
+                        <span style={mobileWidgetLabel}>Tempo Indeterminato</span>
                         <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</div>
                       </div>
                       <div style={mobileWidgetItem}>
-                        <span style={mobileWidgetLabel}>5g</span>
+                        <span style={mobileWidgetLabel}>orario settimanale su 5 giorni</span>
                         <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</div>
                       </div>
                       <div style={mobileWidgetItem}>
-                        <span style={mobileWidgetLabel}>6g</span>
+                        <span style={mobileWidgetLabel}>orario settimanale su 6 giorni</span>
                         <div style={mobileWidgetValue}>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</div>
                       </div>
                     </div>

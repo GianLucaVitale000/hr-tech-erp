@@ -412,7 +412,7 @@ function Contratti() {
                 onChange={(e) => setOnlyMainUnions(e.target.checked)}
                 style={{ cursor: 'pointer' }}
               />
-              Solo CGIL, CISL, UIL
+              Solo sindacati comparativamente più rappresentativi sul piano nazionale
             </label>
           </div>
         </div>
@@ -483,7 +483,7 @@ function Contratti() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
                       <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome Contratto:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{main.nome_contratto}</span>
+                      <span style={{ color: '#00A896', fontSize: '0.875rem', fontWeight: '500' }}>{main.nome_contratto}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
                       <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Cod. CNEL:</span>
@@ -621,7 +621,7 @@ function Contratti() {
                   return (
                     <Fragment key={codice}>
                       <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}><strong>{main.nome_contratto}</strong></td>
+                        <td style={{ padding: '0.25rem', fontSize: '0.75rem', color: '#00A896' }}><strong>{main.nome_contratto}</strong></td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{codice || '-'}</td>
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
                           {main.tipologia_contratto && (
@@ -635,8 +635,8 @@ function Contratti() {
                         <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             <button onClick={() => toggleExpand(codice)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>{isExpanded ? '▲' : '▼'}</button>
-                            <button onClick={() => openRegoleModal(main)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button>
-                          </div>
+                            <button onClick={() => openRegoleModal(main)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button> 
+                          </div> 
                         </td>
                       </tr>
                       {isExpanded && gruppo.filter(c => c.id !== main.id).filter(c => {
@@ -646,13 +646,13 @@ function Contratti() {
                         return sindacatiStr.toLowerCase().includes('cgil') || sindacatiStr.toLowerCase().includes('cisl') || sindacatiStr.toLowerCase().includes('uil');
                       }).map((c) => (
                         <tr key={c.id} style={{ backgroundColor: '#374151', borderBottom: '1px solid #e5e7eb' }}>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem' }}>{c.nome_contratto}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.nome_contratto || ''}>{c.nome_contratto}</td>
                           <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
                           <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>{c.tipologia_contratto && <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: getTipologiaColor(c.tipologia_contratto), cursor: 'help' }} title={c.tipologia_contratto} />}</td>
                           <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(c.partiDatorialiFirmatarie)}</td>
                           <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(c.partiSindacaliFirmatarie)}</td>
                           <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(c.ore_settimanali_teoriche) === 0 || c.ore_settimanali_teoriche === null ? '-' : c.ore_settimanali_teoriche}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.data_decorrenza && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{formatDate(c.data_decorrenza)}</span>}</td>
+                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.data_decorrenza && <span style={{ fontSize: '0.75rem', color: '#00A896' }}>{formatDate(c.data_decorrenza)}</span>}</td>
                           <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}><button onClick={() => openRegoleModal(c)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button></td>
                         </tr>
                       ))}
@@ -676,7 +676,8 @@ function Contratti() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1000,
+          padding: '0 1rem'
         }}>
           <div style={{
             backgroundColor: '#1f2937',
@@ -689,7 +690,7 @@ function Contratti() {
             color: 'white'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'white' }}>
+              <h2 style={{ margin: '0.5rem 1rem', fontSize: '1.1rem', color: 'white' }}>
                 {currentContratto ? `Regole di Calcolo - ${currentContratto.nome_contratto}` : 'Nuove Regole'}
               </h2>
               <button
@@ -710,9 +711,6 @@ function Contratti() {
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
                 Ore Settimanali Teoriche
-                <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#9ca3af' }}>
-                  {' - Valore base per il CCNL (es: 40, 39, 38)'}
-                </span>
               </label>
               <input
                 type="number"
@@ -720,10 +718,10 @@ function Contratti() {
                 onChange={handleContrattoOreChange}
                 step="0.01"
                 min="0"
-                placeholder="Inserisci le ore settimanali base (es: 40)"
+                placeholder="ore sett. da CCNL"
                 style={{
                   display: 'block',
-                  width: '10%',
+                  width: '45%',
                   margin: '0 auto',
                   padding: '0.5rem',
                   border: '1px solid #4b5563',
@@ -784,7 +782,6 @@ function Contratti() {
                         onChange={(e) => handleProfiloChange(index, e)}
                         step="0.01"
                         min="0"
-                        placeholder="45"
                         style={{
                           display: 'block',
                           width: '100%',
@@ -805,10 +802,9 @@ function Contratti() {
                         name="descrizione"
                         value={profilo.descrizione || ''}
                         onChange={(e) => handleProfiloChange(index, e)}
-                        placeholder="Es: Vigilanza, Distribuzione carburanti"
                         style={{
                           display: 'block',
-                          width: '75%',
+                          width: '90%',
                           padding: '0.5rem',
                           border: '1px solid #4b5563',
                           borderRadius: '4px',
