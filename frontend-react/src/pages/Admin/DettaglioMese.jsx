@@ -29,6 +29,17 @@ function DettaglioMese() {
   const navigate = useNavigate()
   const [presenze, setPresenze] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Rileva se è mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   useEffect(() => {
     getPresenze(dipendenteId, mese, anno)
@@ -99,7 +110,7 @@ function DettaglioMese() {
 
       <h1 style={{ margin: '0 0 1rem 0' }}>{nomeDipendente} — {NOMI_MESI[parseInt(mese) - 1]}-{anno}</h1>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>
           <strong>Ore Ordinarie:</strong> {Number(totaleOrdinarie).toFixed(2)}
         </div>
@@ -118,33 +129,74 @@ function DettaglioMese() {
         </div>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-            <th style={{ padding: '0.5rem' }}>Data</th>
-            <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
-            {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
-            <th style={{ padding: '0.5rem' }}>Causale</th>
-            <th style={{ padding: '0.5rem' }}>Altro</th>
-          </tr>
-        </thead>
-        <tbody>
+      {isMobile ? (
+        // Versione mobile: card
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {presenze.map((p) => (
-            <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-              <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
-              <td style={{ padding: '0.5rem' }}>{Number(p.ore_ordinarie || 0).toFixed(2)}</td>
-              {!isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_eccedenti || 0).toFixed(2)}</td>}
-              {isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_straordinarie || 0).toFixed(2)}</td>}
-              <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
-              <td style={{ padding: '0.5rem' }}>{Number(p.ore_causale || 0).toFixed(2)}</td>
-            </tr>
+            <div key={p.id} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Data:</span>
+                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formattaData(p.data)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Ordinarie:</span>
+                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_ordinarie || 0).toFixed(2)}</span>
+                </div>
+                {!isFullTime && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Eccedenti:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_eccedenti || 0).toFixed(2)}</span>
+                  </div>
+                )}
+                {isFullTime && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Straordinarie:</span>
+                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_straordinarie || 0).toFixed(2)}</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
+                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Causale:</span>
+                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{CAUSALI_LABEL[p.causale] || p.causale}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
+                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Altro:</span>
+                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_causale || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      ) : (
+        // Versione desktop: tabella
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
+              <th style={{ padding: '0.5rem' }}>Data</th>
+              <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
+              {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
+              {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
+              <th style={{ padding: '0.5rem' }}>Causale</th>
+              <th style={{ padding: '0.5rem' }}>Altro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {presenze.map((p) => (
+              <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
+                <td style={{ padding: '0.5rem' }}>{Number(p.ore_ordinarie || 0).toFixed(2)}</td>
+                {!isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_eccedenti || 0).toFixed(2)}</td>}
+                {isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_straordinarie || 0).toFixed(2)}</td>}
+                <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
+                <td style={{ padding: '0.5rem' }}>{Number(p.ore_causale || 0).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       {(stato === 'inviato' || stato === 'rifiutato' || stato === 'reinviato') && (
-        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
             onClick={() => handleAzione('approvato')}
             style={{
