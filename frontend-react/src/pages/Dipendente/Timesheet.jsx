@@ -12,6 +12,7 @@ import {
 } from '../../services/presenzeService'
 import { isFoglioCompleto } from '../../utils/foglioCompleto'
 import QrCodeModal from '../../components/QrCodeModal'
+import '../../styles/dipendente-pages.css'
 
 const CAUSALI = [
   { value: 'lavoro', label: '-- Nessuna --' },
@@ -121,12 +122,12 @@ function RigaGiorno({
   }
 
   return (
-    <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-      <td style={{ padding: '0.5rem' }}>
-        {giorno} <span style={{ opacity: 0.7 }}>({nomeGiorno})</span>
+    <tr className="rg-row">
+      <td className="rg-cell">
+        {giorno} <span className="rg-day-name">({nomeGiorno})</span>
       </td>
 
-      <td style={{ padding: '0.5rem' }}>
+      <td className="rg-cell">
         <input
           type="number"
           min="0"
@@ -134,13 +135,13 @@ function RigaGiorno({
           value={Number(riga.ore_ordinarie || 0).toFixed(2)}
           onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           disabled={disabled || isOreDisabled}
-          style={{ width: '60px', padding: '0.25rem' }}
+          className="rg-input-narrow"
           title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : ''}
         />
       </td>
 
       {!isFullTime && (
-        <td style={{ padding: '0.5rem' }}>
+        <td className="rg-cell">
           <input
             type="number"
             min="0"
@@ -148,14 +149,14 @@ function RigaGiorno({
             value={Number(riga.ore_eccedenti || 0).toFixed(2)}
             onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             disabled={disabled || isOreDisabled}
-            style={{ width: '60px', padding: '0.25rem' }}
+            className="rg-input-narrow"
             title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : 'Ore eccedenti (oltre il limite ordinario del giorno)'}
           />
         </td>
       )}
 
       {isFullTime && (
-        <td style={{ padding: '0.5rem' }}>
+        <td className="rg-cell">
           <input
             type="number"
             min="0"
@@ -163,23 +164,23 @@ function RigaGiorno({
             value={Number(riga.ore_straordinarie || 0).toFixed(2)}
             onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             disabled={disabled || isOreDisabled}
-            style={{ width: '60px', padding: '0.25rem' }}
+            className="rg-input-narrow"
             title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : ''}
           />
           {riga.ore_straordinarie > 4 && (
-            <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.25rem' }}>
+            <div className="rg-warning">
               Attenzione: superato limite consigliato di straordinario giornaliero
             </div>
           )}
         </td>
       )}
 
-      <td style={{ padding: '0.5rem' }}>
+      <td className="rg-cell">
         <select
           value={riga.causale}
           onChange={(e) => handleCausaleChange(e.target.value)}
           disabled={disabled}
-          style={{ padding: '0.25rem' }}
+          className="rg-select"
         >
           {CAUSALI.map((c) => (
             <option key={c.value} value={c.value}>{c.label}</option>
@@ -187,28 +188,28 @@ function RigaGiorno({
         </select>
 
         {isMalattia && riga.protocollo_malattia && (
-          <div style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>
+          <div className="rg-note">
             Prot. {riga.protocollo_malattia}<br/>
             Dal {formattaData(riga.data_inizio_malattia)} al {formattaData(riga.data_fine_malattia)}
           </div>
         )}
 
         {isInfortunio && (
-          <div style={{ marginTop: '0.4rem' }}>
+          <div className="rg-file-wrap">
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={(e) => onUploadInfortunio(giorno, e.target.files[0])}
-              style={{ fontSize: '0.75rem', width: '160px' }}
+              className="rg-file-input"
             />
             {riga.giustificativo_infortunio_path && (
-              <div style={{ fontSize: '0.75rem', color: '#16a34a' }}>✓ Allegato caricato</div>
+              <div className="rg-file-ok">✓ Allegato caricato</div>
             )}
           </div>
         )}
       </td>
 
-      <td style={{ padding: '0.5rem' }}>
+      <td className="rg-cell">
         <input
           type="number"
           min="0"
@@ -217,13 +218,13 @@ function RigaGiorno({
           value={Number(riga.ore_causale || 0).toFixed(2)}
           onChange={(e) => onChange({ ...riga, ore_causale: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           disabled={disabled}
-          style={{ width: '60px', padding: '0.25rem' }}
+          className="rg-input-narrow"
         />
       </td>
 
-      <td style={{ padding: '0.5rem' }}>
+      <td className="rg-cell">
         {mostraModalita && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem', alignItems: 'flex-start' }}>
+          <div className="rg-modalita">
             <label>
               <input
                 type="radio"
@@ -264,22 +265,22 @@ function RigaGiorno({
             </label>
 
             {isTrasferta && (
-              <div style={{ marginTop: '0.3rem' }}>
+              <div className="rg-file-wrap">
                 <input
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={(e) => onUploadTrasferta(giorno, e.target.files[0])}
-                  style={{ fontSize: '0.75rem', width: '160px' }}
+                  className="rg-file-input"
                 />
                 {riga.giustificativo_trasferta_path && (
-                  <div style={{ fontSize: '0.75rem', color: '#16a34a' }}>✓ Allegato caricato</div>
+                  <div className="rg-file-ok">✓ Allegato caricato</div>
                 )}
               </div>
             )}
 
             {/* 🔹 Checkbox QR Code - integrato nella colonna Modalità (solo tempo pieno + causale lavoro + in_sede) */}
             {isFullTime && riga.causale === 'lavoro' && riga.modalita_lavoro === 'in_sede' && (
-              <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center' }}>
+              <div className="rg-qr-toggle">
                 <input
                   type="checkbox"
                   checked={riga.usa_qr || false}
@@ -293,16 +294,10 @@ function RigaGiorno({
                   }}
                   disabled={disabled}
                   title="Attiva/disattiva timbratura tramite QR Code"
-                  style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
+                  className="rg-qr-checkbox"
                 />
                 <span 
-                  style={{ 
-                    marginLeft: '0.5rem', 
-                    fontSize: '0.8rem',
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    opacity: disabled ? 0.6 : 1,
-                    color: riga.usa_qr ? '#3b82f6' : 'inherit'
-                  }}
+                  className={`rg-qr-label ${riga.usa_qr ? 'is-active' : ''} ${disabled ? 'is-blocked' : ''}`}
                   onClick={() => {
                     if (disabled) return
                     if (riga.usa_qr) {
@@ -321,17 +316,10 @@ function RigaGiorno({
 
 
 
-      <td style={{ padding: '0.5rem' }}>
+      <td className="rg-cell">
         {/* Mostra stato timbrature se usa_qr è attivo */}
         {riga.usa_qr && isSalvato && (
-          <div style={{ 
-            fontSize: '0.75rem', 
-            marginBottom: '0.25rem',
-            padding: '0.25rem 0.5rem',
-            borderRadius: '4px',
-            backgroundColor: riga.ora_ingresso && riga.ora_uscita ? '#dcfce7' : '#fef3c7',
-            color: riga.ora_ingresso && riga.ora_uscita ? '#166534' : '#92400e'
-          }}>
+          <div className={`rg-qr-status ${riga.ora_ingresso && riga.ora_uscita ? 'is-complete' : 'is-waiting'}`}>
             {riga.ora_ingresso && riga.ora_uscita && (
               <span>In: {riga.ora_ingresso}<br/>Out: {riga.ora_uscita}</span>
             )}
@@ -347,18 +335,7 @@ function RigaGiorno({
         <button
           onClick={onSalva}
           disabled={salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled}
-          style={{
-            padding: '0.25rem 0.75rem',
-            backgroundColor: (isFoglioApprovato || disabled || isSalvato) ? '#93c5fd' : '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: (salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled) ? 'not-allowed' : 'pointer',
-            fontSize: '0.85rem',
-            opacity: (isFoglioApprovato || disabled || isSalvato) ? 0.6 : 1,
-            display: 'block',
-            width: '100%'
-          }}
+          className={`rg-btn-save ${(isFoglioApprovato || disabled || isSalvato) ? 'is-disabled' : ''}`}
           title={disabled ? 'Non puoi salvare: contratto scaduto' : (isFoglioApprovato || isSalvato) ? (isFoglioApprovato ? 'Foglio approvato. Non è possibile modificare.' : 'Riga già salvata. Non è possibile modificare.') : (isFoglioInviato ? 'Foglio inviato. Non è possibile modificare.' : '')}
         >
           {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
@@ -373,49 +350,45 @@ function ModaleMalattia({ dataInizio, onConferma, onAnnulla }) {
   const [protocollo, setProtocollo] = useState('')
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', zIndex: 1000
-    }}>
-      <div style={{ backgroundColor: '#1f2937', padding: '1.5rem', borderRadius: '8px', width: '360px' }}>
-        <h3 style={{ marginTop: 0 }}>Registra periodo di malattia</h3>
+    <div className="modal-overlay">
+      <div className="modal-box">
+        <h3 className="modal-h3">Registra periodo di malattia</h3>
 
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="modal-field">
           <label>Dal</label>
-          <input type="date" value={dataInizio} disabled style={{ display: 'block', width: '100%', padding: '0.4rem' }} />
+          <input type="date" value={dataInizio} disabled className="modal-input" />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="modal-field">
           <label>Al</label>
           <input
             type="date"
             value={dataFine}
             min={dataInizio}
             onChange={(e) => setDataFine(e.target.value)}
-            style={{ display: 'block', width: '100%', padding: '0.4rem' }}
+            className="modal-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="modal-field-last">
           <label>Numero protocollo certificato</label>
           <input
             type="text"
             value={protocollo}
             onChange={(e) => setProtocollo(e.target.value)}
             placeholder="es. INPS-2026-XXXXX"
-            style={{ display: 'block', width: '100%', padding: '0.4rem' }}
+            className="modal-input"
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-          <button onClick={onAnnulla} style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+        <div className="modal-actions">
+          <button onClick={onAnnulla} className="btn btn-secondary">
             Annulla
           </button>
           <button
             onClick={() => onConferma(dataFine, protocollo)}
             disabled={!protocollo}
-            style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            className="btn btn-primary"
           >
             Conferma
           </button>
@@ -430,31 +403,27 @@ function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
   const [percentuale, setPercentuale] = useState(100)
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', zIndex: 1000
-    }}>
-      <div style={{ backgroundColor: '#1f2937', padding: '1.5rem', borderRadius: '8px', width: '360px' }}>
-        <h3 style={{ marginTop: 0 }}>Registra periodo di Cassa Integrazione</h3>
+    <div className="modal-overlay">
+      <div className="modal-box">
+        <h3 className="modal-h3">Registra periodo di Cassa Integrazione</h3>
 
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="modal-field">
           <label>Dal</label>
-          <input type="date" value={dataInizio} disabled style={{ display: 'block', width: '100%', padding: '0.4rem' }} />
+          <input type="date" value={dataInizio} disabled className="modal-input" />
         </div>
 
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="modal-field">
           <label>Al</label>
           <input
             type="date"
             value={dataFine}
             min={dataInizio}
             onChange={(e) => setDataFine(e.target.value)}
-            style={{ display: 'block', width: '100%', padding: '0.4rem' }}
+            className="modal-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="modal-field-last">
           <label>Percentuale (%)</label>
           <input
             type="number"
@@ -462,18 +431,18 @@ function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
             min="0"
             max="100"
             onChange={(e) => setPercentuale(parseInt(e.target.value) || 0)}
-            style={{ display: 'block', width: '100%', padding: '0.4rem' }}
+            className="modal-input"
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-          <button onClick={onAnnulla} style={{ padding: '0.5rem 1rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+        <div className="modal-actions">
+          <button onClick={onAnnulla} className="btn btn-secondary">
             Annulla
           </button>
           <button
             onClick={() => onConferma(dataFine, percentuale)}
             disabled={percentuale <= 0 || percentuale > 100}
-            style={{ padding: '0.5rem 1rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+            className="btn btn-primary"
           >
             Conferma
           </button>
@@ -500,43 +469,25 @@ function ModaleQrSettings({
   }
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex',
-      alignItems: 'center', justifyContent: 'center', zIndex: 1001
-    }} onClick={(e) => {
+    <div className="modal-overlay modal-overlay-top" onClick={(e) => {
       if (e.target === e.currentTarget) {
         onClose()
       }
     }}>
-      <div style={{ 
-        backgroundColor: '#1f2937', 
-        padding: '1.5rem', 
-        borderRadius: '8px', 
-        width: '400px',
-        maxWidth: '90vw'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h3 style={{ marginTop: 0, color: 'white', marginBottom: 0 }}>Configurazione QR Code</h3>
+      <div className="modal-box modal-box-wide">
+        <div className="modal-header">
+          <h3 className="modal-title">Configurazione QR Code</h3>
           <button 
             onClick={onClose} 
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'white', 
-              fontSize: '1.5rem', 
-              cursor: 'pointer',
-              padding: '0 0.25rem',
-              lineHeight: 1
-            }}
+            className="modal-close"
             title="Chiudi"
           >
             ×
           </button>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', color: 'white', marginBottom: '0.5rem' }}>
+        <div className="modal-field-last">
+          <label className="modal-label-light">
             pausa non retribuita
           </label>
           <input
@@ -547,34 +498,20 @@ function ModaleQrSettings({
             value={Number(riga.pausa_ore || 0).toFixed(2)}
             onChange={(e) => handlePausaChange(e.target.value)}
             disabled={disabled}
-            style={{ 
-              width: '100%', 
-              padding: '0.5rem', 
-              borderRadius: '4px',
-              border: '1px solid #4b5563'
-            }}
+            className="modal-input-dark"
             title="Ore di pausa (saranno sottratte dal totale)"
           />
-          <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+          <p className="modal-hint">
             Le ore di pausa verranno sottratte dal totale calcolato
           </p>
         </div>
 
         {/* Pulsante Kiosk - sempre visibile */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="modal-field-last">
           <button
             onClick={() => onGenerateQr && onGenerateQr(dataStr)}
             disabled={disabled}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              fontSize: '0.85rem',
-              width: '100%'
-            }}
+            className="btn btn-kiosk"
             title="Apri kiosk per timbrare con QR Code"
           >
             📱 Scansiona il QR code
@@ -583,31 +520,17 @@ function ModaleQrSettings({
 
         {/* Mostra stato timbrature */}
         {isSalvato && (
-          <div style={{ marginBottom: '1rem' }}>
+          <div className="modal-field">
             {riga.ora_ingresso && !riga.ora_uscita && (
-              <div style={{ 
-                fontSize: '0.75rem', 
-                color: '#fbbf24', 
-                padding: '0.5rem',
-                backgroundColor: 'rgba(251, 191, 36, 0.1)',
-                borderRadius: '4px',
-                textAlign: 'center'
-              }}>
+              <div className="qr-status qr-status-waiting">
                 ⏳ Ingresso: {riga.ora_ingresso} - Uscita: in attesa
               </div>
             )}
             {riga.ora_ingresso && riga.ora_uscita && (
-              <div style={{ 
-                fontSize: '0.75rem', 
-                color: '#34d399', 
-                padding: '0.5rem',
-                backgroundColor: 'rgba(52, 211, 153, 0.1)',
-                borderRadius: '4px',
-                textAlign: 'center'
-              }}>
+              <div className="qr-status qr-status-complete">
                 ✓ Ingresso: {riga.ora_ingresso} - Uscita: {riga.ora_uscita}
                 {riga.ore_ordinarie && (
-                  <div style={{ marginTop: '0.25rem', fontSize: '0.7rem' }}>
+                  <div className="qr-status-detail">
                     Ore ordinarie: {Number(riga.ore_ordinarie).toFixed(2)} h
                     {riga.ore_straordinarie > 0 && (
                       <span>, Straordinarie: {Number(riga.ore_straordinarie).toFixed(2)} h</span>
@@ -619,21 +542,14 @@ function ModaleQrSettings({
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+        <div className="modal-actions modal-actions-top">
           {isSalvato && onRefresh && (
             <button 
               onClick={() => {
                 // Ricarica la riga dal backend per vedere gli aggiornamenti
                 onRefresh && onRefresh(dataStr)
               }} 
-              style={{ 
-                padding: '0.5rem 1rem', 
-                backgroundColor: '#2563eb', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: 'pointer'
-              }}
+              className="btn btn-primary"
               title="Ricarica i dati dal server per vedere gli aggiornamenti delle timbrature"
             >
               Verifica scansione
@@ -714,16 +630,16 @@ function CardGiorno({
   }
 
   return (
-    <div style={{ backgroundColor: '#1f2937', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
+    <div className="card-giorno">
       {/* Header con data */}
-      <div style={{ textAlign: 'center', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #374151' }}>
-        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f3f4f6' }}>{giorno} {nomeMese}</div>
-        <div style={{ fontSize: '0.9rem', color: '#9ca3af' }}>{nomeGiorno}</div>
+      <div className="card-giorno-header">
+        <div className="card-giorno-date">{giorno} {nomeMese}</div>
+        <div className="card-giorno-dayname">{nomeGiorno}</div>
       </div>
 
       {/* Campo Ore Ordinarie */}
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Ordinarie</label>
+      <div className="card-field">
+        <label className="card-label">Ore Ordinarie</label>
         <input
           type="number"
           min="0"
@@ -731,14 +647,14 @@ function CardGiorno({
           value={Number(riga.ore_ordinarie || 0).toFixed(2)}
           onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           disabled={disabled || isOreDisabled}
-          style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+          className="card-input"
         />
       </div>
 
       {/* Campo Ore */}
       {!isFullTime && (
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Eccedenti</label>
+        <div className="card-field">
+          <label className="card-label">Ore Eccedenti</label>
           <input
             type="number"
             min="0"
@@ -746,14 +662,14 @@ function CardGiorno({
             value={Number(riga.ore_eccedenti || 0).toFixed(2)}
             onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             disabled={disabled || isOreDisabled}
-            style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+            className="card-input"
           />
         </div>
       )}
 
       {isFullTime && (
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Straordinarie</label>
+        <div className="card-field">
+          <label className="card-label">Ore Straordinarie</label>
           <input
             type="number"
             min="0"
@@ -761,19 +677,19 @@ function CardGiorno({
             value={Number(riga.ore_straordinarie || 0).toFixed(2)}
             onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
             disabled={disabled || isOreDisabled}
-            style={{ width: '80px', padding: '0.5rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+            className="card-input"
           />
         </div>
       )}
 
       {/* Causale */}
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Causale (altro da Lavoro)</label>
+      <div className="card-field">
+        <label className="card-label">Causale (altro da Lavoro)</label>
         <select
           value={riga.causale}
           onChange={(e) => handleCausaleChange(e.target.value)}
           disabled={disabled}
-          style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+          className="card-select"
         >
           {CAUSALI.map((c) => (
             <option key={c.value} value={c.value}>{c.label}</option>
@@ -781,30 +697,30 @@ function CardGiorno({
         </select>
 
         {isMalattia && riga.protocollo_malattia && (
-          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#9ca3af' }}>
+          <div className="card-note">
             Prot. {riga.protocollo_malattia}<br/>
             Dal {formattaData(riga.data_inizio_malattia)} al {formattaData(riga.data_fine_malattia)}
           </div>
         )}
 
         {isInfortunio && (
-          <div style={{ marginTop: '0.5rem' }}>
+          <div className="card-subfield">
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png"
               onChange={(e) => onUploadInfortunio(giorno, e.target.files[0])}
-              style={{ fontSize: '0.75rem', width: '100%', color: '#9ca3af' }}
+              className="card-file-input"
             />
             {riga.giustificativo_infortunio_path && (
-              <div style={{ fontSize: '0.75rem', color: '#34d399' }}>✓ Allegato caricato</div>
+              <div className="card-file-ok">✓ Allegato caricato</div>
             )}
           </div>
         )}
       </div>
 
       {/* Ore Causale */}
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Ore Causale</label>
+      <div className="card-field">
+        <label className="card-label">Ore Causale</label>
         <input
           type="number"
           min="0"
@@ -813,68 +729,68 @@ function CardGiorno({
           value={Number(riga.ore_causale || 0).toFixed(2)}
           onChange={(e) => onChange({ ...riga, ore_causale: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           disabled={disabled}
-          style={{ width: '80px', padding: '0.6rem', borderRadius: '6px', border: '1px solid #4b5563', backgroundColor: '#374151', color: '#f3f4f6' }}
+          className="card-input card-input-causale"
         />
       </div>
 
       {/* Modalità */}
       {mostraModalita && (
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', color: '#d1d5db', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Modalità</label>
+        <div className="card-field">
+          <label className="card-label card-label-spaced">Modalità</label>
           
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem', backgroundColor: riga.modalita_lavoro === 'in_sede' ? '#2563eb' : '#374151', borderRadius: '6px', cursor: disabled ? 'not-allowed' : 'pointer', color: '#f3f4f6', fontSize: '0.85rem' }}>
+          <div className="card-mode-row">
+            <label className={`card-mode-btn ${riga.modalita_lavoro === 'in_sede' ? 'is-active' : ''} ${disabled ? 'is-blocked' : ''}`}>
               <input
                 type="radio"
                 name={`modalita-mobile-${giorno}`}
                 checked={riga.modalita_lavoro === 'in_sede'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'in_sede' })}
                 disabled={disabled}
-                style={{ display: 'none' }}
+                className="card-mode-radio-hidden"
               />
               In sede
             </label>
-            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem', backgroundColor: riga.modalita_lavoro === 'smart_working' ? '#2563eb' : '#374151', borderRadius: '6px', cursor: disabled ? 'not-allowed' : 'pointer', color: '#f3f4f6', fontSize: '0.85rem' }}>
+            <label className={`card-mode-btn ${riga.modalita_lavoro === 'smart_working' ? 'is-active' : ''} ${disabled ? 'is-blocked' : ''}`}>
               <input
                 type="radio"
                 name={`modalita-mobile-${giorno}`}
                 checked={riga.modalita_lavoro === 'smart_working'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'smart_working', usa_qr: false })}
                 disabled={disabled}
-                style={{ display: 'none' }}
+                className="card-mode-radio-hidden"
               />
               SW
             </label>
-            <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem', backgroundColor: riga.modalita_lavoro === 'trasferta' ? '#2563eb' : '#374151', borderRadius: '6px', cursor: disabled ? 'not-allowed' : 'pointer', color: '#f3f4f6', fontSize: '0.85rem' }}>
+            <label className={`card-mode-btn ${riga.modalita_lavoro === 'trasferta' ? 'is-active' : ''} ${disabled ? 'is-blocked' : ''}`}>
               <input
                 type="radio"
                 name={`modalita-mobile-${giorno}`}
                 checked={riga.modalita_lavoro === 'trasferta'}
                 onChange={() => onChange({ ...riga, modalita_lavoro: 'trasferta', usa_qr: false })}
                 disabled={disabled}
-                style={{ display: 'none' }}
+                className="card-mode-radio-hidden"
               />
               Trasferta
             </label>
           </div>
 
           {isTrasferta && (
-            <div style={{ marginTop: '0.5rem' }}>
+            <div className="card-subfield">
               <input
                 type="file"
                 accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => onUploadTrasferta(giorno, e.target.files[0])}
-                style={{ fontSize: '0.75rem', width: '100%', color: '#9ca3af' }}
+                className="card-file-input"
               />
               {riga.giustificativo_trasferta_path && (
-                <div style={{ fontSize: '0.75rem', color: '#34d399' }}>✓ Allegato caricato</div>
+                <div className="card-file-ok">✓ Allegato caricato</div>
               )}
             </div>
           )}
 
           {/* QR Code Checkbox */}
           {isFullTime && riga.causale === 'lavoro' && riga.modalita_lavoro === 'in_sede' && (
-            <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="card-qr-row">
               <input
                 type="checkbox"
                 checked={riga.usa_qr || false}
@@ -890,7 +806,7 @@ function CardGiorno({
               />
               <label 
                 htmlFor={`qr-checkbox-mobile-${giorno}`}
-                style={{ color: riga.usa_qr ? '#60a5fa' : '#9ca3af', cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '0.85rem' }}
+                className={`card-qr-label ${riga.usa_qr ? 'is-active' : ''} ${disabled ? 'is-blocked' : ''}`}
               >
                 QR Code
               </label>
@@ -901,15 +817,7 @@ function CardGiorno({
 
       {/* Stato timbrature QR */}
       {riga.usa_qr && isSalvato && (
-        <div style={{ 
-          marginBottom: '1rem',
-          padding: '0.75rem',
-          borderRadius: '6px',
-          backgroundColor: riga.ora_ingresso && riga.ora_uscita ? 'rgba(52, 211, 153, 0.1)' : 'rgba(251, 191, 36, 0.1)',
-          color: riga.ora_ingresso && riga.ora_uscita ? '#34d399' : '#fbbf24',
-          fontSize: '0.85rem',
-          textAlign: 'center'
-        }}>
+        <div className={`card-qr-status ${riga.ora_ingresso && riga.ora_uscita ? 'is-complete' : 'is-waiting'}`}>
           {riga.ora_ingresso && riga.ora_uscita && (
             <span>In: {riga.ora_ingresso} - Out: {riga.ora_uscita}</span>
           )}
@@ -926,17 +834,7 @@ function CardGiorno({
       <button
         onClick={onSalva}
         disabled={salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          backgroundColor: (isFoglioApprovato || disabled || isSalvato) ? '#4b5563' : '#2563eb',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: (salvando || isFoglioApprovato || isSalvato || (isFoglioInviato && isSalvato) || disabled) ? 'not-allowed' : 'pointer',
-          fontSize: '1rem',
-          fontWeight: 'bold'
-        }}
+        className={`card-btn-save ${(isFoglioApprovato || disabled || isSalvato) ? 'is-disabled' : ''}`}
       >
         {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
       </button>
@@ -1487,7 +1385,7 @@ useEffect(() => {
     }
   }
 
-  if (loading) return <p style={{ padding: '2rem' }}>Caricamento...</p>
+  if (loading) return <p className="loading-state">Caricamento...</p>
 
   // Determina se il dipendente è full-time (gestisce sia numero che stringa)
   const isFullTime = Number(dipendente?.percentuale_part_time) === 100;
@@ -1539,32 +1437,24 @@ useEffect(() => {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-<div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h1 className="page-title" style={{ margin: 0, fontSize: '1.5rem', lineHeight: '1.4', flex: '1 1 200px' }}>
+    <div className="presenze-page">
+      <div className="page-header">
+        <h1 className="page-title">
           Presenze - {NOMI_MESI[mese - 1]} {anno}
         </h1>
       </div>
       
       {messaggioBlocco && (
-        <div style={{
-          padding: '1rem', 
-          backgroundColor: '#fca5a5', 
-          color: '#991b1b', 
-          borderRadius: '8px',
-          marginBottom: '1.5rem',
-          fontWeight: '500',
-          textAlign: 'center'
-        }}>
+        <div className="alert-danger">
           ⚠️ {messaggioBlocco}
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+      <div className="toolbar">
         <select
           value={mese}
           onChange={(e) => setMese(parseInt(e.target.value))}
-          style={{ padding: '0.5rem', borderRadius: '4px' }}
+          className="select-control"
         >
           {Array.from({ length: 12 }, (_, i) => (
             <option key={i + 1} value={i + 1}>{NOMI_MESI[i]}</option>
@@ -1573,7 +1463,7 @@ useEffect(() => {
         <select
           value={anno}
           onChange={(e) => setAnno(parseInt(e.target.value))}
-          style={{ padding: '0.5rem', borderRadius: '4px' }}
+          className="select-control"
         >
           {Array.from({ length: 5 }, (_, i) => {
             const y = oggi.getFullYear() - 2 + i
@@ -1582,68 +1472,51 @@ useEffect(() => {
         </select>
         <button
           onClick={handleMeseCorrente}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#6b7280',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          className="btn btn-secondary"
         >
           Mese corrente
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#eff6ff', borderRadius: '6px', fontSize: '0.85rem' }}>
+      <div className="totals-row">
+        <div className="badge badge-blue">
           <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
         </div>
         {!isFullTime && (
-          <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <div className="badge badge-amber">
             <strong>Ore Eccedenti:</strong> {totaleEccedenti}
           </div>
         )}
         {isFullTime && (
-          <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fef3c7', borderRadius: '6px', fontSize: '0.85rem' }}>
+          <div className="badge badge-amber">
             <strong>Straordinari:</strong> {totaleStraordinarie}
           </div>
         )}
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
+        <div className="badge badge-green">
           <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
         </div>
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
+        <div className="badge badge-green">
           <strong>PR:</strong> {totalePermessiRetribuiti}
         </div>
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '0.85rem' }}>
+        <div className="badge badge-green">
           <strong>PNR:</strong> {totalePermessiNonRetribuiti}
         </div>
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fde68a', borderRadius: '6px', fontSize: '0.85rem' }}>
+        <div className="badge badge-yellow">
           <strong>INPS:</strong> {totaleOreINPS}
         </div>
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#fca5a5', borderRadius: '6px', fontSize: '0.85rem' }}>
+        <div className="badge badge-red">
           <strong>INAIL:</strong> {totaleOreINAIL}
         </div>
-        <div style={{ padding: '0.5rem 0.75rem', backgroundColor: '#e0e7ff', borderRadius: '6px', fontSize: '0.85rem' }}>
+        <div className="badge badge-indigo">
           <strong>CIG:</strong> {totaleCassaIntegrazione}
         </div>
       </div>
 
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div className="invia-wrap">
         <button
           onClick={handleInvia}
           disabled={isDisabled}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: isDisabled ? '#93c5fd' : '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isDisabled ? 'not-allowed' : 'pointer',
-            fontSize: '0.85rem',
-            display: 'block',
-            margin: '0 auto'
-          }}
+          className={`btn-invia ${isDisabled ? 'is-disabled' : ''}`}
           title={
             !puoInserirePresenze() ? 'Non puoi inviare: contratto scaduto' :
             statoFoglio === 'approvato' ? 'Foglio già approvato. Non è possibile reinviare.' :
@@ -1657,39 +1530,24 @@ useEffect(() => {
         </button>
         {/* Banner inline: errore se compilazione incompleta */}
         {!foglioCompletoInfo.completo && (
-          <p style={{
-            color: '#dc2626',
-            fontSize: '0.8rem',
-            textAlign: 'center',
-            marginTop: '0.5rem',
-            marginBottom: 0,
-          }}>
+          <p className="banner-error">
             🚫 {foglioCompletoInfo.message}
           </p>
         )}
         {/* Banner inline: warning se saltati riposi */}
         {foglioCompletoInfo.completo && foglioCompletoInfo.warning && (
-          <p style={{
-            color: '#92400e',
-            backgroundColor: '#fef3c7',
-            fontSize: '0.8rem',
-            textAlign: 'center',
-            marginTop: '0.5rem',
-            marginBottom: 0,
-            padding: '0.25rem 0.5rem',
-            borderRadius: '4px',
-          }}>
+          <p className="banner-warn">
             ⚠️ {foglioCompletoInfo.warning}
           </p>
         )}
       </div>
 
-      {messaggio && <p style={{ color: 'green' }}>{messaggio}</p>}
-      {errore && <p style={{ color: 'red' }}>{errore}</p>}
+      {messaggio && <p className="text-success">{messaggio}</p>}
+      {errore && <p className="text-error">{errore}</p>}
       {/* Selettore giorno per Mobile - Calendario */}
-      <div className="mobile-day-selector" style={{ display: 'none', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-          <label style={{ color: '#d1d5db', fontSize: '0.9rem' }}> seleziona il giorno:</label>
+      <div className="mobile-day-selector">
+        <div className="mobile-day-selector-inner">
+          <label className="mobile-day-label"> seleziona il giorno:</label>
           <input
             type="date"
             value={`${anno}-${String(mese).padStart(2, '0')}-${String(giornoSelezionato).padStart(2, '0')}`}
@@ -1701,22 +1559,13 @@ useEffect(() => {
                 setGiornoSelezionato(parseInt(d))
               }
             }}
-            style={{
-              padding: '0.5rem',
-              borderRadius: '6px',
-              border: '1px solid #4b5563',
-              backgroundColor: '#374151',
-              color: '#f3f4f6',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              colorScheme: 'dark'
-            }}
+            className="mobile-date-input"
           />
         </div>
       </div>
 
       {/* Card Giorno per Mobile */}
-      <div className="mobile-day-card" style={{ display: 'none' }}>
+      <div className="mobile-day-card">
         {(() => {
           const dataStr = getDataStr(anno, mese, giornoSelezionato)
           const riga = getRiga(dataStr)
@@ -1748,17 +1597,17 @@ useEffect(() => {
       {/* Tabella Desktop */}
       <div className="desktop-table">
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className="presenze-table">
         <thead>
-          <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-            <th style={{ padding: '0.5rem' }}></th>
-            <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-            {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
-            {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
-            <th style={{ padding: '0.5rem' }}>Causale (altro da Lavoro)</th>
-            <th style={{ padding: '0.5rem' }}>Altro</th>
-            <th style={{ padding: '0.5rem' }}>Modalità</th>
-            <th style={{ padding: '0.5rem' }}></th>
+          <tr className="presenze-table-head">
+            <th></th>
+            <th>Ore Ordinarie</th>
+            {!isFullTime && <th>Ore Eccedenti</th>}
+            {isFullTime && <th>Ore Straordinarie</th>}
+            <th>Causale (altro da Lavoro)</th>
+            <th>Altro</th>
+            <th>Modalità</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -1835,48 +1684,6 @@ useEffect(() => {
           }}
         />
       )}
-      <style>
-        {`
-          .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-          }
-          .page-title {
-            margin: 0;
-            font-size: 1.5rem;
-            line-height: 1.4;
-            flex: 1 1 200px;
-          }
-          @media (max-width: 768px) {
-            .page-title {
-              font-size: 1.25rem;
-              line-height: 1.5;
-              width: 100%;
-              margin-bottom: 0.5rem;
-            }
-            .mobile-day-selector,
-            .mobile-day-card {
-              display: block !important;
-            }
-            .desktop-table {
-              display: none !important;
-            }
-          }
-          @media (min-width: 769px) {
-            .mobile-day-selector,
-            .mobile-day-card {
-              display: none !important;
-            }
-            .desktop-table {
-              display: block !important;
-            }
-          }
-        `}
-      </style>
     </div>
   )
 }

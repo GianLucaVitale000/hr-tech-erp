@@ -22,6 +22,7 @@ import DipendenteLayout from './components/DipendenteLayout'
 
 import './styles/admin.css'
 import './styles/dipendente.css'
+import './styles/dipendente-pages.css'
 
 function App() {
   return (

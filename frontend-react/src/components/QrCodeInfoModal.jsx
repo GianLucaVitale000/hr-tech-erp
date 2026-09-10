@@ -29,27 +29,27 @@ function QrCodeInfoModal({ onClose }) {
     {
       step: 2,
       title: 'Seleziona "In sede"',
-      description: 'A quel punto, appare il checkbox per il QR Code.'
+      description: 'Apparirà il checkbox per il QR Code.'
     },
     {
       step: 3,
       title: 'Salva la riga',
-      description: 'una prima volta, serve per salvare le impostazioni'
+      description: 'Click su "Salva" una prima volta: serve per salvare le impostazioni del foglio presenze.'
     },
     {
       step: 4,
       title: 'Attiva il QR Code',
-      description: 'Spunta il checkbox "QR Code" e si aprirà una modale'
+      description: 'Spuntando il checkbox "QR Code", si aprirà una finestra'
     },
     {
       step: 5,
       title: 'Configura la pausa',
-      description: 'imposta nella modale la pausa, se necessario.'
+      description: 'imposta la pausa, se prevista.'
     },
     {
       step: 6,
       title: 'Conferma',
-      description: 'Clicca una seconda volta su "Salva"'
+      description: 'Click su "Salva" una seconda volta per confermare le modifiche.'
     }
   ]
 
@@ -77,7 +77,7 @@ function QrCodeInfoModal({ onClose }) {
         borderRadius: '12px',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         maxWidth: '480px',
-        width: '90%',
+        width: '80%',
         maxHeight: '85vh',
         overflowY: 'auto',
         animation: 'fadeIn 0.2s ease-out',
