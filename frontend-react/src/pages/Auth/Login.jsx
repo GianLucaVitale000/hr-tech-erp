@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import api from '../../services/api'
+import Logo from '../../components/Admin/Logo'
 import '../../styles/login.css'
 
 function Login() {
@@ -55,7 +56,10 @@ function Login() {
   if (!showLoginForm) {
     return (
       <div className={`login-splash ${isFading ? 'fade-out' : ''}`}>
-        <h1>HR-Tech ERP</h1>
+        <div className="login-logo-container">
+          <Logo className="login-logo" />
+          <span className="login-brand">HR-Tech ERP</span>
+        </div>
       </div>
     )
   }
@@ -63,7 +67,11 @@ function Login() {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2 className="login-title">HR-Tech ERP</h2>
+         <div className="login-logo-container">
+          <Logo className="login-logo" />
+          <span className="login-brand">HR-Tech ERP</span>
+        </div>
+
 
         {error && (
           <p className="login-error">{error}</p>
