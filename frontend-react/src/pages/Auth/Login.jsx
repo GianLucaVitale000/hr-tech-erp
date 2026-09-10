@@ -92,6 +92,7 @@ function Login() {
       <div style={{
         width: '360px',
         padding: '2rem',
+        margin: '1rem',
         border: '1px solid #ddd',
         borderRadius: '8px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -112,7 +113,7 @@ function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+              style={{ display: 'block', width: '94%', padding: '0.5rem', marginTop: '0.25rem' }}
             />
           </div>
 
@@ -123,7 +124,7 @@ function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+              style={{ display: 'block', width: '94%', padding: '0.5rem', marginTop: '0.25rem' }}
             />
           </div>
 
