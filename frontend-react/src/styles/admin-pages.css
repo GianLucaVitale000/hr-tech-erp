@@ -1,0 +1,923 @@
+/* ==========================================
+   UTENTI PAGE STYLES
+   ========================================== */
+
+.utenti-container {
+  padding: 2.5rem;
+  font-family: sans-serif;
+}
+
+.utenti-header {
+  margin-bottom: 1.5rem;
+}
+
+.utenti-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.utenti-title {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.utenti-add-button {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.utenti-error {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.utenti-empty {
+  color: #6b7280;
+}
+
+/* Mobile Layout */
+.utenti-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.utenti-card {
+  background-color: #374151;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #4b5563;
+}
+
+.utenti-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.utenti-card-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #4b5563;
+}
+
+.utenti-card-field:last-child {
+  border-bottom: none;
+}
+
+.utenti-card-label {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.utenti-card-value {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.utenti-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.utenti-card-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  flex: 1;
+}
+
+.utenti-card-button-edit {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.utenti-card-button-delete {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* Desktop Layout */
+.utenti-table-container {
+  overflow-x: auto;
+}
+
+.utenti-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.utenti-table-header {
+  background-color: #f3f4f6;
+  text-align: center;
+}
+
+.utenti-table-header th {
+  padding: 0.75rem;
+}
+
+.utenti-table-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.utenti-table-row td {
+  padding: 0.75rem;
+}
+
+.utenti-table-button {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.utenti-table-button-edit {
+  background-color: #3b82f6;
+  color: white;
+  margin-right: 0.5rem;
+}
+
+.utenti-table-button-delete {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* ==========================================
+   EDIT UTENTE PAGE STYLES
+   ========================================== */
+
+.edit-utente-loading-container {
+  padding: 2rem;
+  font-family: sans-serif;
+}
+
+.edit-utente-container {
+  padding: 2rem;
+  font-family: sans-serif;
+  max-width: 600px;
+}
+
+.edit-utente-header {
+  margin-bottom: 1.5rem;
+}
+
+.edit-utente-title {
+  margin: 0;
+}
+
+.edit-utente-error {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.edit-utente-field {
+  margin-bottom: 1.5rem;
+}
+
+.edit-utente-field-ruolo {
+  margin-bottom: 2rem;
+}
+
+.edit-utente-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.edit-utente-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.edit-utente-select {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.edit-utente-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.edit-utente-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.edit-utente-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-utente-button-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.edit-utente-button-submit {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* ==========================================
+   NUOVO UTENTE PAGE STYLES
+   ========================================== */
+
+.nuovo-utente-container {
+  padding: 2rem;
+  font-family: sans-serif;
+  max-width: 600px;
+}
+
+.nuovo-utente-header {
+  margin-bottom: 1.5rem;
+}
+
+.nuovo-utente-title {
+  margin: 0;
+}
+
+.nuovo-utente-error {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.nuovo-utente-field {
+  margin-bottom: 1.5rem;
+}
+
+.nuovo-utente-field-checkbox {
+  margin-bottom: 2rem;
+}
+
+.nuovo-utente-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.nuovo-utente-label-simple {
+  display: block;
+}
+
+.nuovo-utente-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.nuovo-utente-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.nuovo-utente-section-title {
+  margin-bottom: 1.5rem;
+  color: #4b5563;
+  font-size: 1.125rem;
+}
+
+.nuovo-utente-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.nuovo-utente-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nuovo-utente-button-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.nuovo-utente-button-submit {
+  background-color: #2563eb;
+  color: white;
+}
+
+.nuovo-utente-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+/* ==========================================
+   DIPENDENTI PAGE STYLES
+   ========================================== */
+
+.dipendenti-container {
+  padding: 2.5rem;
+  font-family: sans-serif;
+}
+
+.dipendenti-header {
+  margin-bottom: 1.5rem;
+}
+
+.dipendenti-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dipendenti-title {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.dipendenti-add-button {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.dipendenti-empty {
+  color: #6b7280;
+}
+
+/* Mobile Layout */
+.dipendenti-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dipendenti-card {
+  background-color: #374151;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #4b5563;
+}
+
+.dipendenti-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dipendenti-card-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #4b5563;
+}
+
+.dipendenti-card-field:last-child {
+  border-bottom: none;
+}
+
+.dipendenti-card-label {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.dipendenti-card-value {
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.dipendenti-card-value-codfiscale {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.dipendenti-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.dipendenti-card-button {
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  flex: 1;
+}
+
+/* Desktop Layout */
+.dipendenti-table-container {
+  overflow-x: auto;
+}
+
+.dipendenti-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.dipendenti-table-header {
+  background-color: #f3f4f6;
+  text-align: center;
+}
+
+.dipendenti-table-header th {
+  padding: 0.3rem;
+  white-space: nowrap;
+}
+
+.dipendenti-table-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dipendenti-table-row td {
+  padding: 0.3rem;
+  white-space: nowrap;
+}
+
+.dipendenti-table-cell-codfiscale {
+  font-size: 0.7rem;
+}
+
+.dipendenti-table-cell-mansione {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.7rem;
+}
+
+.dipendenti-table-button {
+  padding: 0.15rem 0.3rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+/* ==========================================
+   EDIT DIPENDENTE PAGE STYLES
+   ========================================== */
+
+.edit-dipendente-loading-container {
+  padding: 2rem;
+  font-family: sans-serif;
+}
+
+.edit-dipendente-container {
+  padding: 2rem;
+  font-family: sans-serif;
+  max-width: 600px;
+}
+
+.edit-dipendente-header {
+  margin-bottom: 1.5rem;
+}
+
+.edit-dipendente-title {
+  margin: 0;
+}
+
+.edit-dipendente-error {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.edit-dipendente-field {
+  margin-bottom: 1.5rem;
+}
+
+.edit-dipendente-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.edit-dipendente-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.edit-dipendente-input-margin {
+  margin-bottom: 0.5rem;
+}
+
+.edit-dipendente-radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.edit-dipendente-radio-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.edit-dipendente-radio-input {
+  margin-right: 0.5rem;
+}
+
+/* Ratei section */
+.edit-dipendente-label-ratei {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: #d1d5db;
+}
+
+.edit-dipendente-ratei-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.edit-dipendente-ratei-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.edit-dipendente-ratei-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.edit-dipendente-hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Part-time orari section */
+.edit-dipendente-orari-container {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  background-color: #fef3c7;
+}
+
+.edit-dipendente-orari-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.edit-dipendente-orari-label {
+  display: block;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.edit-dipendente-orari-status {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.edit-dipendente-orari-status-configured {
+  color: #059669;
+}
+
+.edit-dipendente-orari-status-not-configured {
+  color: #dc2626;
+}
+
+.edit-dipendente-orari-description {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: #92400e;
+}
+
+.edit-dipendente-orari-data {
+  background-color: #f0f9ff;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #bae6fd;
+  font-size: 0.75rem;
+}
+
+.edit-dipendente-orari-data-label {
+  margin: 0;
+  color: #0c4a6e;
+}
+
+.edit-dipendente-orari-data-value {
+  margin: 0.25rem 0 0 0;
+  color: #1e40af;
+}
+
+.edit-dipendente-orari-data-total {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.edit-dipendente-orari-data-warning {
+  color: #dc2626;
+  margin: 0.25rem 0 0 0;
+}
+
+.edit-dipendente-orari-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.edit-dipendente-orari-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.edit-dipendente-orari-table-header {
+  background-color: #f3f4f6;
+}
+
+.edit-dipendente-orari-table-header-cell {
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.edit-dipendente-orari-table-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.edit-dipendente-orari-table-cell {
+  padding: 0.5rem;
+}
+
+.edit-dipendente-orari-table-cell-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.edit-dipendente-orari-time-input {
+  padding: 0.375rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  width: 50px;
+  text-align: center;
+}
+
+.edit-dipendente-orari-time-input-valid {
+  color: #7cfc00;
+}
+
+.edit-dipendente-orari-time-input-invalid {
+  color: #9ca3af;
+}
+
+.edit-dipendente-orari-total-cell {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.edit-dipendente-orari-footer {
+  background-color: #f9fafb;
+}
+
+.edit-dipendente-orari-footer-label {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.edit-dipendente-orari-footer-value {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.edit-dipendente-orari-footer-value-valid {
+  color: #059669;
+}
+
+.edit-dipendente-orari-footer-value-invalid {
+  color: #dc2626;
+}
+
+.edit-dipendente-orari-instructions {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.edit-dipendente-orari-instructions strong {
+  color: #1e40af;
+}
+
+.edit-dipendente-orari-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.edit-dipendente-orari-save-button {
+  padding: 0.5rem 1rem;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-dipendente-orari-save-button-valid {
+  background-color: #2563eb;
+}
+
+.edit-dipendente-orari-save-button-invalid {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.edit-dipendente-orari-save-button-saving {
+  background-color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Form buttons */
+.edit-dipendente-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.edit-dipendente-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-dipendente-button-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.edit-dipendente-button-submit {
+  background-color: #2563eb;
+  color: white;
+}
+
+/* ==========================================
+   NUOVO DIPENDENTE PAGE STYLES
+   ========================================== */
+
+.nuovo-dipendente-container {
+  padding: 2rem;
+  font-family: sans-serif;
+  max-width: 500px;
+}
+
+.nuovo-dipendente-header {
+  margin-bottom: 1.5rem;
+}
+
+.nuovo-dipendente-title {
+  margin: 0;
+}
+
+.nuovo-dipendente-error {
+  color: red;
+  margin-bottom: 1rem;
+}
+
+.nuovo-dipendente-field {
+  margin-bottom: 1.5rem;
+}
+
+.nuovo-dipendente-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.nuovo-dipendente-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.nuovo-dipendente-input-margin {
+  margin-bottom: 0.5rem;
+}
+
+.nuovo-dipendente-radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.nuovo-dipendente-radio-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.nuovo-dipendente-radio-input {
+  margin-right: 0.5rem;
+}
+
+/* Ratei section */
+.nuovo-dipendente-label-ratei {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: #d1d5db;
+}
+
+.nuovo-dipendente-ratei-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.nuovo-dipendente-ratei-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.nuovo-dipendente-ratei-input {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+}
+
+.nuovo-dipendente-hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+/* Buttons */
+.nuovo-dipendente-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.nuovo-dipendente-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nuovo-dipendente-button-cancel {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.nuovo-dipendente-button-submit {
+  background-color: #2563eb;
+  color: white;
+}

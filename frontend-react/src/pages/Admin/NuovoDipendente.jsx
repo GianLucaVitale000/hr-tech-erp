@@ -5,17 +5,17 @@ import { createDipendente, getContratti, getUsers } from '../../services/dipende
 // Helper per formattare giorni in anni, mesi, giorni
 const formatGiorni = (giorni) => {
   if (!giorni || giorni === 0) return "0 giorni"
-  
+
   const anni = Math.floor(giorni / 365)
   const restoDopoAnni = giorni % 365
   const mesi = Math.floor(restoDopoAnni / 30)
   const giorniRimasenti = restoDopoAnni % 30
-  
+
   const parti = []
   if (anni > 0) parti.push(`${anni} ${anni === 1 ? 'anno' : 'anni'}`)
   if (mesi > 0) parti.push(`${mesi} ${mesi === 1 ? 'mese' : 'mesi'}`)
   if (giorniRimasenti > 0) parti.push(`${giorniRimasenti} ${giorniRimasenti === 1 ? 'giorno' : 'giorni'}`)
-  
+
   return parti.join(', ')
 }
 
@@ -44,7 +44,7 @@ function NuovoDipendente() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  // Calcola giorni dall'assunzione alla data odierna (per visualizzazione admin)
+  // Calcola giorni dall'assunzione alla data odierna
   const giorniDallAssunzione = useMemo(() => {
     if (!form.data_assunzione) return 0
     const assunzioneDate = new Date(form.data_assunzione)
@@ -66,12 +66,12 @@ function NuovoDipendente() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    
+
     if (name === 'user_id') {
       const selectedUser = users.find(u => u.id == value)
       setSelectedUserEmail(selectedUser ? selectedUser.email : '')
     }
-    
+
     if (name === 'tipo_contratto') {
       setForm({
         ...form,
@@ -94,7 +94,7 @@ function NuovoDipendente() {
     try {
       const response = await createDipendente(form)
       const newDipendenteId = response.data.id
-      
+
       // Se è part-time, reindirizza direttamente alla modifica per configurare gli orari
       if ((form.percentuale_part_time ?? 100) < 100) {
         navigate(`/admin/dipendenti/${newDipendenteId}/edit`)
@@ -107,16 +107,16 @@ function NuovoDipendente() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '500px' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Nuovo Dipendente</h1>
+    <div className="nuovo-dipendente-container">
+      <div className="nuovo-dipendente-header">
+        <h1 className="nuovo-dipendente-title">Nuovo Dipendente</h1>
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+      {error && <p className="nuovo-dipendente-error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Nome *
           </label>
           <select
@@ -124,7 +124,7 @@ function NuovoDipendente() {
             value={form.user_id}
             onChange={handleChange}
             required
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           >
             <option value="">-- Seleziona dipendente --</option>
             {users.map((u) => (
@@ -133,26 +133,20 @@ function NuovoDipendente() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Email *
           </label>
           <input
             type="email"
             value={selectedUserEmail}
             readOnly
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              padding: '0.5rem', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '4px'
-            }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Codice Fiscale
           </label>
           <input
@@ -161,12 +155,12 @@ function NuovoDipendente() {
             value={form.codice_fiscale}
             onChange={handleChange}
             placeholder="Es: RSSMRA90A01H501Z"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             IBAN
           </label>
           <input
@@ -175,12 +169,12 @@ function NuovoDipendente() {
             value={form.iban}
             onChange={handleChange}
             placeholder="Es: IT60X0542811101000000123456"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Mansione
           </label>
           <input
@@ -189,12 +183,12 @@ function NuovoDipendente() {
             value={form.mansione}
             onChange={handleChange}
             placeholder="Es: Addetto produzione"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Livello
           </label>
           <input
@@ -203,41 +197,34 @@ function NuovoDipendente() {
             value={form.livello}
             onChange={handleChange}
             placeholder="Es: Operaio"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             CCNL applicato
           </label>
           <input
             type="text"
-            placeholder="Cerca per codice CNEL o nome (es: C011, Metalmeccanica...)"
+            placeholder="Cerca per codice CNEL o nome..."
             value={contrattiFilter}
             onChange={(e) => setContrattiFilter(e.target.value)}
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              padding: '0.5rem', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '4px',
-              marginBottom: '0.5rem'
-            }}
+            className="nuovo-dipendente-input nuovo-dipendente-input-margin"
           />
           <select
             name="contratto_id"
             value={form.contratto_id}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-            size={Math.min(10, contratti.filter(c => 
+            className="nuovo-dipendente-input"
+            size={Math.min(10, contratti.filter(c =>
               c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
               c.codice_cnel?.toLowerCase().includes(contrattiFilter.toLowerCase())
             ).length + 1)}
           >
             <option value="">-- Seleziona contratto --</option>
             {contratti
-              .filter(c => 
+              .filter(c =>
                 contrattiFilter === '' ||
                 c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
                 (c.codice_cnel && c.codice_cnel.toLowerCase().includes(contrattiFilter.toLowerCase()))
@@ -250,12 +237,12 @@ function NuovoDipendente() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Tipo Contratto *
           </label>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <div className="nuovo-dipendente-radio-group">
+            <label className="nuovo-dipendente-radio-label">
               <input
                 type="radio"
                 name="tipo_contratto"
@@ -263,11 +250,11 @@ function NuovoDipendente() {
                 checked={form.tipo_contratto === 'indeterminato'}
                 onChange={handleChange}
                 required
-                style={{ marginRight: '0.5rem' }}
+                className="nuovo-dipendente-radio-input"
               />
-              Tempo Indeterminato
+              Indeterminato
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <label className="nuovo-dipendente-radio-label">
               <input
                 type="radio"
                 name="tipo_contratto"
@@ -275,15 +262,15 @@ function NuovoDipendente() {
                 checked={form.tipo_contratto === 'determinato'}
                 onChange={handleChange}
                 required
-                style={{ marginRight: '0.5rem' }}
+                className="nuovo-dipendente-radio-input"
               />
-              Tempo Determinato
+              Determinato
             </label>
           </div>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             {form.tipo_contratto === 'determinato' ? 'Data Scadenza Contratto *' : 'Cessazione'}
           </label>
           <input
@@ -292,12 +279,12 @@ function NuovoDipendente() {
             value={form.data_scadenza_contratto}
             onChange={handleChange}
             required={form.tipo_contratto === 'determinato'}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             % Part-Time *
           </label>
           <input
@@ -310,15 +297,15 @@ function NuovoDipendente() {
             max="100"
             step="1"
             placeholder="100"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <p className="nuovo-dipendente-hint">
             100 = tempo pieno
           </p>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Giorni Lavorativi Settimanali *
           </label>
           <select
@@ -326,7 +313,7 @@ function NuovoDipendente() {
             value={form.giorni_lavorativi_settimanali}
             onChange={handleChange}
             required
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           >
             <option value="4">4 giorni</option>
             <option value="5">5 giorni (lun-ven)</option>
@@ -335,18 +322,18 @@ function NuovoDipendente() {
         </div>
 
         {/* Ratei mensili per calcolo ferie e permessi */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: '500', color: '#d1d5db' }}>
-            Ratei mensili per ferie e permessi (in ore full time)
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label-ratei">
+            Ratei ferie e permessi (full time)
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+          <div className="nuovo-dipendente-ratei-grid">
             {[
               ['rateo_mensile_ferie', 'Ferie', 'Es: 2.12345'],
-              ['rateo_mensile_permessi_rol', 'Permessi/ROL', 'Es: 2.12345'],
+              ['rateo_mensile_permessi_rol', 'Perm./ROL', 'Es: 2.12345'],
               ['rateo_mensile_ex_festivita', 'Ex-festività', 'Es: 2.12345']
             ].map(([name, label, placeholder]) => (
               <div key={name}>
-                <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                <label className="nuovo-dipendente-ratei-label">
                   {label}
                 </label>
                 <input
@@ -359,24 +346,18 @@ function NuovoDipendente() {
                   max="999.99999"
                   inputMode="decimal"
                   placeholder={placeholder}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px'
-                  }}
+                  className="nuovo-dipendente-ratei-input"
                 />
               </div>
             ))}
           </div>
-          <small style={{ display: 'block', marginTop: '0.35rem', color: '#6b7280' }}>
+          <small className="nuovo-dipendente-hint">
             Anzianità ai fini permessi/ROL: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
           </small>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Data Assunzione
           </label>
           <input
@@ -384,19 +365,19 @@ function NuovoDipendente() {
             name="data_assunzione"
             value={form.data_assunzione}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-dipendente-field">
+          <label className="nuovo-dipendente-label">
             Sesso
           </label>
           <select
             name="sesso"
             value={form.sesso}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-dipendente-input"
           >
             <option value="">-- Seleziona sesso --</option>
             <option value="M">Maschio</option>
@@ -404,31 +385,17 @@ function NuovoDipendente() {
           </select>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="nuovo-dipendente-buttons">
           <button
             type="button"
             onClick={() => navigate('/admin/dipendenti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="nuovo-dipendente-button nuovo-dipendente-button-cancel"
           >
             Annulla
           </button>
           <button
             type="submit"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="nuovo-dipendente-button nuovo-dipendente-button-submit"
           >
             Salva
           </button>

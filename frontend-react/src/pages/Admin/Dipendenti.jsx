@@ -21,7 +21,6 @@ function Dipendenti() {
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     try {
-      // Gestisce formato ISO completo: "2025-01-01T00:00:00.000000Z"
       const date = new Date(dateStr)
       if (isNaN(date.getTime())) return dateStr
       const day = String(date.getDate()).padStart(2, '0')
@@ -41,20 +40,13 @@ function Dipendenti() {
   }, [])
 
   return (
-    <div style={{ padding: '2.5rem', fontFamily: 'sans-serif' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, lineHeight: '1.2' }}>Anagrafica Dipendenti</h1>
+    <div className="dipendenti-container">
+      <div className="dipendenti-header">
+        <div className="dipendenti-header-content">
+          <h1 className="dipendenti-title">Anagrafica Dipendenti</h1>
           <button
             onClick={() => navigate('/admin/dipendenti/nuovo')}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="dipendenti-add-button"
           >
             + Nuovo Dipendente
           </button>
@@ -64,9 +56,9 @@ function Dipendenti() {
       {loading ? (
         <p>Caricamento...</p>
       ) : dipendenti.length === 0 ? (
-        <p style={{ color: '#6b7280' }}>Nessun dipendente trovato.</p>
+        <p className="dipendenti-empty">Nessun dipendente trovato.</p>
       ) : isMobile ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dipendenti-mobile-list">
           {dipendenti.map((d) => {
             const oreSettimanali = d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0
               ? d.ore_settimanali
@@ -74,86 +66,86 @@ function Dipendenti() {
               ? d.contratto.ore_settimanali_teoriche
               : '40'
             return (
-              <div key={d.id} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome e Cognome:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.user?.name}</span>
+              <div key={d.id} className="dipendenti-card">
+                <div className="dipendenti-card-fields">
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">Nome e Cognome:</span>
+                    <span className="dipendenti-card-value">{d.user?.name}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Cod. Fisc.:</span>
-                    <span style={{ color: 'white', fontSize: '0.875rem', fontWeight: '500' }}>{d.codice_fiscale || '-'}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">Cod. Fisc.:</span>
+                    <span className="dipendenti-card-value dipendenti-card-value-codfiscale">{d.codice_fiscale || '-'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Mansione:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.mansione || '-'}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">Mansione:</span>
+                    <span className="dipendenti-card-value">{d.mansione || '-'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Orario Settimanale:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{oreSettimanali}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">Orario Settimanale:</span>
+                    <span className="dipendenti-card-value">{oreSettimanali}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Livello:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.livello || '-'}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">Livello:</span>
+                    <span className="dipendenti-card-value">{d.livello || '-'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>CCNL applicato:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.contratto?.codice_cnel || '-'}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">CCNL applicato:</span>
+                    <span className="dipendenti-card-value">{d.contratto?.codice_cnel || '-'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>% Part-Time:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.percentuale_part_time ? `${d.percentuale_part_time}%` : '100%'}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">% Part-Time:</span>
+                    <span className="dipendenti-card-value">{d.percentuale_part_time ? `${d.percentuale_part_time}%` : '100%'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>GG. Lavorativi Settimanali:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{d.giorni_lavorativi_settimanali || '5'}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">GG. Lavorativi Settimanali:</span>
+                    <span className="dipendenti-card-value">{d.giorni_lavorativi_settimanali || '5'}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Data Assunzione:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formatDate(d.data_assunzione)}</span>
+                  <div className="dipendenti-card-field">
+                    <span className="dipendenti-card-label">Data Assunzione:</span>
+                    <span className="dipendenti-card-value">{formatDate(d.data_assunzione)}</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                <div className="dipendenti-card-actions">
                   <button
                     onClick={() => navigate(`/admin/dipendenti/${d.id}/edit`)}
-                    style={{ padding: '0.5rem 1rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem', flex: '1' }}
+                    className="dipendenti-card-button"
                   >
                     Modifica
                   </button>
                 </div>
-              </div> 
+              </div>
             )
           })}
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+        <div className="dipendenti-table-container">
+          <table className="dipendenti-table">
             <thead>
-              <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Nome e Cognome</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Codice Fiscale</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Mansione</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Ore Sett.</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Liv.</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>CCNL</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>% PT</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>GG.</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Data Assunz.</th>
-                <th style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>Azioni</th>
+              <tr className="dipendenti-table-header">
+                <th>Nome e Cognome</th>
+                <th>Codice Fiscale</th>
+                <th>Mansione</th>
+                <th>Ore Sett.</th>
+                <th>Liv.</th>
+                <th>CCNL</th>
+                <th>% PT</th>
+                <th>GG.</th>
+                <th>Data Assunz.</th>
+                <th>Azioni</th>
               </tr>
             </thead>
             <tbody>
               {dipendenti.map((d) => (
-                <tr key={d.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>{d.user?.name}</td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap', fontSize: '0.7rem' }}>{d.codice_fiscale || '-'}</td>
-                  <td 
-                    style={{ padding: '0.3rem', whiteSpace: 'nowrap', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.7rem' }}
+                <tr key={d.id} className="dipendenti-table-row">
+                  <td>{d.user?.name}</td>
+                  <td className="dipendenti-table-cell-codfiscale">{d.codice_fiscale || '-'}</td>
+                  <td
+                    className="dipendenti-table-cell-mansione"
                     title={!isMobile ? (d.mansione || '-') : undefined}
                   >
                     {d.mansione || '-'}
                   </td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>
+                  <td>
                     {d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0 ? (
                       d.ore_settimanali
                     ) : d.contratto?.ore_settimanali_teoriche !== null && parseFloat(d.contratto.ore_settimanali_teoriche) !== 0 ? (
@@ -162,27 +154,19 @@ function Dipendenti() {
                       '40'
                     )}
                   </td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>{d.livello || '-'}</td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>{d.contratto?.codice_cnel || '-'}</td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>
+                  <td>{d.livello || '-'}</td>
+                  <td>{d.contratto?.codice_cnel || '-'}</td>
+                  <td>
                     {d.percentuale_part_time ? `${d.percentuale_part_time}%` : '100%'}
                   </td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>
+                  <td>
                     {d.giorni_lavorativi_settimanali || '5'}
                   </td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>{formatDate(d.data_assunzione)}</td>
-                  <td style={{ padding: '0.3rem', whiteSpace: 'nowrap' }}>
+                  <td>{formatDate(d.data_assunzione)}</td>
+                  <td>
                     <button
                       onClick={() => navigate(`/admin/dipendenti/${d.id}/edit`)}
-                      style={{
-                        padding: '0.15rem 0.3rem',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.7rem'
-                      }}
+                      className="dipendenti-table-button"
                     >
                       Modifica
                     </button>

@@ -17,13 +17,13 @@ const GIORNI_SETTIMANA = [
 // Funzione per calcolare le ore da "Dalle" e "Alle" (formato HH:MM)
 const calcolaOreDaTempo = (dalle, alle) => {
   if (!dalle || !alle) return 0
-  
+
   try {
     const [h1, m1] = dalle.split(':').map(Number)
     const [h2, m2] = alle.split(':').map(Number)
-    
+
     if (h1 === undefined || m1 === undefined || h2 === undefined || m2 === undefined) return 0
-    
+
     const totaleMinuti = (h2 * 60 + m2) - (h1 * 60 + m1)
     return Math.max(0, totaleMinuti / 60)
   } catch {
@@ -35,11 +35,9 @@ const calcolaOreDaTempo = (dalle, alle) => {
 const formatDateForInput = (dateString) => {
   if (!dateString) return ''
   try {
-    // Se è già in formato aaaa-mm-gg, restituisci così
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
       return dateString
     }
-    // Altrimenti parsea la data ISO completa
     const date = new Date(dateString)
     if (isNaN(date.getTime())) return dateString
     const year = date.getFullYear()
@@ -54,21 +52,19 @@ const formatDateForInput = (dateString) => {
 // Helper per formattare giorni in anni, mesi, giorni
 const formatGiorni = (giorni) => {
   if (!giorni || giorni === 0) return "0 giorni"
-  
+
   const anni = Math.floor(giorni / 365)
   const restoDopoAnni = giorni % 365
   const mesi = Math.floor(restoDopoAnni / 30)
   const giorniRimasenti = restoDopoAnni % 30
-  
+
   const parti = []
   if (anni > 0) parti.push(`${anni} ${anni === 1 ? 'anno' : 'anni'}`)
   if (mesi > 0) parti.push(`${mesi} ${mesi === 1 ? 'mese' : 'mesi'}`)
   if (giorniRimasenti > 0) parti.push(`${giorniRimasenti} ${giorniRimasenti === 1 ? 'giorno' : 'giorni'}`)
-  
+
   return parti.join(', ')
 }
-
-
 
 function EditDipendente() {
   const { id } = useParams()
@@ -99,8 +95,7 @@ function EditDipendente() {
   const [orariConfigurati, setOrariConfigurati] = useState(false)
   const [savingOrari, setSavingOrari] = useState(false)
   const [orariError, setOrariError] = useState('')
-  
-  // Stato per gli orari settimanali con due turni per ogni giorno
+
   const [orariSettimanali, setOrariSettimanali] = useState(
     GIORNI_SETTIMANA.map(g => ({
       giorno_settimana: g.id,
@@ -110,13 +105,11 @@ function EditDipendente() {
       totaleGiorno: 0
     }))
   )
-  
+
   const navigate = useNavigate()
-  
-  // Calcola il totale settimanale
+
   const totaleSettimanale = orariSettimanali.reduce((sum, giorno) => sum + (giorno.totaleGiorno || 0), 0)
-  
-  // Calcola giorni dall'assunzione alla data odierna (per visualizzazione admin)
+
   const giorniDallAssunzione = useMemo(() => {
     if (!form.data_assunzione) return 0
     const assunzioneDate = new Date(form.data_assunzione)
@@ -125,8 +118,7 @@ function EditDipendente() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     return diffDays
   }, [form.data_assunzione])
-  
-  // Calcola ore settimanali full-time e part-time in base al contratto e percentuale
+
   const { oreSettimanaliFullTime, oreSettimanaliPartTime } = useMemo(() => {
     const contrattoSelezionato = contratti.find(c => String(c.id) === String(form.contratto_id))
     const oreFullTime = contrattoSelezionato?.regole_calcolo?.[0]?.ore_settimanali_teoriche || 40
@@ -143,16 +135,9 @@ function EditDipendente() {
     ])
       .then(([dipRes, contrattiRes, usersRes]) => {
         const d = dipRes.data
-        
-        // Debug: logga i dati del dipendente per diagnosticare
-        console.log('Dipendente caricato:', d)
-        console.log('Contratto:', d.contratto)
-        console.log('Contratto ID:', d.contratto_id)
-        
+
         setForm({
           user_id: d.user_id || '',
-          // Usa il contratto caricato tramite relazione, altrimenti contratt_id, altrimenti stringa vuota
-          // Converte in stringa per garantire compatibilità con il select HTML
           contratto_id: String(d.contratto?.id || d.contratto_id || '').toString(),
           codice_fiscale: d.codice_fiscale || '',
           iban: d.iban || '',
@@ -169,71 +154,43 @@ function EditDipendente() {
           rateo_mensile_permessi_rol: d.rateo_mensile_permessi_rol ?? null,
           rateo_mensile_ex_festivita: d.rateo_mensile_ex_festivita ?? null
         })
-        
-        // Assicurati che il contratto del dipendente sia nella lista
-        // anche se non è il più recente per il suo codice CNEL
+
         let contrattiCompleti = [...contrattiRes.data]
         if (d.contratto && !contrattiRes.data.some(c => c.id == d.contratto.id)) {
           contrattiCompleti.push(d.contratto)
         }
-        
-        // Raggruppa per codice_cnel e mantieni solo il più recente per ogni codice
-        // (simula il comportamento originale del backend)
+
         const contrattiMap = new Map()
         contrattiCompleti.forEach(c => {
           if (!c.codice_cnel) return
           if (!contrattiMap.has(c.codice_cnel)) {
             contrattiMap.set(c.codice_cnel, c)
           } else {
-            // Se esiste già, confronta per data_decorrenza e mantieni il più recente
             const existing = contrattiMap.get(c.codice_cnel)
             const existingDate = existing.data_decorrenza ? new Date(existing.data_decorrenza) : null
             const newDate = c.data_decorrenza ? new Date(c.data_decorrenza) : null
-            
+
             if (newDate && (!existingDate || newDate > existingDate)) {
               contrattiMap.set(c.codice_cnel, c)
             }
-            // Se il contratto del dipendente non è il più recente, ma vogliamo includerlo comunque
-            // se è quello attualmente selezionato
             else if (d.contratto && d.contratto.id == c.id) {
-              // Mantieni il contratto del dipendente anche se non è il più recente
               contrattiMap.set(c.codice_cnel, c)
             }
           }
         })
-        
+
         setContratti(Array.from(contrattiMap.values()))
         setUsers(usersRes.data)
-        
-        // Debug
-        console.log('Contratto dipendente:', d.contratto)
-        console.log('Contratto ID form:', String(d.contratto?.id || d.contratto_id || ''))
-        console.log('Regole calcolo contratto:', d.contratto?.regole_calcolo)
-        console.log('Tipo regole_calcolo:', typeof d.contratto?.regole_calcolo)
-        console.log('Lunghezza:', d.contratto?.regole_calcolo?.length)
-        console.log('Chiavi:', Object.keys(d.contratto?.regole_calcolo || {}))
-        if (d.contratto?.regole_calcolo) {
-          console.log('Primo elemento (index 0):', d.contratto.regole_calcolo[0])
-          // Usa accesso con indice [0] per array JavaScript
-          const primaRegola = d.contratto.regole_calcolo[0] || d.contratto.regole_calcolo.first
-          console.log('Regola di calcolo (corretta):', primaRegola)
-        }
-        console.log('regolaCalcolo accessor:', d.regolaCalcolo || 'Usare regole_calcolo[0]')
-        console.log('Ore settimanali part-time (from backend):', d.ore_settimanali_part_time)
-        // Ottieni l'email direttamente dalla relazione user (più affidabile)
         setSelectedUserEmail(d.user?.email || '')
-        
-        // Controlla se gli orari settimanali sono configurati (almeno un giorno con ore > 0)
+
         setOrariConfigurati(d.has_orari_settimanali_configurati || (d.orari_settimanali && d.orari_settimanali.some(o => (o.ore_giornaliere_previste || 0) > 0)))
-        
-        // Inizializza gli orari settimanali con i dati esistenti
+
         if (d.orari_settimanali && d.orari_settimanali.length > 0) {
-          // Crea una mappa per giorno con tutti i dati
           const orariMap = new Map()
           d.orari_settimanali.forEach(o => {
             orariMap.set(o.giorno_settimana, o)
           })
-          
+
           setOrariSettimanali(
             GIORNI_SETTIMANA.map(g => {
               const orario = orariMap.get(g.id) || {}
@@ -256,61 +213,51 @@ function EditDipendente() {
         }
       })
       .catch((err) => {
-        // Se errore 401 (non autenticato), reindirizza al login
         if (err.response && err.response.status === 401) {
           navigate('/login')
           return
         }
-        // Se errore 404, dipendente non trovato
         if (err.response && err.response.status === 404) {
           setError('Dipendente non trovato')
           return
         }
-        // Altro errore di rete
         setError('Errore di connessione. Verifica che il server sia attivo.')
       })
       .finally(() => setLoading(false))
   }, [id, navigate])
 
-  // Aggiorna il totale del giorno quando cambiano i turni
   const handleTurnoChange = (giornoIndex, turno, campo, valore) => {
     setOrariSettimanali(prev => {
       const newOrari = [...prev]
       const giorno = { ...newOrari[giornoIndex] }
-      
-      // Aggiorna il campo specifico
+
       giorno[turno][campo] = valore
-      
-      // Calcola il totale per questo giorno
+
       const t1Ore = calcolaOreDaTempo(giorno.turno1.dalle, giorno.turno1.alle)
       const t2Ore = calcolaOreDaTempo(giorno.turno2.dalle, giorno.turno2.alle)
       giorno.totaleGiorno = Math.round((t1Ore + t2Ore) * 100) / 100
-      
+
       newOrari[giornoIndex] = giorno
       return newOrari
     })
     setOrariError('')
   }
 
-  // Salva gli orari settimanali
   const handleSalvaOrari = async () => {
-    // Validazione: non può superare oreSettimanaliPartTime
     if (totaleSettimanale > oreSettimanaliPartTime) {
       setOrariError(`Il totale settimanale (${Math.round(totaleSettimanale * 100) / 100} h) supera il limite consentito (${oreSettimanaliPartTime} h)`)
       return
     }
-    
-    // Validazione: almeno un giorno deve avere ore > 0
+
     if (totaleSettimanale <= 0) {
       setOrariError('Inserire almeno un orario valido per un giorno')
       return
     }
-    
+
     setSavingOrari(true)
     setOrariError('')
-    
+
     try {
-      // Prepara i dati per l'API (inclusi i turni)
       const orariDaSalvare = orariSettimanali.map(g => ({
         giorno_settimana: g.giorno_settimana,
         ore_giornaliere_previste: g.totaleGiorno,
@@ -319,14 +266,13 @@ function EditDipendente() {
         turno2_dalle: g.turno2.dalle || null,
         turno2_alle: g.turno2.alle || null
       }))
-      
+
       console.log('Salvataggio orari:', orariDaSalvare, 'per dipendente:', id)
-      
+
       await saveOrariSettimanali(id, orariDaSalvare)
-      
-      // Aggiorna lo stato
+
       setOrariConfigurati(true)
-      
+
     } catch (err) {
       console.error('Errore salvataggio orari:', err)
       setOrariError(err.response?.data?.error || err.message || 'Errore nel salvataggio degli orari')
@@ -337,12 +283,12 @@ function EditDipendente() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    
+
     if (name === 'user_id') {
       const selectedUser = users.find(u => u.id == value)
       setSelectedUserEmail(selectedUser ? selectedUser.email : '')
     }
-    
+
     if (name === 'tipo_contratto') {
       setForm(prev => ({
         ...prev,
@@ -350,15 +296,11 @@ function EditDipendente() {
         data_scadenza_contratto: value === 'indeterminato' ? '' : prev.data_scadenza_contratto
       }))
     } else {
-      // Per i campi ratei, sostituisci la virgola con il punto
       const fieldValue = ['rateo_mensile_ferie', 'rateo_mensile_permessi_rol', 'rateo_mensile_ex_festivita'].includes(name)
         ? value.replace(',', '.')
         : value
       setForm(prev => {
         const newForm = { ...prev, [name]: fieldValue }
-        if (name === 'contratto_id') {
-          console.log('Form aggiornato, contratto_id:', newForm.contratto_id)
-        }
         return newForm
       })
     }
@@ -369,10 +311,8 @@ function EditDipendente() {
     setError('')
 
     try {
-      // Prepara i dati: converte i campi numerici in numeri
       const submitData = {
         ...form,
-        // Converte i campi che devono essere numerici
         contratto_id: form.contratto_id ? Number(form.contratto_id) : null,
         user_id: form.user_id ? Number(form.user_id) : null,
         tipo_contratto: form.tipo_contratto,
@@ -381,7 +321,7 @@ function EditDipendente() {
         giorni_lavorativi_settimanali: Number(form.giorni_lavorativi_settimanali) || 5,
         data_decorrenza_variazione: form.data_decorrenza_variazione || null
       }
-      
+
       await updateDipendente(id, submitData)
       navigate('/admin/dipendenti')
     } catch (err) {
@@ -392,23 +332,53 @@ function EditDipendente() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <div className="edit-dipendente-loading-container">
         <p>Caricamento...</p>
       </div>
     )
   }
 
+  // Determina classe per bottone salva orari
+  const getSaveButtonClass = () => {
+    if (savingOrari) return 'edit-dipendente-orari-save-button edit-dipendente-orari-save-button-saving'
+    if (totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0) {
+      return 'edit-dipendente-orari-save-button edit-dipendente-orari-save-button-invalid'
+    }
+    return 'edit-dipendente-orari-save-button edit-dipendente-orari-save-button-valid'
+  }
+
+  // Determina classe per status orari
+  const getStatusClass = () => {
+    return orariConfigurati
+      ? 'edit-dipendente-orari-status edit-dipendente-orari-status-configured'
+      : 'edit-dipendente-orari-status edit-dipendente-orari-status-not-configured'
+  }
+
+  // Determina classe per totale footer
+  const getFooterValueClass = () => {
+    return totaleSettimanale <= oreSettimanaliPartTime
+      ? 'edit-dipendente-orari-footer-value edit-dipendente-orari-footer-value-valid'
+      : 'edit-dipendente-orari-footer-value edit-dipendente-orari-footer-value-invalid'
+  }
+
+  // Determina colore input time
+  const getTimeInputClass = (value) => {
+    return (value && value !== '00:00')
+      ? 'edit-dipendente-orari-time-input edit-dipendente-orari-time-input-valid'
+      : 'edit-dipendente-orari-time-input edit-dipendente-orari-time-input-invalid'
+  }
+
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '600px' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Modifica Dipendente</h1>
+    <div className="edit-dipendente-container">
+      <div className="edit-dipendente-header">
+        <h1 className="edit-dipendente-title">Modifica Dipendente</h1>
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+      {error && <p className="edit-dipendente-error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Nome *
           </label>
           <select
@@ -416,7 +386,7 @@ function EditDipendente() {
             value={form.user_id}
             onChange={handleChange}
             required
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           >
             <option value="">-- Seleziona dipendente --</option>
             {users.map((u) => (
@@ -425,26 +395,20 @@ function EditDipendente() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Email *
           </label>
           <input
             type="email"
             value={selectedUserEmail}
             readOnly
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              padding: '0.5rem', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '4px'
-            }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Codice Fiscale
           </label>
           <input
@@ -453,12 +417,12 @@ function EditDipendente() {
             value={form.codice_fiscale}
             onChange={handleChange}
             placeholder="Es: RSSMRA90A01H501Z"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             IBAN
           </label>
           <input
@@ -467,12 +431,12 @@ function EditDipendente() {
             value={form.iban}
             onChange={handleChange}
             placeholder="Es: IT60X0542811101000000123456"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Data Assunzione
           </label>
           <input
@@ -480,19 +444,19 @@ function EditDipendente() {
             name="data_assunzione"
             value={form.data_assunzione}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Sesso
           </label>
           <select
             name="sesso"
             value={form.sesso}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           >
             <option value="">-- Seleziona sesso --</option>
             <option value="M">Maschio</option>
@@ -500,8 +464,8 @@ function EditDipendente() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Mansione
           </label>
           <input
@@ -510,12 +474,12 @@ function EditDipendente() {
             value={form.mansione}
             onChange={handleChange}
             placeholder="Es: Addetto produzione"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Livello
           </label>
           <input
@@ -524,37 +488,30 @@ function EditDipendente() {
             value={form.livello}
             onChange={handleChange}
             placeholder="Es: Operaio"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             CCNL applicato
           </label>
           <input
             type="text"
-            placeholder="Cerca per codice CNEL o nome (es: C011, Metalmeccanica...)"
+            placeholder="Cerca per codice CNEL o nome..."
             value={contrattiFilter}
             onChange={(e) => setContrattiFilter(e.target.value)}
-            style={{ 
-              display: 'block', 
-              width: '100%', 
-              padding: '0.5rem', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '4px',
-              marginBottom: '0.5rem'
-            }}
+            className="edit-dipendente-input edit-dipendente-input-margin"
           />
           <select
             name="contratto_id"
             value={form.contratto_id}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           >
             <option value="">-- Seleziona contratto --</option>
             {contratti
-              .filter(c => 
+              .filter(c =>
                 contrattiFilter === '' ||
                 c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
                 (c.codice_cnel && c.codice_cnel.toLowerCase().includes(contrattiFilter.toLowerCase()))
@@ -567,12 +524,12 @@ function EditDipendente() {
           </select>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Tipo Contratto *
           </label>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <div className="edit-dipendente-radio-group">
+            <label className="edit-dipendente-radio-label">
               <input
                 type="radio"
                 name="tipo_contratto"
@@ -580,11 +537,11 @@ function EditDipendente() {
                 checked={form.tipo_contratto === 'indeterminato'}
                 onChange={handleChange}
                 required
-                style={{ marginRight: '0.5rem' }}
+                className="edit-dipendente-radio-input"
               />
-              Tempo Indeterminato
+              Indeterminato
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <label className="edit-dipendente-radio-label">
               <input
                 type="radio"
                 name="tipo_contratto"
@@ -592,15 +549,15 @@ function EditDipendente() {
                 checked={form.tipo_contratto === 'determinato'}
                 onChange={handleChange}
                 required
-                style={{ marginRight: '0.5rem' }}
+                className="edit-dipendente-radio-input"
               />
-              Tempo Determinato
+              Determinato
             </label>
           </div>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             {form.tipo_contratto === 'determinato' ? 'Data Scadenza Contratto *' : 'Cessazione'}
           </label>
           <input
@@ -609,12 +566,12 @@ function EditDipendente() {
             value={form.data_scadenza_contratto}
             onChange={handleChange}
             required={form.tipo_contratto === 'determinato'}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             % Part-Time *
           </label>
           <input
@@ -627,12 +584,12 @@ function EditDipendente() {
             max="100"
             step="1"
             placeholder="100"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Decorrenza variazione contrattuale
           </label>
           <input
@@ -640,15 +597,15 @@ function EditDipendente() {
             name="data_decorrenza_variazione"
             value={form.data_decorrenza_variazione}
             onChange={handleChange}
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           />
-          <small style={{ display: 'block', marginTop: '0.35rem', color: '#6b7280' }}>
-            Compilala solo se cambi CCNL o percentuale part-time.
+          <small className="edit-dipendente-hint">
+            Compila solo se cambi CCNL o % part-time.
           </small>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label">
             Giorni Lavorativi Settimanali *
           </label>
           <select
@@ -656,7 +613,7 @@ function EditDipendente() {
             value={form.giorni_lavorativi_settimanali}
             onChange={handleChange}
             required
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-dipendente-input"
           >
             <option value="4">4 giorni</option>
             <option value="5">5 giorni</option>
@@ -665,18 +622,18 @@ function EditDipendente() {
         </div>
 
         {/* Ratei mensili per calcolo ferie e permessi */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: '500', color: '#d1d5db' }}>
-            Ratei mensili per ferie e permessi (in ore full time)
+        <div className="edit-dipendente-field">
+          <label className="edit-dipendente-label-ratei">
+            Ratei ferie e permessi (full time)
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+          <div className="edit-dipendente-ratei-grid">
             {[
-              ['rateo_mensile_ferie', 'Rateo ferie', 'Es: 2.12345'],
-              ['rateo_mensile_permessi_rol', 'Rateo permessi/ROL', 'Es: 2.12345'],
-              ['rateo_mensile_ex_festivita', 'Rateo ex-festività', 'Es: 2.12345']
+              ['rateo_mensile_ferie', 'Ferie', 'Es: 2.12345'],
+              ['rateo_mensile_permessi_rol', 'Perm./ROL', 'Es: 2.12345'],
+              ['rateo_mensile_ex_festivita', 'Ex-festività', 'Es: 2.12345']
             ].map(([name, label, placeholder]) => (
               <div key={name}>
-                <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                <label className="edit-dipendente-ratei-label">
                   {label}
                 </label>
                 <input
@@ -689,258 +646,171 @@ function EditDipendente() {
                   max="999.99999"
                   inputMode="decimal"
                   placeholder={placeholder}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '4px'
-                  }}
+                  className="edit-dipendente-ratei-input"
                 />
               </div>
             ))}
           </div>
-          <small style={{ display: 'block', marginTop: '0.35rem', color: '#6b7280' }}>
-            Anzianità ai fini permessi/ROL: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
+          <small className="edit-dipendente-hint">
+            Anzianità per maturazione permessi/ROL: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
           </small>
         </div>
 
-        {/* Configurazione Orari Settimanali per Part-Time - Tabella integrata */}
+        {/* Configurazione Orari Settimanali per Part-Time */}
         {(form.percentuale_part_time ?? 100) < 100 && (
-          <div style={{ 
-            marginBottom: '1.5rem', 
-            padding: '1rem', 
-            border: '1px solid #f59e0b', 
-            borderRadius: '8px',
-            backgroundColor: '#fef3c7'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontWeight: '600', color: '#92400e' }}>
+          <div className="edit-dipendente-orari-container">
+            <div className="edit-dipendente-orari-header">
+              <label className="edit-dipendente-orari-label">
                 Configurazione Orario Settimanale Part-Time
               </label>
-              <span style={{
-                fontSize: '0.875rem',
-                color: orariConfigurati ? '#059669' : '#dc2626',
-                fontWeight: '500'
-              }}>
+              <span className={getStatusClass()}>
                 {orariConfigurati ? '✓ Configurato' : '✗ Non configurato'}
               </span>
             </div>
-            
-            <p style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', color: '#92400e' }}>
+
+            <p className="edit-dipendente-orari-description">
               Per i dipendenti part-time, definire l'orario giornaliero per ogni giorno della settimana.
               <strong> Senza questa configurazione non sarà possibile inserire presenze.</strong>
             </p>
-            
+
             {/* Dati contrattuali */}
-            <div style={{
-              backgroundColor: '#f0f9ff',
-              padding: '0.75rem',
-              borderRadius: '4px',
-              marginBottom: '1rem',
-              border: '1px solid #bae6fd',
-              fontSize: '0.75rem'
-            }}>
-              <p style={{ margin: 0, color: '#0c4a6e' }}>
+            <div className="edit-dipendente-orari-data">
+              <p className="edit-dipendente-orari-data-label">
                 <strong>Dati Contrattuali:</strong>
               </p>
-              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
+              <p className="edit-dipendente-orari-data-value">
                 Ore settimanali (full-time): {oreSettimanaliFullTime} h
               </p>
-              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
+              <p className="edit-dipendente-orari-data-value">
                 % Part-Time: {form.percentuale_part_time || 100}%
               </p>
-              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
+              <p className="edit-dipendente-orari-data-value">
                 Ore settimanali part-time: <strong>{oreSettimanaliPartTime} h</strong>
               </p>
-              <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af' }}>
+              <p className="edit-dipendente-orari-data-value">
                 Ore attualmente configurate: <strong>{Math.round(totaleSettimanale * 100) / 100} h</strong>
               </p>
-              <p style={{ margin: '0.25rem 0 0 0', color: totaleSettimanale <= oreSettimanaliPartTime ? '#059669' : '#dc2626' }}>
-                {totaleSettimanale <= oreSettimanaliPartTime 
-                  ? '✓ Totale nel limite' 
+              <p className={totaleSettimanale <= oreSettimanaliPartTime ? 'edit-dipendente-orari-data-value' : 'edit-dipendente-orari-data-warning'}>
+                {totaleSettimanale <= oreSettimanaliPartTime
+                  ? '✓ Totale nel limite'
                   : `✗ Supera di ${Math.round((totaleSettimanale - oreSettimanaliPartTime) * 100) / 100} ore`}
               </p>
             </div>
 
             {orariError && (
-              <div style={{
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
-                color: '#dc2626',
-                padding: '1rem',
-                borderRadius: '4px',
-                marginBottom: '1rem'
-              }}>
+              <div className="edit-dipendente-orari-error">
                 {orariError}
               </div>
             )}
 
             {/* Tabella orari */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1rem' }}>
+            <table className="edit-dipendente-orari-table">
               <thead>
-                <tr style={{ backgroundColor: '#f3f4f6' }}>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Giorno</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 1 - Dalle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 1 - Alle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 2 - Dalle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Turno 2 - Alle</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', fontSize: '0.75rem' }}>Totale Giorno (h)</th>
+                <tr className="edit-dipendente-orari-table-header">
+                  <th className="edit-dipendente-orari-table-header-cell">Giorno</th>
+                  <th className="edit-dipendente-orari-table-header-cell">Turno 1 - Dalle</th>
+                  <th className="edit-dipendente-orari-table-header-cell">Turno 1 - Alle</th>
+                  <th className="edit-dipendente-orari-table-header-cell">Turno 2 - Dalle</th>
+                  <th className="edit-dipendente-orari-table-header-cell">Turno 2 - Alle</th>
+                  <th className="edit-dipendente-orari-table-header-cell">Totale Giorno (h)</th>
                 </tr>
               </thead>
               <tbody>
                 {orariSettimanali.map((giorno, index) => (
-                  <tr key={giorno.giorno_settimana} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '500' }}>
+                  <tr key={giorno.giorno_settimana} className="edit-dipendente-orari-table-row">
+                    <td className="edit-dipendente-orari-table-cell edit-dipendente-orari-table-cell-label">
                       {giorno.name}
                     </td>
-                    <td style={{ padding: '0.5rem' }}>
+                    <td className="edit-dipendente-orari-table-cell">
                       <input
                         type="text"
                         value={giorno.turno1.dalle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno1', 'dalle', e.target.value)}
                         placeholder="--:--"
                         maxLength={5}
-                        style={{
-                          padding: '0.375rem',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          width: '50px',
-                          textAlign: 'center',
-                          color: (giorno.turno1.dalle && giorno.turno1.dalle !== '00:00') ? '#7cfc00' : '#9ca3af'
-                        }}
+                        className={getTimeInputClass(giorno.turno1.dalle)}
                       />
                     </td>
-                    <td style={{ padding: '0.5rem' }}>
+                    <td className="edit-dipendente-orari-table-cell">
                       <input
                         type="text"
                         value={giorno.turno1.alle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno1', 'alle', e.target.value)}
                         placeholder="--:--"
                         maxLength={5}
-                        style={{
-                          padding: '0.375rem',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          width: '50px',
-                          textAlign: 'center',
-                          color: (giorno.turno1.alle && giorno.turno1.alle !== '00:00') ? '#7cfc00' : '#9ca3af'
-                        }}
+                        className={getTimeInputClass(giorno.turno1.alle)}
                       />
                     </td>
-                    <td style={{ padding: '0.5rem' }}>
+                    <td className="edit-dipendente-orari-table-cell">
                       <input
                         type="text"
                         value={giorno.turno2.dalle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno2', 'dalle', e.target.value)}
                         placeholder="--:--"
                         maxLength={5}
-                        style={{
-                          padding: '0.375rem',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          width: '50px',
-                          textAlign: 'center',
-                          color: (giorno.turno2.dalle && giorno.turno2.dalle !== '00:00') ? '#7cfc00' : '#9ca3af'
-                        }}
+                        className={getTimeInputClass(giorno.turno2.dalle)}
                       />
                     </td>
-                    <td style={{ padding: '0.5rem' }}>
+                    <td className="edit-dipendente-orari-table-cell">
                       <input
                         type="text"
                         value={giorno.turno2.alle || ''}
                         onChange={(e) => handleTurnoChange(index, 'turno2', 'alle', e.target.value)}
                         placeholder="--:--"
                         maxLength={5}
-                        style={{
-                          padding: '0.375rem',
-                          border: '1px solid #d1d5db',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          width: '50px',
-                          textAlign: 'center',
-                          color: (giorno.turno2.alle && giorno.turno2.alle !== '00:00') ? '#7cfc00' : '#9ca3af'
-                        }}
+                        className={getTimeInputClass(giorno.turno2.alle)}
                       />
                     </td>
-                    <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '600', color: '#1e40af' }}>
+                    <td className="edit-dipendente-orari-table-cell edit-dipendente-orari-total-cell">
                       {giorno.totaleGiorno.toFixed(2)}
                     </td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr style={{ backgroundColor: '#f9fafb' }}>
-                  <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '600' }} colSpan={5}>
+                <tr className="edit-dipendente-orari-footer">
+                  <td className="edit-dipendente-orari-footer-label" colSpan={5}>
                     <strong>Totale Settimanale:</strong>
                   </td>
-                  <td style={{ padding: '0.5rem', fontSize: '0.75rem', fontWeight: '600', color: totaleSettimanale <= oreSettimanaliPartTime ? '#059669' : '#dc2626' }}>
+                  <td className={getFooterValueClass()}>
                     <strong>{Math.round(totaleSettimanale * 100) / 100} h</strong>
                   </td>
                 </tr>
               </tfoot>
             </table>
 
-            <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '1rem' }}>
+            <p className="edit-dipendente-orari-instructions">
               <strong>Istruzioni:</strong> Inserisci gli orari per ogni giorno (formato HH:MM).
               Puoi configurare due turni per giorno. Il totale non può superare le ore part-time.
             </p>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <div className="edit-dipendente-orari-buttons">
               <button
                 type="button"
                 onClick={handleSalvaOrari}
                 disabled={savingOrari || totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: (totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0) 
-                    ? '#9ca3af' 
-                    : (savingOrari ? '#6b7280' : '#2563eb'),
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: (totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0 || savingOrari) 
-                    ? 'not-allowed' 
-                    : 'pointer'
-                }}
+                className={getSaveButtonClass()}
               >
-                {savingOrari ? 'Salvataggio...' : 
-                 (totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0) 
-                   ? '⚠️ Dati non validi' 
+                {savingOrari ? 'Salvataggio...' :
+                 (totaleSettimanale > oreSettimanaliPartTime || oreSettimanaliPartTime <= 0)
+                   ? '⚠️ Dati non validi'
                    : 'Salva Configurazione'}
               </button>
             </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="edit-dipendente-buttons">
           <button
             type="button"
             onClick={() => navigate('/admin/dipendenti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="edit-dipendente-button edit-dipendente-button-cancel"
           >
             Annulla
           </button>
           <button
             type="submit"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="edit-dipendente-button edit-dipendente-button-submit"
           >
             Aggiorna Dipendente
           </button>

@@ -46,93 +46,60 @@ function Utenti() {
   }
 
   return (
-    <div style={{ padding: '2.5rem', fontFamily: 'sans-serif' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ margin: 0, lineHeight: '1.2' }}>Gestione Utenti</h1>
+    <div className="utenti-container">
+      <div className="utenti-header">
+        <div className="utenti-header-content">
+          <h1 className="utenti-title">Gestione Utenti</h1>
           <button
             onClick={() => navigate('/admin/utenti/nuovo')}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="utenti-add-button"
           >
             + Nuovo Utente
           </button>
         </div>
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+      {error && <p className="utenti-error">{error}</p>}
 
       {loading ? (
         <p>Caricamento...</p>
       ) : users.length === 0 ? (
-        <p style={{ color: '#6b7280' }}>Nessun utente trovato. Crea il primo utente.</p>
+        <p className="utenti-empty">Nessun utente trovato. Crea il primo utente.</p>
       ) : isMobile ? (
         // Layout mobile: cards incolonnate
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="utenti-mobile-list">
           {users.map((u) => (
-            <div
-              key={u.id}
-              style={{
-                backgroundColor: '#374151',
-                borderRadius: '8px',
-                padding: '1rem',
-                border: '1px solid #4b5563'
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome e Cognome:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{u.name}</span>
+            <div key={u.id} className="utenti-card">
+              <div className="utenti-card-fields">
+                <div className="utenti-card-field">
+                  <span className="utenti-card-label">Nome e Cognome:</span>
+                  <span className="utenti-card-value">{u.name}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Email:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{u.email}</span>
+                <div className="utenti-card-field">
+                  <span className="utenti-card-label">Email:</span>
+                  <span className="utenti-card-value">{u.email}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ruolo:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{getRoleName(u)}</span>
+                <div className="utenti-card-field">
+                  <span className="utenti-card-label">Ruolo:</span>
+                  <span className="utenti-card-value">{getRoleName(u)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.25rem 0' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Dipendente:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>
+                <div className="utenti-card-field">
+                  <span className="utenti-card-label">Dipendente:</span>
+                  <span className="utenti-card-value">
                     {u.dipendente?.id ? '✅ Sì' : '❌ No'}
                   </span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <div className="utenti-card-actions">
                 <button
                   onClick={() => navigate(`/admin/utenti/${u.id}/edit`)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    flex: '1'
-                  }}
+                  className="utenti-card-button utenti-card-button-edit"
                 >
                   Modifica
                 </button>
                 <button
                   onClick={() => handleDelete(u.id)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    flex: '1'
-                  }}
+                  className="utenti-card-button utenti-card-button-delete"
                 >
                   Elimina
                 </button>
@@ -142,53 +109,36 @@ function Utenti() {
         </div>
       ) : (
         // Layout desktop: tabella
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+        <div className="utenti-table-container">
+          <table className="utenti-table">
             <thead>
-              <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-                <th style={{ padding: '0.75rem' }}>Nome e Cognome</th>
-                <th style={{ padding: '0.75rem' }}>Email</th>
-                <th style={{ padding: '0.75rem' }}>Ruolo</th>
-                <th style={{ padding: '0.75rem' }}>Dipendente</th>
-                <th style={{ padding: '0.75rem' }}>Azioni</th>
+              <tr className="utenti-table-header">
+                <th>Nome e Cognome</th>
+                <th>Email</th>
+                <th>Ruolo</th>
+                <th>Dipendente</th>
+                <th>Azioni</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                  <td style={{ padding: '0.75rem' }}>{u.name}</td>
-                  <td style={{ padding: '0.75rem' }}>{u.email}</td>
-                  <td style={{ padding: '0.75rem' }}>{getRoleName(u)}</td>
-                  <td style={{ padding: '0.75rem' }}>
+                <tr key={u.id} className="utenti-table-row">
+                  <td>{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>{getRoleName(u)}</td>
+                  <td>
                     {u.dipendente?.id ? '✅ Sì' : '❌ No'}
                   </td>
-                  <td style={{ padding: '0.75rem' }}>
+                  <td>
                     <button
                       onClick={() => navigate(`/admin/utenti/${u.id}/edit`)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        backgroundColor: '#3b82f6',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        marginRight: '0.5rem',
-                        fontSize: '0.875rem'
-                      }}
+                      className="utenti-table-button utenti-table-button-edit"
                     >
                       Modifica
                     </button>
                     <button
                       onClick={() => handleDelete(u.id)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        backgroundColor: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem'
-                      }}
+                      className="utenti-table-button utenti-table-button-delete"
                     >
                       Elimina
                     </button>

@@ -53,7 +53,7 @@ function EditUtente() {
         delete userData.password
         delete userData.password_confirmation
       }
-      
+
       await updateUser(id, userData)
       navigate('/admin/utenti')
     } catch (err) {
@@ -64,23 +64,23 @@ function EditUtente() {
 
   if (loading) {
     return (
-      <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <div className="edit-utente-loading-container">
         <p>Caricamento...</p>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '600px' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Modifica Utente</h1>
+    <div className="edit-utente-container">
+      <div className="edit-utente-header">
+        <h1 className="edit-utente-title">Modifica Utente</h1>
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+      {error && <p className="edit-utente-error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-utente-field">
+          <label className="edit-utente-label">
             Nome e Cognome *
           </label>
           <input
@@ -90,12 +90,12 @@ function EditUtente() {
             onChange={handleChange}
             required
             placeholder="Es: Mario Rossi"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-utente-field">
+          <label className="edit-utente-label">
             Email *
           </label>
           <input
@@ -105,12 +105,12 @@ function EditUtente() {
             onChange={handleChange}
             required
             placeholder="Es: mario.rossi@azienda.it"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-utente-field">
+          <label className="edit-utente-label">
             Nuova Password
           </label>
           <input
@@ -120,15 +120,15 @@ function EditUtente() {
             onChange={handleChange}
             minLength="8"
             placeholder="Lascia vuoto per non cambiare"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-utente-input"
           />
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <p className="edit-utente-hint">
             Minimo 8 caratteri
           </p>
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-utente-field">
+          <label className="edit-utente-label">
             Conferma Nuova Password
           </label>
           <input
@@ -137,12 +137,12 @@ function EditUtente() {
             value={form.password_confirmation}
             onChange={handleChange}
             placeholder="Lascia vuoto per non cambiare"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '2rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="edit-utente-field-ruolo">
+          <label className="edit-utente-label">
             Ruolo *
           </label>
           <select
@@ -150,38 +150,24 @@ function EditUtente() {
             value={form.role}
             onChange={handleChange}
             required
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="edit-utente-select"
           >
             <option value="dipendente">Dipendente</option>
             <option value="admin">Amministratore</option>
           </select>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="edit-utente-buttons">
           <button
             type="button"
             onClick={() => navigate('/admin/utenti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="edit-utente-button edit-utente-button-cancel"
           >
             Annulla
           </button>
           <button
             type="submit"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="edit-utente-button edit-utente-button-submit"
           >
             Aggiorna Utente
           </button>

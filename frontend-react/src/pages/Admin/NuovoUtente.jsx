@@ -11,7 +11,6 @@ function NuovoUtente() {
     password: '',
     password_confirmation: '',
     role: 'dipendente',
-    // Campi opzionali per dipendente
     create_dipendente: false,
     contratto_id: '',
     codice_fiscale: '',
@@ -46,8 +45,7 @@ function NuovoUtente() {
         role: form.role,
         create_dipendente: form.create_dipendente
       }
-      
-      // Se l'utente vuole anche creare il dipendente, aggiungi i campi dipendente
+
       if (form.create_dipendente) {
         userData.contratto_id = form.contratto_id || null
         userData.codice_fiscale = form.codice_fiscale || null
@@ -57,7 +55,7 @@ function NuovoUtente() {
         userData.percentuale_part_time = form.percentuale_part_time || 100
         userData.giorni_lavorativi_settimanali = form.giorni_lavorativi_settimanali || 5
       }
-      
+
       await createUser(userData)
       navigate('/admin/utenti')
     } catch (err) {
@@ -67,16 +65,16 @@ function NuovoUtente() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '600px' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Nuovo Utente</h1>
+    <div className="nuovo-utente-container">
+      <div className="nuovo-utente-header">
+        <h1 className="nuovo-utente-title">Nuovo Utente</h1>
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+      {error && <p className="nuovo-utente-error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-utente-field">
+          <label className="nuovo-utente-label">
             Nome *
           </label>
           <input
@@ -86,12 +84,12 @@ function NuovoUtente() {
             onChange={handleChange}
             required
             placeholder="Es: Mario Rossi"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-utente-field">
+          <label className="nuovo-utente-label">
             Email *
           </label>
           <input
@@ -101,12 +99,12 @@ function NuovoUtente() {
             onChange={handleChange}
             required
             placeholder="Es: mario.rossi@azienda.it"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-utente-field">
+          <label className="nuovo-utente-label">
             Password *
           </label>
           <input
@@ -117,12 +115,12 @@ function NuovoUtente() {
             required
             minLength="8"
             placeholder="Minimo 8 caratteri"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-utente-field">
+          <label className="nuovo-utente-label">
             Conferma Password *
           </label>
           <input
@@ -132,12 +130,12 @@ function NuovoUtente() {
             onChange={handleChange}
             required
             placeholder="Reinserisci password"
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-utente-input"
           />
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="nuovo-utente-field">
+          <label className="nuovo-utente-label">
             Ruolo *
           </label>
           <select
@@ -145,15 +143,15 @@ function NuovoUtente() {
             value={form.role}
             onChange={handleChange}
             required
-            style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+            className="nuovo-utente-input"
           >
             <option value="dipendente">Dipendente</option>
             <option value="admin">Amministratore</option>
           </select>
         </div>
 
-        <div style={{ marginBottom: '2rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+        <div className="nuovo-utente-field-checkbox">
+          <label className="nuovo-utente-checkbox-container">
             <input
               type="checkbox"
               name="create_dipendente"
@@ -162,46 +160,40 @@ function NuovoUtente() {
             />
             <span>Crea anche anagrafica dipendente</span>
           </label>
-          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+          <p className="nuovo-utente-hint">
             Seleziona per creare anche il record nella tabella dipendenti
           </p>
         </div>
 
         {form.create_dipendente && (
           <>
-            <h3 style={{ marginBottom: '1.5rem', color: '#4b5563', fontSize: '1.125rem' }}>
+            <h3 className="nuovo-utente-section-title">
               Dati Anagrafici Dipendente
             </h3>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Contratto</label>
+
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label-simple">Contratto</label>
               <input
                 type="text"
                 placeholder="Cerca per codice CNEL o nome..."
                 value={contrattiFilter}
                 onChange={(e) => setContrattiFilter(e.target.value)}
-                style={{ 
-                  display: 'block', 
-                  width: '100%', 
-                  padding: '0.5rem', 
-                  border: '1px solid #d1d5db', 
-                  borderRadius: '4px',
-                  marginBottom: '0.5rem'
-                }}
+                className="nuovo-utente-input"
+                style={{ marginBottom: '0.5rem' }}
               />
               <select
                 name="contratto_id"
                 value={form.contratto_id}
                 onChange={handleChange}
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
-                size={Math.min(10, contratti.filter(c => 
+                className="nuovo-utente-input"
+                size={Math.min(10, contratti.filter(c =>
                   c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
                   c.codice_cnel?.toLowerCase().includes(contrattiFilter.toLowerCase())
                 ).length + 1)}
               >
                 <option value="">-- Seleziona contratto --</option>
                 {contratti
-                  .filter(c => 
+                  .filter(c =>
                     contrattiFilter === '' ||
                     c.nome_contratto.toLowerCase().includes(contrattiFilter.toLowerCase()) ||
                     (c.codice_cnel && c.codice_cnel.toLowerCase().includes(contrattiFilter.toLowerCase()))
@@ -214,44 +206,44 @@ function NuovoUtente() {
               </select>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Codice Fiscale</label>
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label-simple">Codice Fiscale</label>
               <input
                 type="text"
                 name="codice_fiscale"
                 value={form.codice_fiscale}
                 onChange={handleChange}
                 placeholder="Es: RSSMRA90A01H501Z"
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                className="nuovo-utente-input"
               />
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Mansione</label>
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label-simple">Mansione</label>
               <input
                 type="text"
                 name="mansione"
                 value={form.mansione}
                 onChange={handleChange}
                 placeholder="Es: Addetto produzione"
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                className="nuovo-utente-input"
               />
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label>Livello</label>
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label-simple">Livello</label>
               <input
                 type="text"
                 name="livello"
                 value={form.livello}
                 onChange={handleChange}
                 placeholder="Es: Operaio"
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                className="nuovo-utente-input"
               />
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label">
                 % Part-Time *
               </label>
               <input
@@ -263,15 +255,15 @@ function NuovoUtente() {
                 min="0"
                 max="100"
                 step="1"
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                className="nuovo-utente-input"
               />
-              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+              <p className="nuovo-utente-hint">
                 100 = tempo pieno
               </p>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label">
                 Giorni Lavorativi Settimanali *
               </label>
               <select
@@ -279,7 +271,7 @@ function NuovoUtente() {
                 value={form.giorni_lavorativi_settimanali}
                 onChange={handleChange}
                 required
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                className="nuovo-utente-input"
               >
                 <option value="4">4 giorni</option>
                 <option value="5">5 giorni (lun-ven)</option>
@@ -287,8 +279,8 @@ function NuovoUtente() {
               </select>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem' }}>
+            <div className="nuovo-utente-field">
+              <label className="nuovo-utente-label">
                 Data Assunzione
               </label>
               <input
@@ -297,37 +289,23 @@ function NuovoUtente() {
                 value={form.data_assunzione}
                 onChange={handleChange}
                 placeholder="Seleziona data"
-                style={{ display: 'block', width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                className="nuovo-utente-input"
               />
             </div>
           </>
         )}
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="nuovo-utente-buttons">
           <button
             type="button"
             onClick={() => navigate('/admin/utenti')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#f3f4f6',
-              color: '#374151',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="nuovo-utente-button nuovo-utente-button-cancel"
           >
             Annulla
           </button>
           <button
             type="submit"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="nuovo-utente-button nuovo-utente-button-submit"
           >
             Crea Utente
           </button>
