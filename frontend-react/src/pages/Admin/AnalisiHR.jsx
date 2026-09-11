@@ -1270,7 +1270,7 @@ function AnalisiHR() {
               return (
                 <div className="analisi-hr-flex-space-around">
                   <div className="analisi-hr-text-center">
-                    <div class="analisi-hr-text-value">
+                    <div className="analisi-hr-text-value">
                       {formatValue(totale)} h
                     </div>
                     <div className="analisi-hr-text-label">
