@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { getDipendenti, getAnalisiFerie } from '../../services/dipendentiService'
-import { getPresenze, getMesiApprovati } from '../../services/presenzeService'
+import { getPresenze } from '../../services/presenzeService'
 
 import {
   PieChart,
@@ -413,22 +413,11 @@ function AnalisiHR() {
         
         const risultati = await Promise.all(mesiPromises)
         
-        // Recupera i mesi approvati per il dipendente selezionato
-        let mesiApprovatiSet = new Set()
-        try {
-          const mesiApprovatiRes = await getMesiApprovati()
-          mesiApprovatiSet = new Set(
-            (mesiApprovatiRes.data || [])
-              .filter(m => m.dipendente_id === parseInt(dipendenteSelezionato) && m.anno === parseInt(annoSelezionato))
-              .map(m => m.mese)
-          )
-        } catch (err) {
-          console.error("Errore recupero mesi approvati, nessun mese verra' mostrato:", err)
-        }
+        
         
         // Aggrega tutti i dati - solo da mesi approvati
-        const tuttePresenze = risultati.flatMap((r, i) => {
-          if (!mesiApprovatiSet.has(i + 1)) return []
+        const tuttePresenze = risultati.flatMap((r) => {
+          
           return r.data || []
         })
         
@@ -650,8 +639,8 @@ function AnalisiHR() {
         risultati.forEach((risultato, meseIndex) => {
           const presenzeMese = risultato.data || []
           const nomeMese = nomiMesiArray[meseIndex]
-          const meseApprovato = mesiApprovatiSet.has(meseIndex + 1)
-          presenzePerMese[nomeMese] = meseApprovato ? presenzeMese : []
+          
+          presenzePerMese[nomeMese] = presenzeMese
         })
         
         // Per ogni mese, calcola supplementari/straordinarie
