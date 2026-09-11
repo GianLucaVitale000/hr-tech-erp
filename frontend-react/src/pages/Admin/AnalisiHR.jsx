@@ -950,7 +950,6 @@ function AnalisiHR() {
       MalattieBrevi: datiAnnuali.malattieBreviPerGiorno[g.day] || 0
     }))
   }
-
   // Stile per i widget
   const widgetStyle = {
     backgroundColor: '#374151',

@@ -88,54 +88,43 @@ function Approvazioni() {
     }
   }
 
-  const getStatoStyle = (stato) => {
+  const getStatoClass = (stato) => {
     switch(stato) {
       case 'inviato':
       case 'rifiutato':
-        return { backgroundColor: '#fef3c7', color: '#92400e' }
+        return 'approvazioni-stato-da-approvare'
       case 'reinviato':
-        return { backgroundColor: '#fde68a', color: '#854d0e' }
+        return 'approvazioni-stato-reinviato'
       case 'approvato':
-        return { backgroundColor: '#dcfce7', color: '#166534' }
+        return 'approvazioni-stato-approvato'
       default:
-        return { backgroundColor: '#f3f4f6', color: '#374151' }
+        return 'approvazioni-stato-sconosciuto'
     }
   }
 
   return (
-    <div style={{ padding: '2.5rem', fontFamily: 'sans-serif' }}>
+    <div className="approvazioni-container">
       {/* Titolo con font-size responsive */}
-      <h1 style={{
-        margin: '0 0 2rem 0',
-        lineHeight: '1.2',
-        fontSize: isMobile ? '2.5rem' : undefined // Desktop usa il default di index.css (56px)
-      }}>
+      <h1 className="approvazioni-title">
         Approvazione Fogli Ore
       </h1>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
+      <div className="approvazioni-buttons-container">
+        <div className="approvazioni-buttons-group">
           <button
             onClick={() => {
               const oggi = new Date()
               handleExport(oggi.getMonth() + 1, oggi.getFullYear())
             }}
-            style={{
-              padding: '0.6rem 1.2rem',
-              backgroundColor: '#059669',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="approvazioni-button"
           >
             📊 Export Excel Paghe (Mese Corrente)
           </button>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className="approvazioni-export-group">
             <select
               value={meseSelezionato}
               onChange={(e) => setMeseSelezionato(e.target.value)}
-              style={{ padding: '0.5rem', borderRadius: '4px' }}
+              className="approvazioni-select-mese"
               disabled={loadingApprovati}
             >
               {mesiApprovati
@@ -153,14 +142,7 @@ function Approvazioni() {
                   handleExport(parseInt(m), parseInt(a))
                 }
               }}
-              style={{
-                padding: '0.6rem 1.2rem',
-                backgroundColor: '#059669',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
+              className="approvazioni-button"
               disabled={!meseSelezionato || loadingApprovati}
             >
               📊 Export Excel Paghe ({meseSelezionato ? NOMI_MESI[parseInt(meseSelezionato.split('-')[0]) - 1] || meseSelezionato : '...'})
@@ -170,20 +152,20 @@ function Approvazioni() {
       </div>
 
       {loading ? (
-        <p>Caricamento...</p>
+        <p className="approvazioni-loading">Caricamento...</p>
       ) : mesi.length === 0 ? (
-        <p>Nessun foglio ore da visualizzare.</p>
+        <p className="approvazioni-empty">Nessun foglio ore da visualizzare.</p>
       ) : (
         <>
           {/* Filtri */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ fontWeight: '500' }}>Dipendente:</label>
+          <div className="approvazioni-filters">
+            <div className="approvazioni-filters-container">
+              <div className="approvazioni-filter-group">
+                <label className="approvazioni-filter-label">Dipendente:</label>
                 <select
                   value={filtroDipendente}
                   onChange={(e) => setFiltroDipendente(e.target.value)}
-                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                  className="approvazioni-filter-select"
                 >
                   <option value="">Tutti</option>
                   {[...new Set(mesi.map(m => m.dipendente_nome))].map((nome, index) => (
@@ -191,12 +173,12 @@ function Approvazioni() {
                   ))}
                 </select>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ fontWeight: '500' }}>Mese:</label>
+              <div className="approvazioni-filter-group">
+                <label className="approvazioni-filter-label">Mese:</label>
                 <select
                   value={filtroMese}
                   onChange={(e) => setFiltroMese(e.target.value)}
-                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                  className="approvazioni-filter-select"
                 >
                   <option value="">Tutti</option>
                   {[...new Set(mesi.map(m => m.mese))].map((mese, index) => (
@@ -204,12 +186,12 @@ function Approvazioni() {
                   ))}
                 </select>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ fontWeight: '500' }}>Anno:</label>
+              <div className="approvazioni-filter-group">
+                <label className="approvazioni-filter-label">Anno:</label>
                 <select
                   value={filtroAnno}
                   onChange={(e) => setFiltroAnno(e.target.value)}
-                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+                  className="approvazioni-filter-select"
                 >
                   <option value="">Tutti</option>
                   {[...new Set(mesi.map(m => m.anno))].sort((a, b) => b - a).map((anno, index) => (
@@ -222,7 +204,7 @@ function Approvazioni() {
 
           {/* Versione mobile: card */}
           {isMobile ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="approvazioni-mobile-list">
               {mesi
                 .filter(m => (
                   (filtroDipendente === '' || m.dipendente_nome === filtroDipendente) &&
@@ -230,41 +212,41 @@ function Approvazioni() {
                   (filtroAnno === '' || m.anno === filtroAnno)
                 ))
                 .map((m) => (
-                  <div key={`${m.dipendente_id}-${m.mese}-${m.anno}`} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Dipendente:</span>
+                  <div key={`${m.dipendente_id}-${m.mese}-${m.anno}`} className="approvazioni-card">
+                    <div className="approvazioni-card-fields">
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Dipendente:</span>
                         <span
-                          style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500', cursor: 'pointer', textDecoration: 'underline' }}
+                          className="approvazioni-card-value approvazioni-card-value-clickable"
                           onClick={() => navigate(`/admin/approvazioni/${m.dipendente_id}/${m.mese}/${m.anno}`)}
                         >
                           {m.dipendente_nome}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Mese:</span>
-                        <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{NOMI_MESI[parseInt(m.mese) - 1]} {m.anno}</span>
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Mese:</span>
+                        <span className="approvazioni-card-value">{NOMI_MESI[parseInt(m.mese) - 1]} {m.anno}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Giorni Inviati:</span>
-                        <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{m.totale_giorni}</span>
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Giorni Inviati:</span>
+                        <span className="approvazioni-card-value">{m.totale_giorni}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Ordinarie:</span>
-                        <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</span>
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Ore Ordinarie:</span>
+                        <span className="approvazioni-card-value">{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Eccedenti:</span>
-                        <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</span>
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Ore Eccedenti:</span>
+                        <span className="approvazioni-card-value">{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Straordinari:</span>
-                        <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</span>
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Straordinari:</span>
+                        <span className="approvazioni-card-value">{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                        <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Stato:</span>
-                        <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>
-                          <span style={{ padding: '0.25rem 0.6rem', borderRadius: '12px', ...getStatoStyle(m.stato) }}>
+                      <div className="approvazioni-card-field">
+                        <span className="approvazioni-card-label">Stato:</span>
+                        <span className="approvazioni-card-value">
+                          <span className={`approvazioni-stato-badge ${getStatoClass(m.stato)}`}>
                             {getStatoLabel(m.stato)}
                           </span>
                         </span>
@@ -275,17 +257,17 @@ function Approvazioni() {
             </div>
           ) : (
             // Versione desktop: tabella
-            <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="approvazioni-table-container">
+              <table className="approvazioni-table">
                 <thead>
-                  <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-                    <th style={{ padding: '0.75rem', minWidth: '150px' }}>Dipendente</th>
-                    <th style={{ padding: '0.75rem', minWidth: '80px' }}>Mese</th>
-                    <th style={{ padding: '0.75rem', minWidth: '100px' }}>Giorni Inviati</th>
-                    <th style={{ padding: '0.75rem', minWidth: '100px' }}>Ore Ordinarie</th>
-                    <th style={{ padding: '0.75rem', minWidth: '100px' }}>Ore Eccedenti</th>
-                    <th style={{ padding: '0.75rem', minWidth: '100px' }}>Straordinari</th>
-                    <th style={{ padding: '0.75rem', minWidth: '120px' }}>Stato</th>
+                  <tr className="approvazioni-table-header">
+                    <th>Dipendente</th>
+                    <th>Mese</th>
+                    <th>Giorni Inviati</th>
+                    <th>Ore Ordinarie</th>
+                    <th>Ore Eccedenti</th>
+                    <th>Straordinari</th>
+                    <th>Stato</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -296,24 +278,20 @@ function Approvazioni() {
                       (filtroAnno === '' || m.anno === filtroAnno)
                     ))
                     .map((m) => (
-                      <tr key={`${m.dipendente_id}-${m.mese}-${m.anno}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <tr key={`${m.dipendente_id}-${m.mese}-${m.anno}`} className="approvazioni-table-row">
                         <td
-                          style={{ padding: '0.75rem', cursor: 'pointer', color: '#2563eb', textDecoration: 'underline' }}
+                          className="approvazioni-table-cell-clickable"
                           onClick={() => navigate(`/admin/approvazioni/${m.dipendente_id}/${m.mese}/${m.anno}`)}
                         >
                           {m.dipendente_nome}
                         </td>
-                        <td style={{ padding: '0.75rem' }}>{m.mese}/{m.anno}</td>
-                        <td style={{ padding: '0.75rem' }}>{m.totale_giorni}</td>
-                        <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</td>
-                        <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</td>
-                        <td style={{ padding: '0.75rem' }}>{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</td>
-                        <td style={{ padding: '0.75rem' }}>
-                          <span style={{
-                            padding: '0.25rem 0.6rem',
-                            borderRadius: '12px',
-                            ...getStatoStyle(m.stato)
-                          }}>
+                        <td>{m.mese}/{m.anno}</td>
+                        <td>{m.totale_giorni}</td>
+                        <td>{Number(m.totale_ore_ordinarie || 0).toFixed(2)}</td>
+                        <td>{Number(m.totale_ore_eccedenti || 0).toFixed(2)}</td>
+                        <td>{Number(m.totale_ore_straordinarie || 0).toFixed(2)}</td>
+                        <td>
+                          <span className={`approvazioni-stato-badge ${getStatoClass(m.stato)}`}>
                             {getStatoLabel(m.stato)}
                           </span>
                         </td>

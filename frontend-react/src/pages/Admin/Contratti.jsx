@@ -1,8 +1,8 @@
 import { useState, useEffect, Fragment } from 'react'
-import { 
-  getContrattiAllVersions, 
-  getRegoleCalcolo, 
-  createRegolaCalcolo, 
+import {
+  getContrattiAllVersions,
+  getRegoleCalcolo,
+  createRegolaCalcolo,
   updateRegolaCalcolo,
   deleteRegolaCalcolo,
   getDipendentiByCodiceContratto,
@@ -46,23 +46,22 @@ function Contratti() {
       if (!b.data_decorrenza) return -1;
       return new Date(b.data_decorrenza) - new Date(a.data_decorrenza);
     });
-    
-    // Cerca il primo con Confcommercio + almeno una di CGIL/CISL/UIL
+
     const conSindacatiPrincipali = ordinati.find(c => {
       const datoriali = c.partiDatorialiFirmatarie || [];
       const sindacati = c.partiSindacaliFirmatarie || [];
-      
+
       const datorialiStr = typeof datoriali === 'string' ? datoriali : JSON.stringify(datoriali);
       const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
-      
+
       const haConfcommercio = datorialiStr.toUpperCase().includes('CONFCOMMERCIO');
       const haSindacatoPrincipale = sindacatiStr.toLowerCase().includes('cgil') ||
-                                        sindacatiStr.toLowerCase().includes('cisl') ||
-                                        sindacatiStr.toLowerCase().includes('uil');
-      
+                                      sindacatiStr.toLowerCase().includes('cisl') ||
+                                      sindacatiStr.toLowerCase().includes('uil');
+
       return haConfcommercio && haSindacatoPrincipale;
     });
-    
+
     return conSindacatiPrincipali || ordinati[0];
   }
 
@@ -98,15 +97,21 @@ function Contratti() {
     return '-';
   }
 
-  const getTipologiaColor = (tipologia) => {
+  const getTipologiaColorClass = (tipologia) => {
     const colors = {
-      'Accordo di rinnovo': '#3b82f6',
-      'Verbale Integrativo': '#10b981',
-      'Testo definitivo': '#8b5cf6',
-      'Accordo economico': '#f59e0b',
-      'Economico secondo biennio': '#ef4444'
+      'Accordo di rinnovo': 'contratti-tipologia-rinnovo',
+      'Verbale Integrativo': 'contratti-tipologia-integrativo',
+      'Testo definitivo': 'contratti-tipologia-definitivo',
+      'Accordo economico': 'contratti-tipologia-economico',
+      'Economico secondo biennio': 'contratti-tipologia-biennio'
     };
-    return colors[tipologia] || '#6b7280';
+    return colors[tipologia] || '';
+  }
+
+  const getTipologiaIndicatorSize = (context) => {
+    if (context === 'card') return 'contratti-tipologia-indicator-small';
+    if (context === 'altra') return 'contratti-tipologia-indicator-small';
+    return 'contratti-tipologia-indicator-medium';
   }
 
   const formatDate = (dateString) => {
@@ -137,10 +142,7 @@ function Contratti() {
         getRegoleCalcolo()
       ])
 
-
-
-      setContratti(contrattiRes.data)
-      // Crea mappa contratto_id -> array di regole
+      setContratti(contrattiRes.data);
       const map = {}
       regoleRes.data.forEach(r => {
         if (!map[r.contratto_id]) {
@@ -212,13 +214,11 @@ function Contratti() {
   // Funzione per rimuovere un profilo
   const removeProfilo = async (index) => {
     const profilo = profili[index]
-    
-    // Se il profilo ha un id, chiedi conferma ed elimina dal backend
+
     if (profilo.id) {
       if (window.confirm('Vuoi davvero eliminare questo profilo orario?')) {
         try {
           await deleteRegolaCalcolo(profilo.id)
-          // Rimuovi localmente
           const newProfili = [...profili]
           newProfili.splice(index, 1)
           setProfili(newProfili)
@@ -228,7 +228,6 @@ function Contratti() {
         }
       }
     } else {
-      // Se non ha id, rimuovi solo localmente
       if (profili.length <= 1) return
       const newProfili = [...profili]
       newProfili.splice(index, 1)
@@ -253,7 +252,7 @@ function Contratti() {
     setProfili(prev => {
       const newProfili = [...prev]
       const profilo = { ...newProfili[profiloIndex] }
-      
+
       if (type === 'select-multiple') {
         const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value))
         profilo.dipendenti_ids = selectedOptions
@@ -262,7 +261,7 @@ function Contratti() {
       } else {
         profilo[name] = value
       }
-      
+
       newProfili[profiloIndex] = profilo
       return newProfili
     })
@@ -271,25 +270,19 @@ function Contratti() {
   const openRegoleModal = async (contratto) => {
     setCurrentContratto(contratto)
     setDipendentiLoading(true)
-    
+
     try {
-      // Carica tutti i dipendenti del contratto
-      // Se c'è il codice CCNL, usa quello per trovare tutti i dipendenti
-      // indipendentemente dalla versione del contratto
-      const dipendentiRes = contratto.codice_cnel 
+      const dipendentiRes = contratto.codice_cnel
         ? await getDipendentiByCodiceContratto(contratto.codice_cnel)
         : await getDipendentiByContratto(contratto.id)
-      
+
       setAllDipendenti(dipendentiRes.data || [])
-      
-      // Imposta ore base del contratto
+
       setContrattoOre(contratto.ore_settimanali_teoriche ?? null)
-      
-      // Carica i profili esistenti (regole di calcolo per questo contratto)
+
       const regoleContratto = regoleMap[contratto.id] || []
-      
+
       if (regoleContratto.length === 0) {
-        // Nessun profilo esistente, ne creiamo uno vuoto
         setProfili([{
           id: null,
           ore: null,
@@ -297,7 +290,6 @@ function Contratti() {
           dipendenti_ids: []
         }])
       } else {
-        // Converte in array di profili
         setProfili(regoleContratto.map(r => ({
           id: r.id,
           ore: r.ore_settimanali_teoriche !== null && parseFloat(r.ore_settimanali_teoriche) !== 0 ? r.ore_settimanali_teoriche : null,
@@ -318,7 +310,7 @@ function Contratti() {
     } finally {
       setDipendentiLoading(false)
     }
-    
+
     setModalOpen(true)
   }
 
@@ -341,22 +333,19 @@ function Contratti() {
       setModalLoading(false)
       return
     }
-    
+
     setModalLoading(true)
     setError('')
-    
+
     try {
-      // 1. Aggiorna le ore settimanali teoriche del contratto
       if (contrattoOre !== null && contrattoOre !== currentContratto.ore_settimanali_teoriche) {
         await updateContratto(currentContratto.id, {
           ore_settimanali_teoriche: contrattoOre
         })
       }
-      
-      // 2. Gestisce i profili orario
+
       for (const profilo of profili) {
         if (profilo.id) {
-          // Aggiorna profilo esistente
           const updateData = {
             ore_settimanali_teoriche: profilo.ore,
             descrizione: profilo.descrizione || null,
@@ -364,7 +353,6 @@ function Contratti() {
           }
           await updateRegolaCalcolo(profilo.id, updateData)
         } else {
-          // Crea nuovo profilo
           const createData = {
             contratto_id: currentContratto.id,
             ore_settimanali_teoriche: profilo.ore,
@@ -374,7 +362,7 @@ function Contratti() {
           await createRegolaCalcolo(createData)
         }
       }
-      
+
       closeModal()
       await fetchContratti()
       setModalLoading(false)
@@ -386,58 +374,53 @@ function Contratti() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <h1 style={{ margin: 0, lineHeight: '1.2' }}>Gestione CCNL</h1>
-          <div style={{ display: 'flex', gap: '1rem', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'stretch' : 'center' }}>
-            <input
-              type="text"
-              placeholder="Cerca per codice o nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '4px',
-                fontSize: '0.875rem',
-                width: isMobile ? 'calc(90vw - 3rem)' : '300px',
-                boxSizing: 'border-box'
-              }}
-            />
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer', width: isMobile ? '100%' : 'auto' }}>
+    <div className="contratti-container">
+      <div className="contratti-header">
+        <div className="contratti-header-content">
+          <h1 className="contratti-title">Gestione CCNL</h1>
+          <div className={isMobile ? "contratti-checkbox-label contratti-checkbox-label-mobile" : "contratti-checkbox-label"}>
+            <label>
+              <input
+                type="text"
+                placeholder="Cerca per codice o nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={isMobile ? "contratti-search-input contratti-search-input-mobile" : "contratti-search-input contratti-search-input-desktop"}
+              />
+            </label>
+            <label className="contratti-checkbox-label">
               <input
                 type="checkbox"
                 checked={onlyMainUnions}
                 onChange={(e) => setOnlyMainUnions(e.target.checked)}
-                style={{ cursor: 'pointer' }}
+                className="contratti-checkbox-input"
               />
               Solo sindacati comparativamente più rappresentativi sul piano nazionale
             </label>
           </div>
         </div>
-        
-        <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-          <strong style={{ fontSize: '0.875rem', color: '#4b5563' }}>Legenda tipologie:</strong>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <span style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Accordo di rinnovo</span>
-            <span style={{ backgroundColor: '#10b981', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Verbale Integrativo</span>
-            <span style={{ backgroundColor: '#8b5cf6', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Testo definitivo</span>
-            <span style={{ backgroundColor: '#f59e0b', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Accordo economico</span>
-            <span style={{ backgroundColor: '#ef4444', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>Economico secondo biennio</span>
+
+        <div className="contratti-header">
+          <strong className="contratti-legend-title">Legenda tipologie:</strong>
+          <div className="contratti-legend-tags">
+            <span className="contratti-legend-tag contratti-legend-tag-rinnovo">Accordo di rinnovo</span>
+            <span className="contratti-legend-tag contratti-legend-tag-integrativo">Verbale Integrativo</span>
+            <span className="contratti-legend-tag contratti-legend-tag-definitivo">Testo definitivo</span>
+            <span className="contratti-legend-tag contratti-legend-tag-economico">Accordo economico</span>
+            <span className="contratti-legend-tag contratti-legend-tag-biennio">Economico secondo biennio</span>
           </div>
         </div>
       </div>
 
-      {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
+      {error && <p className="contratti-error">{error}</p>}
 
       {loading ? (
-        <p>Caricamento...</p>
+        <p className="contratti-loading">Caricamento...</p>
       ) : contratti.length === 0 ? (
-        <p style={{ color: '#6b7280' }}>Nessun contratto trovato. Crea il primo contratto.</p>
+        <p className="contratti-empty">Nessun contratto trovato. Crea il primo contratto.</p>
       ) : isMobile ? (
         // LAYOUT MOBILE: cards incolonnate
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="contratti-mobile-list">
           {Object.entries(
             contratti.reduce((acc, c) => {
               if (!acc[c.codice_cnel]) acc[c.codice_cnel] = [];
@@ -479,83 +462,83 @@ function Contratti() {
                        sindacatiStr.toLowerCase().includes('uil');
               });
               return (
-                <div key={codice} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Nome Contratto:</span>
-                      <span style={{ color: '#00A896', fontSize: '0.875rem', fontWeight: '500' }}>{main.nome_contratto}</span>
+                <div key={codice} className="contratti-card">
+                  <div className="contratti-card-fields">
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Nome Contratto:</span>
+                      <span className="contratti-card-value contratti-card-value-contratto">{main.nome_contratto}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Cod. CNEL:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{codice || '-'}</span>
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Cod. CNEL:</span>
+                      <span className="contratti-card-value">{codice || '-'}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Tipo:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Tipo:</span>
+                      <span className="contratti-card-value">
                         {main.tipologia_contratto && (
-                          <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getTipologiaColor(main.tipologia_contratto), marginRight: '0.3rem' }} />
+                          <span className={`contratti-tipologia-indicator ${getTipologiaIndicatorSize('card')} ${getTipologiaColorClass(main.tipologia_contratto)}`} title={main.tipologia_contratto} />
                         )}
                         {main.tipologia_contratto || '-'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Parte Datoriale:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formatFirmatari(main.partiDatorialiFirmatarie)}</span>
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Parte Datoriale:</span>
+                      <span className="contratti-card-value">{formatFirmatari(main.partiDatorialiFirmatarie)}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Parte Sindacale:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formatFirmatari(main.partiSindacaliFirmatarie)}</span>
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Parte Sindacale:</span>
+                      <span className="contratti-card-value">{formatFirmatari(main.partiSindacaliFirmatarie)}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Sett.:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Ore Sett.:</span>
+                      <span className="contratti-card-value">
                         {Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                      <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Decorrenza:</span>
-                      <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{main.data_decorrenza ? formatDate(main.data_decorrenza) : '-'}</span>
+                    <div className="contratti-card-field">
+                      <span className="contratti-card-label">Decorrenza:</span>
+                      <span className="contratti-card-value">{main.data_decorrenza ? formatDate(main.data_decorrenza) : '-'}</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                  <div className="contratti-card-actions">
                     {altreVersioni.length > 0 && (
                       <button
                         onClick={() => toggleCard(codice)}
-                        style={{ padding: '0.5rem 0.75rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', flex: '1' }}
+                        className="contratti-card-button contratti-card-button-versions"
                       >
                         {isCardExpanded ? '▲ Nascondi' : `▼ Versioni (${altreVersioni.length})`}
                       </button>
                     )}
                     <button
                       onClick={() => openRegoleModal(main)}
-                      style={{ padding: '0.5rem 0.75rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', flex: '1' }}
+                      className="contratti-card-button contratti-card-button-rules"
                     >
                       Regole
                     </button>
                   </div>
                   {isCardExpanded && altreVersioni.length > 0 && (
-                    <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '2px solid #4b5563' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Altre versioni:</div>
+                    <div className="contratti-expanded-versions">
+                      <div className="contratti-expanded-title">Altre versioni:</div>
                       {altreVersioni.map((c) => (
-                        <div key={c.id} style={{ backgroundColor: '#1f2937', borderRadius: '6px', padding: '0.6rem', marginBottom: '0.4rem', border: '1px solid #4b5563' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Tipo:</span>
-                              <span style={{ color: 'white', fontSize: '0.75rem' }}>
+                        <div key={c.id} className="contratti-altra-version-card">
+                          <div className="contratti-altra-version-fields">
+                            <div className="contratti-altra-version-field">
+                              <span className="contratti-altra-version-label">Tipo:</span>
+                              <span className="contratti-altra-version-value">
                                 {c.tipologia_contratto && (
-                                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getTipologiaColor(c.tipologia_contratto), marginRight: '0.25rem' }} />
+                                  <span className={`contratti-tipologia-indicator ${getTipologiaIndicatorSize('altra')} ${getTipologiaColorClass(c.tipologia_contratto)}`} title={c.tipologia_contratto} />
                                 )}
                                 {c.tipologia_contratto || '-'}
                               </span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>Decorrenza:</span>
-                              <span style={{ color: 'white', fontSize: '0.75rem' }}>{c.data_decorrenza ? formatDate(c.data_decorrenza) : '-'}</span>
+                            <div className="contratti-altra-version-field">
+                              <span className="contratti-altra-version-label">Decorrenza:</span>
+                              <span className="contratti-altra-version-value">{c.data_decorrenza ? formatDate(c.data_decorrenza) : '-'}</span>
                             </div>
-                            <div style={{ marginTop: '0.3rem', display: 'flex', justifyContent: 'center' }}>
+                            <div className="contratti-altra-version-actions">
                               <button
                                 onClick={() => openRegoleModal(c)}
-                                style={{ padding: '0.25rem 0.6rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}
+                                className="contratti-altra-version-button"
                               >
                                 Regole
                               </button>
@@ -571,18 +554,18 @@ function Contratti() {
         </div>
       ) : (
         // LAYOUT DESKTOP: tabella
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+        <div className="contratti-table-container">
+          <table className="contratti-table">
             <thead>
-              <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Nome Contratto</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Cod. CNEL</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Tipo</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Datoriale</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Parte Sindacale</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Ore Sett.</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Decorrenza</th>
-                <th style={{ padding: '0.25rem', fontSize: '0.75rem' }}>Azioni</th>
+              <tr className="contratti-table-header">
+                <th>Nome Contratto</th>
+                <th>Cod. CNEL</th>
+                <th>Tipo</th>
+                <th>Parte Datoriale</th>
+                <th>Parte Sindacale</th>
+                <th>Ore Sett.</th>
+                <th>Decorrenza</th>
+                <th>Azioni</th>
               </tr>
             </thead>
             <tbody>
@@ -620,40 +603,46 @@ function Contratti() {
                   const isExpanded = expandedCodes[codice] || false;
                   return (
                     <Fragment key={codice}>
-                      <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem', color: '#00A896' }}><strong>{main.nome_contratto}</strong></td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{codice || '-'}</td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>
+                      <tr className="contratti-table-row">
+                        <td className="contratti-table-cell-contratto"><strong>{main.nome_contratto}</strong></td>
+                        <td>{codice || '-'}</td>
+                        <td className="contratti-table-cell-center">
                           {main.tipologia_contratto && (
-                            <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: getTipologiaColor(main.tipologia_contratto), cursor: 'help' }} title={main.tipologia_contratto} />
+                            <span className={`contratti-tipologia-indicator ${getTipologiaIndicatorSize('table')} ${getTipologiaColorClass(main.tipologia_contratto)}`} title={main.tipologia_contratto} />
                           )}
                         </td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(main.partiDatorialiFirmatarie)}</td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(main.partiSindacaliFirmatarie)}</td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}</td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{main.data_decorrenza && <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{formatDate(main.data_decorrenza)}</span>}</td>
-                        <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>
-                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                            <button onClick={() => toggleExpand(codice)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>{isExpanded ? '▲' : '▼'}</button>
-                            <button onClick={() => openRegoleModal(main)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button> 
-                          </div> 
+                        <td>{formatFirmatari(main.partiDatorialiFirmatarie)}</td>
+                        <td>{formatFirmatari(main.partiSindacaliFirmatarie)}</td>
+                        <td>{Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}</td>
+                        <td>{main.data_decorrenza && <span className="contratti-table-cell-data">{formatDate(main.data_decorrenza)}</span>}</td>
+                        <td>
+                          <div className="contratti-table-actions">
+                            <button onClick={() => toggleExpand(codice)} className="contratti-table-button contratti-table-button-expand">
+                              {isExpanded ? '▲' : '▼'}
+                            </button>
+                            <button onClick={() => openRegoleModal(main)} className="contratti-table-button contratti-table-button-rules">Regole</button>
+                          </div>
                         </td>
                       </tr>
                       {isExpanded && gruppo.filter(c => c.id !== main.id).filter(c => {
                         if (!onlyMainUnions) return true;
                         const sindacati = c.partiSindacaliFirmatarie || [];
                         const sindacatiStr = typeof sindacati === 'string' ? sindacati : JSON.stringify(sindacati);
-                        return sindacatiStr.toLowerCase().includes('cgil') || sindacatiStr.toLowerCase().includes('cisl') || sindacatiStr.toLowerCase().includes('uil');
+                        return sindacatiStr.toLowerCase().includes('cgil') ||
+                               sindacatiStr.toLowerCase().includes('cisl') ||
+                               sindacatiStr.toLowerCase().includes('uil');
                       }).map((c) => (
-                        <tr key={c.id} style={{ backgroundColor: '#374151', borderBottom: '1px solid #e5e7eb' }}>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem', paddingLeft: '2rem', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.nome_contratto || ''}>{c.nome_contratto}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.codice_cnel || '-'}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem', textAlign: 'center' }}>{c.tipologia_contratto && <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: getTipologiaColor(c.tipologia_contratto), cursor: 'help' }} title={c.tipologia_contratto} />}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(c.partiDatorialiFirmatarie)}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{formatFirmatari(c.partiSindacaliFirmatarie)}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{Number(c.ore_settimanali_teoriche) === 0 || c.ore_settimanali_teoriche === null ? '-' : c.ore_settimanali_teoriche}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}>{c.data_decorrenza && <span style={{ fontSize: '0.75rem', color: '#00A896' }}>{formatDate(c.data_decorrenza)}</span>}</td>
-                          <td style={{ padding: '0.25rem', fontSize: '0.75rem' }}><button onClick={() => openRegoleModal(c)} style={{ padding: '0.15rem 0.3rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}>Regole</button></td>
+                        <tr key={c.id} className="contratti-table-row-expanded">
+                          <td className="contratti-table-cell-expanded" title={c.nome_contratto || ''}>{c.nome_contratto}</td>
+                          <td>{c.codice_cnel || '-'}</td>
+                          <td className="contratti-table-cell-center">
+                            {c.tipologia_contratto && <span className={`contratti-tipologia-indicator ${getTipologiaIndicatorSize('table')} ${getTipologiaColorClass(c.tipologia_contratto)}`} title={c.tipologia_contratto} />}
+                          </td>
+                          <td>{formatFirmatari(c.partiDatorialiFirmatarie)}</td>
+                          <td>{formatFirmatari(c.partiSindacaliFirmatarie)}</td>
+                          <td>{Number(c.ore_settimanali_teoriche) === 0 || c.ore_settimanali_teoriche === null ? '-' : c.ore_settimanali_teoriche}</td>
+                          <td>{c.data_decorrenza && <span className="contratti-table-cell-data-green">{formatDate(c.data_decorrenza)}</span>}</td>
+                          <td><button onClick={() => openRegoleModal(c)} className="contratti-table-button contratti-table-button-rules">Regole</button></td>
                         </tr>
                       ))}
                     </Fragment>
@@ -662,54 +651,27 @@ function Contratti() {
             </tbody>
           </table>
         </div>
-        )}
+      )}
 
       {/* Modale Regole di Calcolo */}
       {modalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '0 1rem'
-        }}>
-          <div style={{
-            backgroundColor: '#1f2937',
-            padding: '2rem',
-            borderRadius: '8px',
-            width: '100%',
-            maxWidth: '700px',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            color: 'white'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: '0.5rem 1rem', fontSize: '1.1rem', color: 'white' }}>
+        <div className="contratti-modal-overlay">
+          <div className="contratti-modal">
+            <div className="contratti-modal-header">
+              <h2 className="contratti-modal-title">
                 {currentContratto ? `Regole di Calcolo - ${currentContratto.nome_contratto}` : 'Nuove Regole'}
               </h2>
               <button
                 onClick={closeModal}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  color: '#9ca3af'
-                }}
+                className="contratti-modal-close"
               >
                 ×
               </button>
             </div>
-            
+
             {/* Campo Ore Settimanali Teoriche - Base del contratto */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
+            <div className="contratti-modal-section">
+              <label className="contratti-modal-label">
                 Ore Settimanali Teoriche
               </label>
               <input
@@ -719,60 +681,33 @@ function Contratti() {
                 step="0.01"
                 min="0"
                 placeholder="ore sett. da CCNL"
-                style={{
-                  display: 'block',
-                  width: '45%',
-                  margin: '0 auto',
-                  padding: '0.5rem',
-                  border: '1px solid #4b5563',
-                  borderRadius: '4px',
-                  backgroundColor: '#374151',
-                  color: 'white'
-                }}
+                className="contratti-modal-input contratti-modal-input-ore"
               />
             </div>
 
-            <div style={{ borderTop: '1px solid #374151', paddingTop: '1.5rem', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', color: '#d1d5db' }}>Profili Orario Specifici</h3>
-              
+            <div className="contratti-modal-divider">
+              <h3 className="contratti-modal-divider-title">Profili Orario Specifici</h3>
+
               {profili.map((profilo, index) => (
-                <div key={index} style={{ 
-                  marginBottom: '1.5rem',
-                  padding: '1rem',
-                  backgroundColor: '#374151',
-                  borderRadius: '6px'
-                }}>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                  }}>
-                    <span style={{ fontWeight: '500', color: '#d1d5db' }}>
+                <div key={index} className="contratti-modal-profilo">
+                  <div className="contratti-modal-profilo-header">
+                    <span className="contratti-modal-profilo-title">
                       Profilo {index + 1}
                     </span>
                     {profili.length > 1 && (
                       <button
                         onClick={() => removeProfilo(index)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem'
-                        }}
+                        className="contratti-modal-profilo-remove"
                       >
                         Rimuovi
                       </button>
                     )}
                   </div>
-                  
+
                   {/* Ore e Descrizione sulla stessa riga */}
-                  <div style={{ display: 'flex', gap: '2rem', marginBottom: '1rem' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+                  <div className="contratti-modal-profilo-fields">
+                    <div className="contratti-modal-profilo-field">
+                      <label className="contratti-modal-profilo-field-label">
                         Ore
                       </label>
                       <input
@@ -782,19 +717,11 @@ function Contratti() {
                         onChange={(e) => handleProfiloChange(index, e)}
                         step="0.01"
                         min="0"
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          padding: '0.5rem',
-                          border: '1px solid #4b5563',
-                          borderRadius: '4px',
-                          backgroundColor: '#1f2937',
-                          color: 'white'
-                        }}
+                        className="contratti-modal-profilo-field-input"
                       />
                     </div>
-                    <div style={{ flex: 2 }}>
-                      <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+                    <div className="contratti-modal-profilo-field contratti-modal-profilo-field-descrizione">
+                      <label className="contratti-modal-profilo-field-label">
                         Descrizione
                       </label>
                       <input
@@ -802,40 +729,32 @@ function Contratti() {
                         name="descrizione"
                         value={profilo.descrizione || ''}
                         onChange={(e) => handleProfiloChange(index, e)}
-                        style={{
-                          display: 'block',
-                          width: '90%',
-                          padding: '0.5rem',
-                          border: '1px solid #4b5563',
-                          borderRadius: '4px',
-                          backgroundColor: '#1f2937',
-                          color: 'white'
-                        }}
+                        className="contratti-modal-profilo-field-input"
                       />
                     </div>
                   </div>
-                  
+
                   {/* Select per Dipendenti */}
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', color: '#d1d5db' }}>
+                  <div className="contratti-modal-select-container">
+                    <label className="contratti-modal-select-label">
                       Dipendenti Associati
-                      <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#9ca3af' }}>
+                      <span className="contratti-modal-select-hint">
                         {' - Seleziona i dipendenti per questo profilo'}
                       </span>
                     </label>
-                    
+
                     {dipendentiLoading ? (
-                      <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Caricamento dipendenti...</p>
+                      <p className="contratti-modal-select-loading">Caricamento dipendenti...</p>
                     ) : (
                       <>
                         {allDipendenti.length === 0 ? (
-                          <p style={{ color: '#f59e0b', fontSize: '0.875rem' }}>
+                          <p className="contratti-modal-select-empty">
                             Nessun dipendente trovato per questo contratto
                           </p>
                         ) : getDipendentiResidui(index).length === 0 ? (
-                          <p style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-                            {profili.length === 1 
-                              ? 'Nessun dipendente disponibile per questo contratto' 
+                          <p className="contratti-modal-select-empty">
+                            {profili.length === 1
+                              ? 'Nessun dipendente disponibile per questo contratto'
                               : 'Tutti i dipendenti sono già assegnati ad altri profili'}
                           </p>
                         ) : (
@@ -843,16 +762,7 @@ function Contratti() {
                             name="dipendenti_ids"
                             onChange={(e) => handleProfiloChange(index, e)}
                             multiple
-                            style={{
-                              display: 'block',
-                              width: '100%',
-                              padding: '0.5rem',
-                              border: '1px solid #4b5563',
-                              borderRadius: '4px',
-                              backgroundColor: '#1f2937',
-                              color: 'white',
-                              minHeight: '80px'
-                            }}
+                            className="contratti-modal-select"
                             size={Math.min(getDipendentiResidui(index).length + 1, 5)}
                           >
                             {getDipendentiResidui(index).map((dipendente) => {
@@ -862,10 +772,7 @@ function Contratti() {
                                   key={dipendente.id}
                                   value={dipendente.id}
                                   selected={isSelected}
-                                  style={{
-                                    backgroundColor: isSelected ? '#3b82f6' : '#1f2937',
-                                    color: 'white'
-                                  }}
+                                  className={isSelected ? "contratti-modal-select-option contratti-modal-select-option-selected" : "contratti-modal-select-option"}
                                 >
                                   {dipendente.user?.name || `Dipendente #${dipendente.id}`}
                                   {dipendente.mansione && ` (${dipendente.mansione})`}
@@ -874,9 +781,9 @@ function Contratti() {
                             })}
                           </select>
                         )}
-                        
+
                         {profilo.dipendenti_ids.length > 0 && (
-                          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981' }}>
+                          <div className="contratti-modal-selected-count">
                             Selezionati: {profilo.dipendenti_ids.length} dipendente(i)
                           </div>
                         )}
@@ -885,54 +792,28 @@ function Contratti() {
                   </div>
                 </div>
               ))}
-              
+
               <button
                 onClick={addProfilo}
-                style={{
-                  display: 'block',
-                  width: '50%',
-                  padding: '0.5rem',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  marginTop: '1rem'
-                }}
+                className="contratti-modal-add-button"
               >
                 + Aggiungi Profilo Orario
               </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+            <div className="contratti-modal-buttons">
               <button
                 type="button"
                 onClick={closeModal}
                 disabled={modalLoading}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#4b5563',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
+                className="contratti-modal-button contratti-modal-button-cancel"
               >
                 Annulla
               </button>
               <button
                 onClick={handleSave}
                 disabled={modalLoading}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: modalLoading ? 'not-allowed' : 'pointer',
-                  opacity: modalLoading ? 0.7 : 1
-                }}
+                className="contratti-modal-button contratti-modal-button-save"
               >
                 {modalLoading ? 'Salvataggio...' : 'Salva'}
               </button>

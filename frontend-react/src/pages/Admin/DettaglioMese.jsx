@@ -52,7 +52,7 @@ function DettaglioMese() {
     navigate('/admin/approvazioni')
   }
 
-  if (loading) return <p style={{ padding: '2rem' }}>Caricamento...</p>
+  if (loading) return <p className="dettaglio-mese-loading">Caricamento...</p>
 
   const nomeDipendente = presenze[0]?.dipendente?.user?.name || ''
   const percentualePartTime = presenze[0]?.dipendente?.percentuale_part_time || 0
@@ -67,101 +67,93 @@ function DettaglioMese() {
     switch(stato) {
       case 'inviato':
       case 'rifiutato':
-        return 'Da approvare';
+        return 'Da approvare'
       case 'reinviato':
-        return 'Da approvare (Reinviato)';
+        return 'Da approvare (Reinviato)'
       case 'approvato':
-        return 'Approvato';
+        return 'Approvato'
       default:
-        return stato || 'Sconosciuto';
+        return stato || 'Sconosciuto'
     }
-  };
+  }
 
-  const getStatoColor = () => {
+  const getStatoBoxClass = () => {
     switch(stato) {
       case 'inviato':
       case 'rifiutato':
-        return '#f3e8ff';
+        return 'dettaglio-mese-info-box-stato'
       case 'reinviato':
-        return '#fde68a';
+        return 'dettaglio-mese-info-box-stato-reinviato'
       case 'approvato':
-        return '#dcfce7';
+        return 'dettaglio-mese-info-box-stato-approvato'
       default:
-        return '#f3e8ff';
+        return 'dettaglio-mese-info-box-stato'
     }
-  };
+  }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+    <div className="dettaglio-mese-container">
       <button
         onClick={() => navigate('/admin/approvazioni')}
-        style={{
-          marginBottom: '1rem',
-          padding: '0.4rem 0.8rem',
-          backgroundColor: '#6b7280',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
+        className="dettaglio-mese-back-button"
       >
         ← Torna alla lista
       </button>
 
-      <h1 style={{ margin: '0 0 1rem 0', lineHeight: '1.2', fontSize: isMobile ? '2rem' : undefined }}>{nomeDipendente} <hr /> {NOMI_MESI[parseInt(mese) - 1]} {anno}</h1>
+      <h1 className="dettaglio-mese-title">{nomeDipendente} <hr /> {NOMI_MESI[parseInt(mese) - 1]} {anno}</h1>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <div style={{ padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '6px' }}>
+      <div className="dettaglio-mese-info-container">
+        <div className="dettaglio-mese-info-box dettaglio-mese-info-box-ore-ordinarie">
           <strong>Ore Ordinarie:</strong> {Number(totaleOrdinarie).toFixed(2)}
         </div>
         {!isFullTime && (
-          <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
+          <div className="dettaglio-mese-info-box dettaglio-mese-info-box-ore-eccedenti">
             <strong>Ore Eccedenti:</strong> {Number(totaleEccedenti).toFixed(2)}
           </div>
         )}
         {isFullTime && (
-          <div style={{ padding: '1rem', backgroundColor: '#fef3c7', borderRadius: '6px' }}>
+          <div className="dettaglio-mese-info-box dettaglio-mese-info-box-straordinari">
             <strong>Straordinari:</strong> {Number(totaleStraordinarie).toFixed(2)}
           </div>
         )}
-        <div style={{ padding: '1rem', backgroundColor: getStatoColor(), borderRadius: '6px' }}>
+        <div className={`dettaglio-mese-info-box ${getStatoBoxClass()}`}>
           <strong>Stato:</strong> {getStatoLabel()}
         </div>
       </div>
 
       {isMobile ? (
         // Versione mobile: card
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="dettaglio-mese-mobile-list">
           {presenze.map((p) => (
-            <div key={p.id} style={{ backgroundColor: '#374151', borderRadius: '8px', padding: '1rem', border: '1px solid #4b5563' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Data:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{formattaData(p.data)}</span>
+            <div key={p.id} className="dettaglio-mese-card">
+              <div className="dettaglio-mese-card-fields">
+                <div className="dettaglio-mese-card-field">
+                  <span className="dettaglio-mese-card-label">Data:</span>
+                  <span className="dettaglio-mese-card-value">{formattaData(p.data)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Ordinarie:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_ordinarie || 0).toFixed(2)}</span>
+                <div className="dettaglio-mese-card-field">
+                  <span className="dettaglio-mese-card-label">Ore Ordinarie:</span>
+                  <span className="dettaglio-mese-card-value">{Number(p.ore_ordinarie || 0).toFixed(2)}</span>
                 </div>
                 {!isFullTime && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Eccedenti:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_eccedenti || 0).toFixed(2)}</span>
+                  <div className="dettaglio-mese-card-field">
+                    <span className="dettaglio-mese-card-label">Ore Eccedenti:</span>
+                    <span className="dettaglio-mese-card-value">{Number(p.ore_eccedenti || 0).toFixed(2)}</span>
                   </div>
                 )}
                 {isFullTime && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                    <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Ore Straordinarie:</span>
-                    <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_straordinarie || 0).toFixed(2)}</span>
+                  <div className="dettaglio-mese-card-field">
+                    <span className="dettaglio-mese-card-label">Ore Straordinarie:</span>
+                    <span className="dettaglio-mese-card-value">{Number(p.ore_straordinarie || 0).toFixed(2)}</span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0', borderBottom: '1px solid #4b5563' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Causale:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{CAUSALI_LABEL[p.causale] || p.causale}</span>
+                <div className="dettaglio-mese-card-field">
+                  <span className="dettaglio-mese-card-label">Causale:</span>
+                  <span className="dettaglio-mese-card-value">{CAUSALI_LABEL[p.causale] || p.causale}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.25rem 0' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Altro:</span>
-                  <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: '500' }}>{Number(p.ore_causale || 0).toFixed(2)}</span>
+                <div className="dettaglio-mese-card-field">
+                  <span className="dettaglio-mese-card-label">Altro:</span>
+                  <span className="dettaglio-mese-card-value">{Number(p.ore_causale || 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -169,26 +161,26 @@ function DettaglioMese() {
         </div>
       ) : (
         // Versione desktop: tabella
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="dettaglio-mese-table">
           <thead>
-            <tr style={{ backgroundColor: '#f3f4f6', textAlign: 'center' }}>
-              <th style={{ padding: '0.5rem' }}>Data</th>
-              <th style={{ padding: '0.5rem' }}>Ore Ordinarie</th>
-              {!isFullTime && <th style={{ padding: '0.5rem' }}>Ore Eccedenti</th>}
-              {isFullTime && <th style={{ padding: '0.5rem' }}>Ore Straordinarie</th>}
-              <th style={{ padding: '0.5rem' }}>Causale</th>
-              <th style={{ padding: '0.5rem' }}>Altro</th>
+            <tr className="dettaglio-mese-table-header">
+              <th>Data</th>
+              <th>Ore Ordinarie</th>
+              {!isFullTime && <th>Ore Eccedenti</th>}
+              {isFullTime && <th>Ore Straordinarie</th>}
+              <th>Causale</th>
+              <th>Altro</th>
             </tr>
           </thead>
           <tbody>
             {presenze.map((p) => (
-              <tr key={p.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '0.5rem' }}>{formattaData(p.data)}</td>
-                <td style={{ padding: '0.5rem' }}>{Number(p.ore_ordinarie || 0).toFixed(2)}</td>
-                {!isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_eccedenti || 0).toFixed(2)}</td>}
-                {isFullTime && <td style={{ padding: '0.5rem' }}>{Number(p.ore_straordinarie || 0).toFixed(2)}</td>}
-                <td style={{ padding: '0.5rem' }}>{CAUSALI_LABEL[p.causale] || p.causale}</td>
-                <td style={{ padding: '0.5rem' }}>{Number(p.ore_causale || 0).toFixed(2)}</td>
+              <tr key={p.id} className="dettaglio-mese-table-row">
+                <td>{formattaData(p.data)}</td>
+                <td>{Number(p.ore_ordinarie || 0).toFixed(2)}</td>
+                {!isFullTime && <td>{Number(p.ore_eccedenti || 0).toFixed(2)}</td>}
+                {isFullTime && <td>{Number(p.ore_straordinarie || 0).toFixed(2)}</td>}
+                <td>{CAUSALI_LABEL[p.causale] || p.causale}</td>
+                <td>{Number(p.ore_causale || 0).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -196,30 +188,16 @@ function DettaglioMese() {
       )}
 
       {(stato === 'inviato' || stato === 'rifiutato' || stato === 'reinviato') && (
-        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="dettaglio-mese-actions">
           <button
             onClick={() => handleAzione('approvato')}
-            style={{
-              padding: '0.6rem 1.2rem',
-              backgroundColor: '#16a34a',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="dettaglio-mese-button dettaglio-mese-button-approva"
           >
             ✓ Approva Mese
           </button>
           <button
             onClick={() => handleAzione('rifiutato')}
-            style={{
-              padding: '0.6rem 1.2rem',
-              backgroundColor: '#dc2626',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}
+            className="dettaglio-mese-button dettaglio-mese-button-rifiuta"
           >
             ✕ Rifiuta Mese
           </button>
