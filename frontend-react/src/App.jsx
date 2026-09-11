@@ -25,6 +25,7 @@ import './styles/dipendente.css'
 import './styles/dipendente-pages.css'
 import './styles/kiosk.css'
 import './styles/admin-pages.css'
+import './styles/analisiHR.css'
 
 function App() {
   return (

@@ -50,29 +50,29 @@ function RisultatoAnalisiPartTime({ risultato, datiDipendente }) {
         {' = '}
         <span><strong>{formatValue(suppSett)} h/sett.</strong></span>
       </div>
-      <div style={{ borderTop: '1px solid #4b5563', paddingTop: '0.4rem', marginTop: '0.2rem' }}>
+      <div className="analisi-hr-parttime-divider">
         <div>
           <strong>Tempo Pieno da CCNL :</strong>{' '}
           <span>{formatValue(oreSettimanaliFT)} h/sett.</span>
         </div>
         <div>
           <strong>% Part-Time attuale:</strong>{' '}
-          <span style={{ color: '#fbbf24', fontWeight: '600' }}>{formatValue(percentualePartTime)}%</span>
+          <span className="analisi-hr-parttime-text-yellow">{formatValue(percentualePartTime)}%</span>
           {' = '}
           <span>{formatValue(orePT)} h/sett</span>
         </div>
-        <div style={{ marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: '1px dashed #4b5563' }}>
+        <div className="analisi-hr-parttime-divider-dashed">
           <strong>Nuova % Part-Time:</strong>{' '}
           <span>{formatValue(orePT)} + {formatValue(suppSett)} = {formatValue(oreIpoteticheArrotondate)} h/sett</span>
           {' → '}
-          <span style={{ color: '#fbbf24', fontWeight: '600' }}>
+          <span className="analisi-hr-parttime-text-yellow">
             {formatValue(nuovaPercentuale)}%
           </span>
-          <span style={{ color: '#9ca3af' }}> (</span>
-          <span style={{ color: '#34d399', fontWeight: '600' }}>
+          <span className="analisi-hr-text-muted"> (</span>
+          <span className="analisi-hr-parttime-text-green">
             +{formatValue(incrementoPunti)} pt
           </span>
-          <span style={{ color: '#9ca3af' }}>)</span>
+          <span className="analisi-hr-text-muted">)</span>
         </div>
       </div>
     </>
@@ -950,36 +950,7 @@ function AnalisiHR() {
       MalattieBrevi: datiAnnuali.malattieBreviPerGiorno[g.day] || 0
     }))
   }
-  // Stile per i widget
-  const widgetStyle = {
-    backgroundColor: '#374151',
-    border: '1px solid #4b5563',
-    borderRadius: '8px',
-    padding: '1rem 1.5rem',
-    color: 'white',
-    minWidth: '180px',
-    maxWidth: '220px',
-    textAlign: 'center'
-  }
 
-  const widgetTitleStyle = {
-    fontSize: '0.875rem',
-    color: '#9ca3af',
-    marginBottom: '0.5rem',
-    fontWeight: '500'
-  }
-
-  const widgetValueStyle = {
-    fontSize: '1.5rem',
-    fontWeight: '700',
-    color: '#f3f4f6'
-  }
-
-  const widgetSubtitleStyle = {
-    fontSize: '0.75rem',
-    color: '#6b7280',
-    marginTop: '0.25rem'
-  }
 
   const datiAssenzeChart = [
     { name: 'Malattia', value: datiAnnuali.giorniAssenzaTotali.malattia, color: '#ef4444' },
@@ -997,25 +968,18 @@ function AnalisiHR() {
   ].filter(item => item.value > 0)
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', minHeight: '100vh', backgroundColor: '#1f2937' }}>
-      <h1 style={{ margin: '0 0 2rem 0', lineHeight: '1.2', color: 'white' }}>Analisi HR</h1>
+    <div className="analisi-hr-container">
+      <h1 className="analisi-hr-title">Analisi HR</h1>
 
       {/* Selezione Dipendente e Anno */}
-      <div style={{ display: 'flex', flexDirection:'column', flexcontent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      <div className="analisi-hr-selection">
         <div>
-          <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
+          <label className="analisi-hr-label">
             Dipendente
           </label>
-          <select
+          <select className="analisi-hr-select"
             value={dipendenteSelezionato}
             onChange={handleDipendenteChange}
-            style={{
-              padding: '0.5rem',
-              borderRadius: '4px',
-              backgroundColor: '#374151',
-              color: 'white',
-              width: '300px'
-            }}
           >
             <option value="">-- Seleziona un dipendente --</option>
             {dipendenti.map((d) => (
@@ -1027,10 +991,10 @@ function AnalisiHR() {
         </div>
         
         <div>
-          <label style={{ color: 'white', marginBottom: '0.5rem', display: 'block' }}>
+          <label className="analisi-hr-label">
             Periodo ({annoAssunzioneSelezionato} - {annoCorrente})
           </label>
-          <select
+          <select className="analisi-hr-select analisi-hr-select-small"
             value={annoSelezionato}
             onChange={(e) => {
               const selectedYear = e.target.value ? parseInt(e.target.value) : ''
@@ -1042,13 +1006,6 @@ function AnalisiHR() {
               }
             }}
             disabled={!dipendenteSelezionato}
-            style={{
-              padding: '0.5rem',
-              borderRadius: '4px',
-              backgroundColor: '#374151',
-              color: 'white',
-              width: '80px'
-            }}
           >
             {Array.from({ length: Math.max(0, annoCorrente - annoAssunzioneSelezionato + 1) }, (_, i) => {
               const y = annoAssunzioneSelezionato + i
@@ -1059,34 +1016,34 @@ function AnalisiHR() {
       </div>
 
       {/* Widget con contatori annuali - Ricalco esatto fogli presenze */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      <div className="analisi-hr-widgets">
         {/* Ore Ordinarie */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>Ore Ordinarie</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.oreOrdinarie)} ore</div>
-          <div style={widgetSubtitleStyle}>Totale annuale</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">Ore Ordinarie</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.oreOrdinarie)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Totale annuale</div>
         </div>
         
         {/* Straordinari / Eccedenti */}
         {datiAnnuali.isFullTime && (
-          <div style={widgetStyle}>
-            <div style={widgetTitleStyle}>Straordinari</div>
-            <div style={widgetValueStyle}>{formatValue(datiAnnuali.oreStraordinarie)} ore</div>
-            <div style={widgetSubtitleStyle}>Tempo Pieno</div>
+          <div className="analisi-hr-widget">
+            <div className="analisi-hr-widget-title">Straordinari</div>
+            <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.oreStraordinarie)} ore</div>
+            <div className="analisi-hr-widget-subtitle">Tempo Pieno</div>
           </div>
         )}
         {!datiAnnuali.isFullTime && (
-          <div style={widgetStyle}>
-            <div style={widgetTitleStyle}>Ore Eccedenti</div>
-            <div style={widgetValueStyle}>{formatValue(datiAnnuali.oreEccedenti)} ore</div>
-            <div style={widgetSubtitleStyle}>Part-time</div>
+          <div className="analisi-hr-widget">
+            <div className="analisi-hr-widget-title">Ore Eccedenti</div>
+            <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.oreEccedenti)} ore</div>
+            <div className="analisi-hr-widget-subtitle">Part-time</div>
           </div>
         )}
         
         {/* Giorni Lavorati - Donut Chart */}
-        <div style={{ ...widgetStyle, position: 'relative' }}>
-          <div style={widgetTitleStyle}>Giorni Lavorati</div>
-          <div style={{ height: '100px', margin: '0.5rem 0', position: 'relative' }}>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">Giorni Lavorati</div>
+          <div className="analisi-hr-widget-content analisi-hr-widget-donut">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -1134,90 +1091,90 @@ function AnalisiHR() {
         </div>
         
         {/* Giorni Teorici Lavorabili */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>Giorni Teorici</div>
-          <div style={widgetValueStyle}>{datiAnnuali.giorniTeoriciLavorabili} gg</div>
-          <div style={widgetSubtitleStyle}>{datiAnnuali.giorniSettimanali} gg./sett.</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">Giorni Teorici</div>
+          <div className="analisi-hr-widget-value">{datiAnnuali.giorniTeoriciLavorabili} gg</div>
+          <div className="analisi-hr-widget-subtitle">{datiAnnuali.giorniSettimanali} gg./sett.</div>
         </div>
         
         {/* Ferie/Permessi - UNIFICATO */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>Ferie/Permessi</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.feriePermessi)} ore</div>
-          <div style={widgetSubtitleStyle}>Goduto aggregato</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">Ferie/Permessi</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.feriePermessi)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Goduto aggregato</div>
         </div>
         
         {/* PR */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>PR</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.pr)} ore</div>
-          <div style={widgetSubtitleStyle}>Permessi Retribuiti</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">PR</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.pr)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Permessi Retribuiti</div>
         </div>
         
         {/* PNR */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>PNR</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.pnr)} ore</div>
-          <div style={widgetSubtitleStyle}>Permessi Non Retribuiti</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">PNR</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.pnr)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Permessi Non Retribuiti</div>
         </div>
         
         {/* INPS */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>INPS</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.inps)} ore</div>
-          <div style={widgetSubtitleStyle}>Malattia + Maternità</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">INPS</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.inps)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Malattia + Maternità</div>
         </div>
         
         {/* INAIL */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>INAIL</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.inail)} ore</div>
-          <div style={widgetSubtitleStyle}>Infortunio</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">INAIL</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.inail)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Infortunio</div>
         </div>
         
         {/* CIG */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>CIG</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.cig)} ore</div>
-          <div style={widgetSubtitleStyle}>Cassa Integrazione</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">CIG</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.cig)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Cassa Integrazione</div>
         </div>
         
         {/* Sindacale */}
-        <div style={widgetStyle}>
-          <div style={widgetTitleStyle}>Sindacale</div>
-          <div style={widgetValueStyle}>{formatValue(datiAnnuali.sindacale)} ore</div>
-          <div style={widgetSubtitleStyle}>Assemblea + Sciopero</div>
+        <div className="analisi-hr-widget">
+          <div className="analisi-hr-widget-title">Sindacale</div>
+          <div className="analisi-hr-widget-value">{formatValue(datiAnnuali.sindacale)} ore</div>
+          <div className="analisi-hr-widget-subtitle">Assemblea + Sciopero</div>
         </div>
       </div>
 
       {/* Prima riga: Card 1 e Card 2 */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="analisi-hr-row-center">
         {/* Card 1: Tasso di assenza individuale */}
-        <div style={{ backgroundColor: '#374151', color: 'white', border: '1px solid #4b5563', maxWidth: '500px', width: '100%' }}>
-          <div style={{ backgroundColor: '#1f2937', borderBottom: '1px solid #4b5563', padding: '1rem 1.5rem' }}>
-            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>Tasso di Assenza Individuale</span>
+        <div className="analisi-hr-card">
+          <div className="analisi-hr-card-header-sm">
+            <span className="analisi-hr-card-title">Tasso di Assenza Individuale</span>
           </div>
-          <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
-          <div style={{ padding: '1.5rem', color: '#d1d5db', height: '400px', display: 'flex', flexDirection: 'column' }}>
+          <hr className="analisi-hr-card-divider" />
+          <div className="analisi-hr-card-body">
             {/* Tasso di assenteismo e grafico distribuzione per giorno - allineati orizzontalmente */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <div className="analisi-hr-flex-center">
               {/* Tasso percentuale */}
-              <div style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#f3f4f6' }}>
-                  {datiAnnuali.giorniTeoriciLavorabili > 0 ?
+              <div className="analisi-hr-big-number-center"> 
+                <div className="analisi-hr-big-number">
+                  {datiAnnuali.giorniTeoriciLavorabili > 0 ? 
                     formatValue((datiAnnuali.totaleGiorniAssenza / datiAnnuali.giorniTeoriciLavorabili * 100), 1) + '%' : '0%'
                   }
                 </div>
                 
                 {datiAnnuali.assenzeVicinoFestivi > 0 && (
-                  <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.5rem' }}>
+                  <div className="analisi-hr-warning-text">
                     gg. "assenza ponte" su festivi/riposi: {datiAnnuali.assenzeVicinoFestivi}
                   </div>
                 )}
               </div>
               
               {/* Grafico a barre distribuzione per giorno della settimana */}
-              <div style={{ width: '150px', height: '80px' }}>
+              <div className="analisi-hr-chart-small">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={getBarChartGiorniSettimana()} layout="vertical" activeBar={{ fillOpacity: 1 }}>
                     <XAxis type="number" hide />
@@ -1235,8 +1192,8 @@ function AnalisiHR() {
             </div>
             
             {/* Grafico a torta con composizione assenze */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.5rem' }}>
-              <div style={{ height: '180px', width: '220px', paddingLeft: '0.5rem', paddingRight: '0.5rem' }}>
+            <div className="analisi-hr-flex-column-center">
+              <div className="analisi-hr-chart-medium">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -1272,33 +1229,25 @@ function AnalisiHR() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(2, 1fr)', 
-                gap: '0.15rem 1rem', 
-                marginTop: '0.5rem',
-                fontSize: '0.70rem',
-                lineHeight: '2',
-                justifyItems: 'start'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#ef4444', borderRadius: '2px' }} />
+              <div className="analisi-hr-legend-grid">
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#ef4444'}} />
                   <span>Malattia: {datiAnnuali.giorniAssenzaTotali.malattia} gg.</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#6b7280'}} />
                   <span>CIG: {datiAnnuali.giorniAssenzaTotali.cig} gg.</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#8b5cf6', borderRadius: '2px' }} />
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#8b5cf6'}} />
                   <span>Maternità: {datiAnnuali.giorniAssenzaTotali.maternita} gg.</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#10b981'}} />
                   <span>PNR: {datiAnnuali.giorniAssenzaTotali.pnr} gg.</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#f59e0b'}} />
                   <span>Infortunio: {datiAnnuali.giorniAssenzaTotali.infortunio} gg.</span>
                 </div>
               </div>
@@ -1307,32 +1256,32 @@ function AnalisiHR() {
         </div>
 
         {/* Card 2: Ripartizione PR, PNR, CIG, Sindacale */}
-        <div style={{ backgroundColor: '#374151', color: 'white', border: '1px solid #4b5563', maxWidth: '500px', width: '100%' }}>
-          <div style={{ backgroundColor: '#1f2937', borderBottom: '1px solid #4b5563', padding: '1rem 1.5rem' }}>
-            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>PR, PNR, CIG, Sind / Modalità lavoro</span>
+        <div className="analisi-hr-card">
+          <div className="analisi-hr-card-header-sm">
+            <span className="analisi-hr-card-title">PR, PNR, CIG, Sind / Modalità lavoro</span>
           </div>
-          <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
-          <div style={{ padding: '1.5rem', color: '#d1d5db', height: '400px', display: 'flex', flexDirection: 'column' }}>
+          <hr className="analisi-hr-card-divider" />
+          <div className="analisi-hr-card-body">
             {/* Totale ore e percentuale - affiancati orizzontalmente */}
             {(() => {
               const totale = datiAnnuali.pr + datiAnnuali.pnr + datiAnnuali.cig + datiAnnuali.sindacale
               const percentuale = datiAnnuali.giorniTeoriciLavorabili > 0 ?
                 ((totale) / (datiAnnuali.giorniTeoriciLavorabili * 8) * 100) : 0
               return (
-                <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '1rem' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#f3f4f6' }}>
+                <div className="analisi-hr-flex-space-around">
+                  <div className="analisi-hr-text-center">
+                    <div class="analisi-hr-text-value">
                       {formatValue(totale)} h
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+                    <div className="analisi-hr-text-label">
                       Tot. anno
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: '700', color: '#f3f4f6' }}>
+                  <div className="analisi-hr-text-center">
+                    <div className="analisi-hr-text-value">
                       {formatValue(percentuale, 1)}%
                     </div>
-                    <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
+                    <div className="analisi-hr-text-label">
                       % su h lavorabili
                     </div>
                   </div>
@@ -1341,8 +1290,8 @@ function AnalisiHR() {
             })()}
 
             {/* Grafico a torta */}
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: '0.5rem', gap: '0.5rem' }}>
-              <div style={{ height: '200px', width: '200px' }}>
+            <div className="analisi-hr-flex-row-center">
+              <div className="analisi-hr-chart-180">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -1389,28 +1338,28 @@ function AnalisiHR() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem', fontSize: '0.55rem', lineHeight: '2' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#3b82f6', borderRadius: '2px' }} />
+              <div className="analisi-hr-legend-flex">
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#3b82f6'}} />
                   <span>PR: {formatValue(datiAnnuali.pr)} h</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#10b981', borderRadius: '2px' }} />
+                </div> 
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#10b981'}} />
                   <span>PNR: {formatValue(datiAnnuali.pnr)} h</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#6b7280', borderRadius: '2px' }} />
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#6b7280'}} />
                   <span>CIG: {formatValue(datiAnnuali.cig)} h</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', backgroundColor: '#f59e0b', borderRadius: '2px' }} />
+                <div className="analisi-hr-legend-item">
+                  <div className="analisi-hr-legend-color" style={{ backgroundColor: '#f59e0b'}} />
                   <span>Sind: {formatValue(datiAnnuali.sindacale)} h</span>
                 </div>
               </div>
             </div>
 
             {/* Grafico istogramma modalità di lavoro per mese */}
-            <div style={{ height: '240px', minHeight: '130px', flex: 1}}>
+            <div className="analisi-hr-chart-bar">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={datiAnnuali.modalitaLavoroPerMese} margin={{ top: 2, right: 0, left: 0, bottom: 0 }} activeBar={{ fillOpacity: 1 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
@@ -1464,26 +1413,26 @@ function AnalisiHR() {
       </div>
 
       {/* Seconda riga: Card 3 e Card 4 */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="analisi-hr-row-wrap">
         {/* Card 3: Ferie/Permessi */}
-        <div style={{ backgroundColor: '#374151', color: 'white', border: '1px solid #4b5563', maxWidth: '500px', width: '100%' }}>
-          <div style={{ backgroundColor: '#1f2937', borderBottom: '1px solid #4b5563', padding: '1rem 1.5rem' }}>
-            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>Ferie/Permessi</span>
+        <div className="analisi-hr-card">
+          <div className="analisi-hr-card-header">
+            <span className="analisi-hr-card-title">Ferie/Permessi</span>
           </div>
-          <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
-          <div style={{ padding: '1rem', color: '#d1d5db', minHeight: '400px' }}>
-            {!dipendenteSelezionato || !annoSelezionato || !analisiFerie ? <p style={{ color: '#9ca3af' }}>Seleziona un dipendente per visualizzare i dati.</p> : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'grid', gap: '0.35rem', fontSize: '0.72rem', color: '#d1d5db', textAlign: 'left' }}>
+          <hr className="analisi-hr-card-divider" />
+          <div className="analisi-hr-card-body-short">
+            {!dipendenteSelezionato || !annoSelezionato || !analisiFerie ? <p className="analisi-hr-text-gray">Seleziona un dipendente per visualizzare i dati.</p> : (
+              <div className="analisi-hr-flex-column-gap">
+                <div className="analisi-hr-grid-2cols">
                   <div><strong>Ferie: </strong> <span>{formatValue(analisiFerie.ferie.maturate)} mat. / {formatValue(analisiFerie.ferie.godute)} god.</span></div>
                   <div><strong>Residuo: </strong> <span>{formatValue(analisiFerie.ferie.residue)} ore</span></div>
                   <div><strong>Min. 2 settimane:</strong> <span>{formatValue(analisiFerie.ferie.percentuale_due_settimane, 1)}%</span></div>
                   <div><strong>Smaltimento legale:</strong> <span>{formatValue(analisiFerie.ferie.percentuale_smaltimento, 1)}%</span></div>
-                  <div><strong>situazione ferie:</strong> <span style={{ color: analisiFerie.ferie.stato === 'regolare' ? '#34d399' : '#fbbf24' }}>{analisiFerie.ferie.stato}</span></div>
+                  <div><strong>situazione ferie:</strong> <span className="analisi-hr-text-status" style={{ color: analisiFerie.ferie.stato === 'regolare' ? '#34d399' : '#fbbf24' }}>{analisiFerie.ferie.stato}</span></div>
                   <div><strong>ROL + Ex-fest.: </strong> <span>{formatValue(analisiFerie.permessi_rol_ex_festivita.maturati)} maturati / {formatValue(analisiFerie.permessi_rol_ex_festivita.goduti)} goduti</span></div>
                   <div><strong>Residuo:</strong> <span>{formatValue(analisiFerie.permessi_rol_ex_festivita.residui)} ore</span></div>
                 </div>
-                <div style={{ height: '220px', marginTop: '0.5rem' }}>
+                <div className="analisi-hr-chart-220">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={analisiFerie.mensile.map((mese) => ({
@@ -1515,20 +1464,20 @@ function AnalisiHR() {
         </div>
 
         {/* Card 4: Ore Straordinarie / Eccedenti */}
-        <div style={{ backgroundColor: '#374151', color: 'white', border: '1px solid #4b5563', maxWidth: '500px', width: '100%' }}>
-          <div style={{ backgroundColor: '#1f2937', borderBottom: '1px solid #4b5563', padding: '1rem 1.5rem' }}>
-            <span style={{ color: 'white', fontSize: '1.1rem', fontWeight: '600' }}>{datiAnnuali.isFullTime ? 'Ore Straordinarie' : 'Ore Eccedenti'}</span>
+        <div className="analisi-hr-card">
+          <div className="analisi-hr-card-header">
+            <span className="analisi-hr-card-title">{datiAnnuali.isFullTime ? 'Ore Straordinarie' : 'Ore Eccedenti'}</span>
           </div>
-          <hr style={{ backgroundColor: '#4b5563', border: 'none', height: '1px', margin: '0' }} />
-          <div style={{ padding: '1.5rem', color: '#d1d5db', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+          <hr className="analisi-hr-card-divider" />
+          <div className="analisi-hr-card-body-chart">
             {!dipendenteSelezionato || !annoSelezionato || datiMensualiOreExtraordinarie.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ textAlign: 'center', color: '#9ca3af' }}>Seleziona un dipendente per visualizzare i dati.</p>
+              <div className="analisi-hr-flex-center">
+                <p className="analisi-hr-text-gray">Seleziona un dipendente per visualizzare i dati.</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+              <div className="analisi-hr-flex-column-gap" style={{flex: 1}}>
                 {/* Totali annuali */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.72rem', color: '#d1d5db', marginBottom: '0.5rem' }}>
+                <div className="analisi-hr-grid-2cols-sm">
                   {datiAnnuali.isFullTime ? (
                     <div><strong>Straordinarie:</strong> <span>{formatValue(datiAnnuali.oreStraordinarie)} h</span></div>
                   ) : (
@@ -1540,7 +1489,7 @@ function AnalisiHR() {
                 </div>
 
                 {/* Grafico istogramma ore straordinarie/eccedenti mensili */}
-                <div style={{ height: '280px', marginTop: '0.5rem' }}>
+                <div className="analisi-hr-chart-280">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={datiMensualiOreExtraordinarie}
@@ -1575,24 +1524,16 @@ function AnalisiHR() {
 
                 {/* Analisi supplementari continuativi: visibile solo per part-time */}
                 {!datiAnnuali.isFullTime && (
-                <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: '#d1d5db' }}>
-                    <label htmlFor="mesi-consecutivi-select" style={{ fontWeight: '500' }}>
+                <div className="analisi-hr-margin-top-sm">
+                  <div className="analisi-hr-flex-center-sm">
+                    <label htmlFor="mesi-consecutivi-select" className="analisi-hr-label-sm">
                       Mesi consecutivi con supplementari:
                     </label>
                     <select
                       id="mesi-consecutivi-select"
                       value={mesiConsecutiviSelezionati}
                       onChange={(e) => setMesiConsecutiviSelezionati(Number(e.target.value))}
-                      style={{
-                        backgroundColor: '#1f2937',
-                        color: 'white',
-                        border: '1px solid #4b5563',
-                        borderRadius: '4px',
-                        padding: '0.25rem 0.5rem',
-                        fontSize: '0.72rem',
-                        cursor: 'pointer'
-                      }}
+                      className="analisi-hr-select-pt"
                     >
                       {Array.from({ length: 11 }, (_, i) => i + 2).map(n => (
                         <option key={n} value={n}>{n}</option>
@@ -1608,31 +1549,14 @@ function AnalisiHR() {
 
                     if (!risultato.trovato) {
                       return (
-                        <div style={{
-                          backgroundColor: '#1f2937',
-                          border: '1px solid #4b5563',
-                          borderRadius: '4px',
-                          padding: '0.6rem 0.8rem',
-                          fontSize: '0.72rem',
-                          color: '#9ca3af'
-                        }}>
+                        <div className="analisi-hr-message analisi-hr-message-gray">
                           Nessun periodo continuativo di {mesiConsecutiviSelezionati} mesi con ore supplementari.
                         </div>
                       )
                     }
 
                     return (
-                      <div style={{
-                        backgroundColor: '#1f2937',
-                        border: '1px solid #4b5563',
-                        borderRadius: '4px',
-                        padding: '0.6rem 0.8rem',
-                        fontSize: '0.72rem',
-                        color: '#d1d5db',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.3rem'
-                      }}>
+                      <div className="analisi-hr-parttime-result">
                         <RisultatoAnalisiPartTime
                           risultato={risultato}
                           datiDipendente={datiDipendentePerAnalisi}

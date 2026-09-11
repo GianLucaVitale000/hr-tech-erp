@@ -1,0 +1,494 @@
+/* ============================================
+   GENERAL STYLES - Container, Title, Selection
+   ============================================ */
+
+.analisi-hr-container {
+  padding: 2rem;
+  font-family: sans-serif;
+  min-height: 100vh;
+  background-color: #1f2937;
+}
+
+.analisi-hr-title {
+  margin: 0 0 2rem 0;
+  line-height: 1.2;
+  color: white;
+}
+
+.analisi-hr-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.analisi-hr-label {
+  color: white;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.analisi-hr-select {
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: #374151;
+  color: white;
+  width: 300px;
+}
+
+.analisi-hr-select-small {
+  width: 80px;
+}
+
+/* ============================================
+   WIDGETS (Annual Controllers)
+   ============================================ */
+
+.analisi-hr-widgets {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.analisi-hr-widget {
+  background-color: #374151;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  color: white;
+  min-width: 180px;
+  max-width: 220px;
+  text-align: center;
+  position: relative;
+}
+
+.analisi-hr-widget-title {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.analisi-hr-widget-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.analisi-hr-widget-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.analisi-hr-widget-content {
+  position: relative;
+  height: 100%;
+}
+
+.analisi-hr-widget-donut {
+  height: 85px;
+}
+
+/* ============================================
+   CARDS (Main Content Area)
+   ============================================ */
+
+.analisi-hr-card {
+  background-color: #374151;
+  color: white;
+  border: 1px solid #4b5563;
+  max-width: 500px;
+  width: 100%;
+}
+
+.analisi-hr-card-header {
+  background-color: #1f2937;
+  border-bottom: 1px solid #4b5563;
+  padding: 1rem 1.5rem;
+}
+
+.analisi-hr-card-header-sm {
+  background-color: #1f2937;
+  border-bottom: 1px solid #4b5563;
+  padding: 0.75rem 1rem;
+}
+
+.analisi-hr-card-title {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.analisi-hr-card-divider {
+  background-color: #4b5563;
+  border: none;
+  height: 1px;
+  margin: 0;
+}
+
+.analisi-hr-card-body {
+  padding: 1.2rem;
+  color: #d1d5db;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.analisi-hr-card-body-no-height {
+  padding: 1.5rem;
+  color: #d1d5db;
+  min-height: 400px;
+}
+
+.analisi-hr-card-body-flex {
+  padding: 1.5rem;
+  color: #d1d5db;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.analisi-hr-card-body-short {
+  padding: 1rem;
+  color: #d1d5db;
+  min-height: 400px;
+}
+
+.analisi-hr-card-body-chart {
+  padding: 1.5rem;
+  color: #d1d5db;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.analisi-hr-big-number-center {
+    text-align: center;
+    flex: 1;
+}
+
+.analisi-hr-big-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f3f4f6;
+}
+
+.analisi-hr-warning-text {
+    font-size: 0.75rem;
+    color: #f59e0b;
+    margin-top: 0.5rem;
+}
+
+/* ============================================
+   TEXT STYLES
+   ============================================ */
+
+.analisi-hr-text-center {
+  text-align: center;
+}
+
+.analisi-hr-text-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.analisi-hr-text-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.analisi-hr-text-sm {
+  font-size: 0.72rem;
+  color: #d1d5db;
+}
+
+.analisi-hr-text-gray {
+  color: #9ca3af;
+}
+
+.analisi-hr-text-status {
+  font-weight: 600;
+}
+
+.analisi-hr-text-muted {
+  color: #9ca3af;
+}
+
+/* ============================================
+   LAYOUTS (Rows, Columns, Spacing)
+   ============================================ */
+
+.analisi-hr-row-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.analisi-hr-row-center {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.analisi-hr-row-center-margin {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.analisi-hr-flex-center {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.analisi-hr-flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.analisi-hr-flex-column-gap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.analisi-hr-flex-space-around {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 1rem;
+}
+
+.analisi-hr-flex-row-center {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 0.5rem;
+  gap: 0.5rem;
+}
+
+.analisi-hr-flex-end-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: #d1d5db;
+}
+
+/* ============================================
+   CHART CONTAINERS
+   ============================================ */
+
+
+.analisi-hr-chart-180 {
+  height: 180px;
+  width: 200px;
+}
+
+.analisi-hr-chart-220 {
+  height: 220px;
+  margin-top: 0.5rem;
+}
+
+.analisi-hr-chart-280 {
+  height: 280px;
+  margin-top: 0.5rem;
+}
+
+/* ============================================
+   TOOLTIP / HOVER BOXES
+   ============================================ */
+
+.analisi-hr-chart-small {
+  width: 150px;
+  height: 80px;
+}
+
+.analisi-hr-chart-medium {
+  height: 180px;
+  width: 220px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.analisi-hr-chart-large {
+  height: 200px;
+  width: 200px;
+}
+
+.analisi-hr-chart-bar {
+  height: 240px;
+  min-height: 130px;
+  flex: 1;
+}
+
+.analisi-hr-chart-ferie {
+  margin-top: 0.5rem;
+}
+
+.analisi-hr-chart-straordinarie {
+  margin-top: 0.5rem;
+}
+
+/* ============================================
+   LEGEND & INDICATORS
+   ============================================ */
+
+.analisi-hr-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.15rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.70rem;
+  line-height: 2;
+  justify-items: start;
+}
+
+.analisi-hr-legend-flex {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-size: 0.55rem;
+  line-height: 2;
+  min-width: 110px;
+}
+
+.analisi-hr-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #d1d5db;
+  white-space: nowrap;
+}
+
+.analisi-hr-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.analisi-hr-grid-2cols {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: #d1d5db;
+  text-align: left;
+}
+
+.analisi-hr-grid-2cols-sm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: #d1d5db;
+  margin-bottom: 0.5rem;
+}
+
+.analisi-hr-flex-center-sm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: #d1d5db;
+}
+
+.analisi-hr-label-sm {
+  font-weight: 500;
+}
+
+.analisi-hr-margin-top-sm {
+  margin-top: 0.75rem;
+}
+
+
+/* ============================================
+   MESSAGES
+   ============================================ */
+
+.analisi-hr-message {
+  background-color: #1f2937;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.72rem;
+}
+
+.analisi-hr-message-gray {
+  color: #9ca3af;
+}
+
+.analisi-hr-message-light {
+  color: #d1d5db;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* ============================================
+   SELECT PICKER (small)
+   ============================================ */
+
+.analisi-hr-select-pt {
+  background-color: #1f2937;
+  color: white;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+/* ============================================
+   PART-TIME RESULT SECTION
+   ============================================ */
+
+.analisi-hr-parttime-result {
+  background-color: #1f2937;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.72rem;
+  color: #d1d5db;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.analisi-hr-parttime-divider {
+  border-top: 1px solid #4b5563;
+  padding-top: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.analisi-hr-parttime-divider-dashed {
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px dashed #4b5563;
+}
+
+.analisi-hr-parttime-text-yellow {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.analisi-hr-parttime-text-green {
+  color: #34d399;
+  font-weight: 600;
+}
