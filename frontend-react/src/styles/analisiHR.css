@@ -492,3 +492,19 @@
   color: #34d399;
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+  .analisi-hr-container {
+    padding: 1rem;
+  }
+
+  .analisi-hr-row-wrap,
+  .analisi-hr-row-center {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .analisi-hr-card {
+    max-width: 100%;
+  }
+}
