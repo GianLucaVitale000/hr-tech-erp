@@ -31,62 +31,67 @@ function AdminNavbar() {
   return (
     <nav className="admin-navbar">
       {/* Logo / Home */}
-      <Link to="/admin" className="logo">
-        <Logo className="logo-icon" />
-        HR-Tech ERP
-      </Link>
+      <div className="navbar-left">
+        <Link to="/admin" className="logo">
+          <Logo className="logo-icon" />
+          HR-Tech ERP
+        </Link>
+      </div>
 
       {/* Centro - Voci Menu */}
-      <ul className="nav-links">
-        {/* Dashboard è nascosta quando si è già sulla Dashboard per evitare ridondanza con il logo */}
-        {!isDashboard && (
+      <div className="navbar-center">
+        <ul className="nav-links">
+          {/* Dashboard è nascosta quando si è già sulla Dashboard per evitare ridondanza con il logo */}
+          {!isDashboard && (
+            <li>
+              <Link to="/admin" className={isActive('/admin') ? 'active' : ''}>
+                Dashboard
+              </Link>
+            </li>
+          )}
           <li>
-            <Link to="/admin" className={isActive('/admin') ? 'active' : ''}>
-              Dashboard
+            <Link to="/admin/utenti" className={isActive('/admin/utenti') ? 'active' : ''}>
+              Gestione Utenti
             </Link>
           </li>
-        )}
-        <li>
-          <Link to="/admin/utenti" className={isActive('/admin/utenti') ? 'active' : ''}>
-            Gestione Utenti
-          </Link>
-        </li>
-        <li>
-          <Link to="/admin/dipendenti" className={isActive('/admin/dipendenti') ? 'active' : ''}>
-            Anagrafica Dipendenti
-          </Link>
-        </li>
-        <li>
-          <Link to="/admin/contratti" className={isActive('/admin/contratti') ? 'active' : ''}>
-            Gestione CCNL
-          </Link>
-        </li>
-        <li>
-          <Link to="/admin/approvazioni" className={isActive('/admin/approvazioni') ? 'active' : ''}>
-            Approvazione Fogli Ore
-          </Link>
-        </li>
-        <li>
-          <Link to="/admin/analisi-hr" className={isActive('/admin/analisi-hr') ? 'active' : ''}>
-            Analisi HR
-          </Link>
-        </li>
-      </ul>
+          <li>
+            <Link to="/admin/dipendenti" className={isActive('/admin/dipendenti') ? 'active' : ''}>
+              Anagrafica Dipendenti
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin/contratti" className={isActive('/admin/contratti') ? 'active' : ''}>
+              Gestione CCNL
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin/approvazioni" className={isActive('/admin/approvazioni') ? 'active' : ''}>
+              Approvazione Fogli Ore
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin/analisi-hr" className={isActive('/admin/analisi-hr') ? 'active' : ''}>
+              Analisi HR
+            </Link>
+          </li>
+        </ul>
+      </div>
 
       {/* Destra - Utente + Logout */}
-      <div className="user-info">
-        <span className="user-name">Benvenuto, {user?.name || 'Utente'}</span>
-        <div className="avatar" title={user?.name || 'Utente'}>
-          {user?.name?.charAt(0).toUpperCase() || 'U'}
+      <div className="navbar-right">
+        <div className="user-info">
+          <span className="user-name">Benvenuto, {user?.name || 'Utente'}</span>
+          <div className="avatar" title={user?.name || 'Utente'}>
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <button
+            onClick={handleLogout}
+            className="admin-navbar-logout"
+          >Logout
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="admin-navbar-logout"
-        >
-          Logout
-        </button>
       </div>
-    </nav>
+    </nav> 
   )
 }
 
