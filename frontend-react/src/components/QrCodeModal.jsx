@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import '../styles/QrCodeModal.css'
 
 /**
  * Modale per visualizzare il QR Code dinamico
@@ -51,57 +52,25 @@ function QrCodeModal({ qrToken, presence, onClose }) {
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 2000,
-      backdropFilter: 'blur(4px)',
-    }} onClick={(e) => {
-      // Chiudi se si clicca fuori dal modale
-      if (e.target === e.currentTarget) {
-        onClose()
-      }
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '2rem',
-        borderRadius: '16px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-        maxWidth: '400px',
-        width: '90%',
-        textAlign: 'center',
-        animation: 'fadeIn 0.2s ease-out',
-      }}>
-        <h2 style={{
-          margin: '0 0 1rem 0',
-          color: '#1e3a8a',
-          fontSize: '1.5rem',
-        }}>
+    <div
+      className="qrCodeModal-overlay"
+      onClick={(e) => {
+        // Chiudi se si clicca fuori dal modale
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div className="qrCodeModal-content">
+        <h2 className="qrCodeModal-title">
           QR Code Presenza
         </h2>
-        
-        <p style={{
-          color: '#6b7280',
-          fontSize: '0.9rem',
-          margin: '0 0 1.5rem 0',
-        }}>
+
+        <p className="qrCodeModal-dateInfo">
           Giorno: <strong>{formatDate(presence?.data)}</strong>
         </p>
 
-        <div style={{
-          background: 'white',
-          padding: '1rem',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          margin: '0 auto 1.5rem auto',
-        }}>
+        <div className="qrCodeModal-qrWrapper">
           <QRCodeSVG
             value={qrToken || ''}
             size={256}
@@ -116,28 +85,13 @@ function QrCodeModal({ qrToken, presence, onClose }) {
           />
         </div>
 
-        <div style={{
-          background: '#f8fafc',
-          padding: '0.75rem',
-          borderRadius: '8px',
-          margin: '0 auto 1rem auto',
-          maxWidth: '350px',
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="qrCodeModal-tokenBox">
+          <div className="qrCodeModal-tokenRow">
             <input
               type="text"
               value={qrToken || ''}
               readOnly
-              style={{
-                flex: 1,
-                padding: '0.5rem',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                backgroundColor: 'white',
-                fontFamily: 'monospace',
-                color: 'black',
-              }}
+              className="qrCodeModal-tokenInput"
               title="Seleziona e copia questo token per incollarlo in KioskTest"
             />
             <button
@@ -155,16 +109,7 @@ function QrCodeModal({ qrToken, presence, onClose }) {
                     alert('Token copiato!')
                   })
               }}
-              style={{
-                padding: '0.5rem 0.75rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                whiteSpace: 'nowrap',
-              }}
+              className="qrCodeModal-copyButton"
               title="Copia il token"
             >
               Copia Token
@@ -172,51 +117,22 @@ function QrCodeModal({ qrToken, presence, onClose }) {
           </div>
         </div>
 
-        <p style={{
-          color: '#6b7280',
-          fontSize: '0.85rem',
-          margin: '0 0 1rem 0',
-        }}>
-          Scade tra: <span ref={countdownRef} style={{ fontWeight: 'bold' }}>30</span> secondi
+        <p className="qrCodeModal-countdown">
+          Scade tra: <span ref={countdownRef} className="qrCodeModal-countdownValue">30</span> secondi
         </p>
 
-        <p style={{
-          color: '#4b5563',
-          fontSize: '0.8rem',
-          margin: '0 0 1.5rem 0',
-          lineHeight: '1.4',
-        }}>
+        <p className="qrCodeModal-description">
           Mostra questo codice al tablet all'ingresso.<br />
           Il codice si aggiorna automaticamente ogni 25 secondi.
         </p>
 
         <button
           onClick={onClose}
-          style={{
-            padding: '0.75rem 2rem',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '1rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#2563eb'}
+          className="qrCodeModal-closeButton"
         >
           Chiudi
         </button>
       </div>
-      
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
     </div>
   )
 }

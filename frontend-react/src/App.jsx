@@ -27,6 +27,7 @@ import './styles/kiosk.css'
 import './styles/admin-pages.css'
 import './styles/analisiHR.css'
 
+
 function App() {
   return (
     <AuthProvider>

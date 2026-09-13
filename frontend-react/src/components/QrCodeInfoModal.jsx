@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import '../styles/QrCodeInfoModal.css'
 
 /**
  * Modale informativa per la rilevazione presenze con QR Code
@@ -54,93 +55,34 @@ function QrCodeInfoModal({ onClose }) {
   ]
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 2000,
-      backdropFilter: 'blur(4px)',
-    }} onClick={(e) => {
-      if (e.target === e.currentTarget) {
-        onClose()
-      }
-    }}>
-      <div style={{
-        backgroundColor: '#1f2937',
-        padding: '1.5rem',
-        borderRadius: '12px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-        maxWidth: '480px',
-        width: '80%',
-        maxHeight: '85vh',
-        overflowY: 'auto',
-        animation: 'fadeIn 0.2s ease-out',
-      }}>
-        <h2 style={{
-          margin: '0 0 0.75rem 0',
-          color: '#93c5fd',
-          fontSize: '1.25rem',
-          textAlign: 'center',
-        }}>
+    <div
+      className="qrCodeInfoModal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+    >
+      <div className="qrCodeInfoModal-content">
+        <h2 className="qrCodeInfoModal-title">
           Rilevazione presenze con QR Code
         </h2>
-        
-        <p style={{
-          color: '#9ca3af',
-          fontSize: '0.85rem',
-          textAlign: 'center',
-          margin: '0 0 1.25rem 0',
-          lineHeight: '1.4',
-        }}>
+
+        <p className="qrCodeInfoModal-subtitle">
           Per attivare la timbratura, segui questi passaggi:
         </p>
 
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.75rem',
-        }}>
+        <div className="qrCodeInfoModal-steps">
           {steps.map((item) => (
-            <div key={item.step} style={{
-              display: 'flex',
-              gap: '0.75rem',
-              alignItems: 'flex-start',
-            }}>
-              <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                fontSize: '0.85rem',
-                flexShrink: 0,
-              }}>
+            <div key={item.step} className="qrCodeInfoModal-step">
+              <div className="qrCodeInfoModal-stepNumber">
                 {item.step}
               </div>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  fontWeight: '600',
-                  color: '#f3f4f6',
-                  fontSize: '0.9rem',
-                  marginBottom: '0.15rem',
-                }}>
+              <div className="qrCodeInfoModal-stepBody">
+                <div className="qrCodeInfoModal-stepTitle">
                   {item.title}
                 </div>
-                <div style={{
-                  color: '#9ca3af',
-                  fontSize: '0.8rem',
-                  lineHeight: '1.4',
-                }}>
+                <div className="qrCodeInfoModal-stepDescription">
                   {item.description}
                 </div>
               </div>
@@ -149,34 +91,12 @@ function QrCodeInfoModal({ onClose }) {
         </div>
 
         <button
+          className="qrCodeInfoModal-closeButton"
           onClick={onClose}
-          style={{
-            marginTop: '1.25rem',
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#2563eb',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#2563eb'}
         >
           Ho capito
         </button>
       </div>
-      
-      <style>
-        {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
     </div>
   )
 }

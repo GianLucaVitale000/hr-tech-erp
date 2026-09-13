@@ -1,0 +1,133 @@
+.qrCodeModal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--overlay, rgba(0, 0, 0, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.qrCodeModal-content {
+  background-color: var(--bg, #fff);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: var(--shadow, rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: qrCodeModal-fadeIn 0.2s ease-out;
+}
+
+.qrCodeModal-title {
+  margin: 0 0 1rem 0;
+  color: var(--text-h, #08060d);
+  font-size: 1.5rem;
+}
+
+.qrCodeModal-dateInfo {
+  color: var(--text, #6b6375);
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem 0;
+}
+
+/*
+ * Il riquadro del QR code resta volutamente bianco in ogni tema:
+ * serve contrasto affidabile per la lettura, non deve seguire --bg/--code-bg.
+ */
+.qrCodeModal-qrWrapper {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: 0 auto 1.5rem auto;
+  width: fit-content;
+}
+
+.qrCodeModal-tokenBox {
+  background: var(--code-bg, #f4f3ec);
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin: 0 auto 1rem auto;
+  max-width: 350px;
+}
+
+.qrCodeModal-tokenRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.qrCodeModal-tokenInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border, #e5e4e7);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background-color: var(--bg, #fff);
+  font-family: var(--mono, monospace);
+  color: var(--text-h, #08060d);
+}
+
+.qrCodeModal-copyButton {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--accent, #4caf50);
+  color: var(--button-text, #000000);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  transition: filter 0.2s ease;
+}
+
+.qrCodeModal-copyButton:hover {
+  filter: brightness(0.9);
+}
+
+.qrCodeModal-countdown {
+  color: var(--text, #6b6375);
+  font-size: 0.85rem;
+  margin: 0 0 1rem 0;
+}
+
+.qrCodeModal-countdownValue {
+  font-weight: bold;
+}
+
+.qrCodeModal-description {
+  color: var(--text, #6b6375);
+  font-size: 0.8rem;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.4;
+}
+
+.qrCodeModal-closeButton {
+  padding: 0.75rem 2rem;
+  background-color: var(--accent, #4caf50);
+  color: var(--button-text, #000000);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: filter 0.2s ease;
+}
+
+.qrCodeModal-closeButton:hover {
+  filter: brightness(0.9);
+}
+
+@keyframes qrCodeModal-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
