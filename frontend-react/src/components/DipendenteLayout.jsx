@@ -19,6 +19,30 @@ function DipendenteLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showQrInfoModal, setShowQrInfoModal] = useState(false)
 
+  // --- STATO E LOGICA DEL THEME TOGGLE (CENTRALIZZATA) ---
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) {
+      return savedTheme === 'dark'
+    }
+    return document.documentElement.getAttribute('data-theme') === 'dark'
+  })
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [isDarkMode])
+
+  const handleToggleChange = (e) => {
+    setIsDarkMode(e.target.checked)
+  }
+  // ------------------------------------------------------
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -36,7 +60,11 @@ function DipendenteLayout() {
 
   return (
     <>
-      <DipendenteNavbar />
+      {/* Passiamo lo stato e la funzione di toggle alla navbar desktop */}
+      <DipendenteNavbar 
+        isDarkMode={isDarkMode} 
+        onToggleChange={handleToggleChange} 
+      />
 
       {/* Mobile hamburger button */}
       {isMobile && (
@@ -96,7 +124,23 @@ function DipendenteLayout() {
                     Come usi il QR Code?
                   </button>
                 </li>
+                
                 <hr />
+                {/* 🔹 TOGGLE SWITCH INTEGRATO NEL MENU MOBILE (ASIDE) */}
+                <li className="sidebar-toggle">
+                  <label className="theme-switch" htmlFor="checkbox-mobile">
+                    <input 
+                      type="checkbox" 
+                      id="checkbox-mobile" 
+                      checked={isDarkMode}
+                      onChange={handleToggleChange}
+                    />
+                    <div className="slider round">
+                      <i className="fas fa-sun"></i>
+                      <i className="fas fa-moon"></i>
+                    </div>
+                  </label>
+                </li>
                 <li className="sidebar-logout">
                   <button onClick={handleLogout}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">

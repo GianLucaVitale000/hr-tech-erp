@@ -332,11 +332,19 @@
 .sidebar-nav hr {
   margin-top: 2rem;
 }
+.sidebar-toggle {
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0.5rem;
+}
+
 .sidebar-logout {
   margin-top: 1rem;
   display: flex;
   justify-content: flex-end;
-}
+} 
 
 .sidebar-logout button {
   padding: 0.75rem;
@@ -358,4 +366,68 @@
   font-size: 1.5rem;
   cursor: pointer;
   color: #f3f4f6;
+}
+
+/* ==========================================
+   THEME SWITCH (INTEGRAZIONE NAVBAR & ASIDE)
+   ========================================== */
+.theme-switch {
+  display: inline-block;
+  height: 22px;
+  position: relative;
+  width: 42px;
+  flex-shrink: 0;
+}
+
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  background-color: var(--border);
+  cursor: pointer;
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  transition: .4s;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.slider:before {
+  background-color: var(--bg);
+  bottom: 3px;
+  content: "";
+  height: 16px;
+  left: 3px;
+  position: absolute;
+  transition: .4s;
+  width: 16px;
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+input:checked + .slider {
+  background-color: var(--accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider i {
+  font-size: 10px;
+  z-index: 1;
+  color: var(--text);
+  transition: 0.3s;
+}
+
+input:checked + .slider .fa-sun {
+  color: var(--button-text);
 }

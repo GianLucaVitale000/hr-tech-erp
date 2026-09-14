@@ -8,7 +8,7 @@ import QrCodeInfoModal from './QrCodeInfoModal'
  * DipendenteNavbar - Navbar desktop fissa per l'area dipendente
  * A sinistra: Logo/Home, al centro: voci menu (Dashboard, Foglio Presenze, QR Code), a destra: utente + logout
  */
-function DipendenteNavbar() {
+function DipendenteNavbar({ isDarkMode, onToggleChange }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -76,12 +76,25 @@ function DipendenteNavbar() {
           </li>
         </ul>
 
-        {/* Destra - Utente + Logout */}
+        {/* Destra - Utente + Toggle + Logout */}
         <div className="user-info">
           <span className="user-name">Benvenuto, {user?.name || 'Utente'}</span>
           <div className="avatar" title={user?.name || 'Utente'}>
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
+          {/* 🔹 TOGGLE SWITCH DESKTOP */}
+          <label className="theme-switch" htmlFor="checkbox-navbar">
+            <input 
+              type="checkbox" 
+              id="checkbox-navbar" 
+              checked={isDarkMode}
+              onChange={onToggleChange}
+            />
+            <div className="slider round">
+              <i className="fas fa-sun"></i>
+              <i className="fas fa-moon"></i>
+            </div>
+          </label>
             <button
               onClick={handleLogout}
               className="dipendente-navbar-logout"
