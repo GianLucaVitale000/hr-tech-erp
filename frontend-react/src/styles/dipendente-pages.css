@@ -554,7 +554,7 @@
 
 .card-mode-btn.is-active {
   background-color: #2563eb;
-  color: #000000
+  color: white;
 }
 
 .card-mode-btn.is-blocked {
