@@ -98,6 +98,7 @@
  * Vincono sempre sulla prefers-color-scheme grazie alla specificità CSS.
  */
 :root[data-theme='light'] {
+  color-scheme: light;
   --text: #6b6375;
   --text-h: #08060d;
   --button-text: #000000;
@@ -132,6 +133,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --text: #9ca3af;
   --text-h: #f3f4f6;
   --button-text: #000000;
@@ -163,6 +165,14 @@
 --date-input-text: #f3f4f6;
 --mode-btn-bg: #374151;
 --mode-btn-text: #f3f4f6;
+}
+
+:root[data-theme='light'] .mobile-date-input {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] .mobile-date-input {
+  color-scheme: dark;
 }
 
 :root[data-theme='dark'] #social .button-icon {
