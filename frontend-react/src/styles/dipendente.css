@@ -5,9 +5,9 @@
 
 /* Dipendente Navbar - Desktop */
 .dipendente-navbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 1rem 2rem;
   background-color: var(--bg);
   border-bottom: 1px solid var(--border);
@@ -87,6 +87,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  justify-content: flex-end;
 }
 
 .dipendente-navbar .user-name {
