@@ -18,6 +18,22 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
+--select-bg: #e9e9ed;
+--select-border: #c4c4c4;
+--card-bg: #fff;
+--card-border: #e5e4e7;
+--card-header-border: #e5e4e7;
+--card-text: #08060d;
+--card-muted-text: #6b6375;
+--card-label-text: #08060d;
+--input-bg: #fff;
+--input-border: #e5e4e7;
+--input-text: #6b6375;
+--date-input-bg: #e9e9ed;
+--date-input-border: #e5e4e7;
+--date-input-text: #6b6375;
+--mode-btn-text: #6b6375;
+
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
@@ -49,6 +65,23 @@
     --overlay: rgba(0, 0, 0, 0.7);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+--select-bg: #374151;
+--select-border: #4b5563;
+--card-bg: #1f2937;
+--card-border: #2e303a;
+--card-header-border: #374151;
+--card-text: #f3f4f6;
+--card-muted-text: #9ca3af;
+--card-label-text: #d1d5db;
+--input-bg: #374151;
+--input-border: #4b5563;
+--input-text: #f3f4f6;
+--date-input-bg: #374151;
+--date-input-border: #4b5563;
+--date-input-text: #f3f4f6;
+--mode-btn-bg: #374151;
+--mode-btn-text: #f3f4f6;
   }
 
   #social .button-icon {
@@ -78,6 +111,23 @@
   --overlay: rgba(0, 0, 0, 0.4);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+--select-bg: #e9e9ed;
+--select-border: #c4c4c4;
+--card-bg: #fff;
+--card-border: #e5e4e7;
+--card-header-border: #e5e4e7;
+--card-text: #08060d;
+--card-muted-text: #6b6375;
+--card-label-text: #08060d;
+--input-bg: #fff;
+--input-border: #e5e4e7;
+--input-text: #6b6375;
+--date-input-bg: #e9e9ed;
+--date-input-border: #e5e4e7;
+--date-input-text: #6b6375;
+--mode-btn-bg: #f4f3ec;
+--mode-btn-text: #6b6375;
 }
 
 :root[data-theme='dark'] {
@@ -95,6 +145,23 @@
   --overlay: rgba(0, 0, 0, 0.7);
   --shadow:
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+--select-bg: #374151;
+--select-border: #4b5563;
+--card-bg: #1f2937;
+--card-border: #2e303a;
+--card-header-border: #374151;
+--card-text: #f3f4f6;
+--card-muted-text: #9ca3af;
+--card-label-text: #d1d5db;
+--input-bg: #374151;
+--input-border: #4b5563;
+--input-text: #f3f4f6;
+--date-input-bg: #374151;
+--date-input-border: #4b5563;
+--date-input-text: #f3f4f6;
+--mode-btn-bg: #374151;
+--mode-btn-text: #f3f4f6;
 }
 
 :root[data-theme='dark'] #social .button-icon {

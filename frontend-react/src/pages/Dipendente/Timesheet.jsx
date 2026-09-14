@@ -502,7 +502,7 @@ function ModaleQrSettings({
             title="Ore di pausa (saranno sottratte dal totale)"
           />
           <p className="modal-hint">
-            Le ore di pausa verranno sottratte dal totale calcolato
+            La pausa sarà sottratta dal totale calcolato
           </p>
         </div>
 
