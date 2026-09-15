@@ -371,7 +371,7 @@ function ModaleMalattia({ dataInizio, onConferma, onAnnulla }) {
         </div>
 
         <div className="modal-field-last">
-          <label>Numero protocollo certificato</label>
+          <label>Numero protocollo certificato </label>
           <input
             type="text"
             value={protocollo}
@@ -405,7 +405,7 @@ function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
   return (
     <div className="modal-overlay">
       <div className="modal-box">
-        <h3 className="modal-h3">Registra periodo di Cassa Integrazione</h3>
+        <h3 className="modal-h3">Registra periodo di CIG</h3>
 
         <div className="modal-field">
           <label>dal </label>
