@@ -1479,38 +1479,56 @@ useEffect(() => {
       </div>
 
       <div className="totals-row">
-        <div className="badge badge-blue">
-          <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
-        </div>
-        {!isFullTime && (
-          <div className="badge badge-amber">
-            <strong>Ore Eccedenti:</strong> {totaleEccedenti}
-          </div>
-        )}
-        {isFullTime && (
-          <div className="badge badge-amber">
-            <strong>Straordinari:</strong> {totaleStraordinarie}
-          </div>
-        )}
-        <div className="badge badge-green">
-          <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
-        </div>
-        <div className="badge badge-green">
-          <strong>PR:</strong> {totalePermessiRetribuiti}
-        </div>
-        <div className="badge badge-green">
-          <strong>PNR:</strong> {totalePermessiNonRetribuiti}
-        </div>
-        <div className="badge badge-yellow">
-          <strong>INPS:</strong> {totaleOreINPS}
-        </div>
-        <div className="badge badge-red">
-          <strong>INAIL:</strong> {totaleOreINAIL}
-        </div>
-        <div className="badge badge-indigo">
-          <strong>CIG:</strong> {totaleCassaIntegrazione}
-        </div>
+  {/* Primo gruppo */}
+  <div className="totals-group">
+    <div className="badge badge-blue">
+      <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
+    </div>
+
+    {!isFullTime && (
+      <div className="badge badge-amber">
+        <strong>Ore Eccedenti:</strong> {totaleEccedenti}
       </div>
+    )}
+
+    {isFullTime && (
+      <div className="badge badge-amber">
+        <strong>Straordinari:</strong> {totaleStraordinarie}
+      </div>
+    )}
+  </div>
+
+  {/* Secondo gruppo */}
+  <div className="totals-group">
+    <div className="badge badge-green">
+      <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
+    </div>
+
+    <div className="badge badge-green">
+      <strong>PR:</strong> {totalePermessiRetribuiti}
+    </div>
+
+    <div className="badge badge-green">
+      <strong>PNR:</strong> {totalePermessiNonRetribuiti}
+    </div>
+  </div>
+
+  {/* Terzo gruppo */}
+  <div className="totals-group">
+    <div className="badge badge-yellow">
+      <strong>INPS:</strong> {totaleOreINPS}
+    </div>
+
+    <div className="badge badge-red">
+      <strong>INAIL:</strong> {totaleOreINAIL}
+    </div>
+
+    <div className="badge badge-indigo">
+      <strong>CIG:</strong> {totaleCassaIntegrazione}
+    </div>
+  </div>
+</div>
+
 
       <div className="invia-wrap">
         <button
@@ -1604,7 +1622,7 @@ useEffect(() => {
             <th>Ore Ordinarie</th>
             {!isFullTime && <th>Ore Eccedenti</th>}
             {isFullTime && <th>Ore Straordinarie</th>}
-            <th>Causale (altro da Lavoro)</th>
+            <th>Causale <br />(se diversa da Lavoro)</th>
             <th>Altro</th>
             <th>Modalità</th>
             <th></th>
