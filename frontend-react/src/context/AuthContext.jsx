@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     setToken(null)
     localStorage.removeItem('user')
     localStorage.removeItem('auth_token')
-    localStorage.removeItem('theme')
+
     document.documentElement.removeAttribute('data-theme')
   }
 
