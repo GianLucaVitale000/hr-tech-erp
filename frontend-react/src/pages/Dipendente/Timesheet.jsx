@@ -355,12 +355,12 @@ function ModaleMalattia({ dataInizio, onConferma, onAnnulla }) {
         <h3 className="modal-h3">Registra periodo di malattia</h3>
 
         <div className="modal-field">
-          <label>Dal</label>
+          <label>dal </label>
           <input type="date" value={dataInizio} disabled className="modal-input" />
         </div>
 
         <div className="modal-field">
-          <label>Al</label>
+          <label>al </label>
           <input
             type="date"
             value={dataFine}
@@ -408,12 +408,12 @@ function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
         <h3 className="modal-h3">Registra periodo di Cassa Integrazione</h3>
 
         <div className="modal-field">
-          <label>Dal</label>
+          <label>dal </label>
           <input type="date" value={dataInizio} disabled className="modal-input" />
         </div>
 
         <div className="modal-field">
-          <label>Al</label>
+          <label>al </label>
           <input
             type="date"
             value={dataFine}
@@ -424,7 +424,7 @@ function ModaleCassaIntegrazione({ dataInizio, onConferma, onAnnulla }) {
         </div>
 
         <div className="modal-field-last">
-          <label>Percentuale (%)</label>
+          <label>Percentuale (%) </label>
           <input
             type="number"
             value={percentuale}
@@ -514,7 +514,7 @@ function ModaleQrSettings({
             className="btn btn-kiosk"
             title="Apri kiosk per timbrare con QR Code"
           >
-            📱 Scansiona il QR code
+            Scansiona il QR code
           </button>
         </div>
 
