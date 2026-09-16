@@ -321,6 +321,14 @@
   margin-top: 2rem;
 }
 
+.admin-sidebar-toggle {
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0.5rem;
+}
+
 /* Mobile sidebar logout container */
 .admin-sidebar-logout {
   margin-top: 1rem;

@@ -1526,17 +1526,32 @@
   margin-bottom: 1.5rem;
 }
 
+.contratti-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .contratti-header-content {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .contratti-title {
   margin: 0;
   line-height: 1.2;
+}
+
+.contratti-filter-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
 .contratti-search-input {
@@ -1555,11 +1570,10 @@
   width: 300px;
 }
 
-.contratti-checkbox-label {
+.contratti-checkbox-label{
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
   cursor: pointer;
 }
 
@@ -1569,6 +1583,10 @@
 
 .contratti-checkbox-input {
   cursor: pointer;
+}
+
+.contratti-checkbox-text {
+  font-size: 0.75rem;
 }
 
 .contratti-error {

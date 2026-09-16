@@ -378,7 +378,7 @@ function Contratti() {
       <div className="contratti-header">
         <div className="contratti-header-content">
           <h1 className="contratti-title">Gestione CCNL</h1>
-          <div className={isMobile ? "contratti-checkbox-label contratti-checkbox-label-mobile" : "contratti-checkbox-label"}>
+          <div className={isMobile ? "contratti-filter-group contratti-filter-group-mobile" : "contratti-filter-group"}>
             <label>
               <input
                 type="text"
@@ -395,7 +395,7 @@ function Contratti() {
                 onChange={(e) => setOnlyMainUnions(e.target.checked)}
                 className="contratti-checkbox-input"
               />
-              Solo sindacati comparativamente più rappresentativi sul piano nazionale
+              <span className="contratti-checkbox-text">Solo sindacati comparativamente più rappresentativi sul piano nazionale</span>
             </label>
           </div>
         </div>

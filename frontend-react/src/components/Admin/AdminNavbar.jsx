@@ -1,13 +1,12 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
-import { useLocation } from 'react-router-dom'
 import Logo from './Logo'
 
 /**
  * AdminNavbar - Navbar desktop fissa per l'area admin
- * A sinistra: Home, al centro: voci menu, a destra: utente + logout
+ * A sinistra: Home, al centro: voci menu, a destra: utente + toggle + logout
  */
-function AdminNavbar() {
+function AdminNavbar({ isDarkMode, onToggleChange }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -25,7 +24,7 @@ function AdminNavbar() {
     return location.pathname.startsWith(path)
   }
 
-  // Determina se siamo nella pagina Dashboard
+  // Determiniamo se siamo nella pagina Dashboard
   const isDashboard = location.pathname === '/admin'
 
   return (
@@ -77,24 +76,37 @@ function AdminNavbar() {
         </ul>
       </div>
 
-      {/* Destra - Utente + Logout */}
+      {/* Destra - Utente + Toggle + Logout */}
       <div className="navbar-right">
         <div className="user-info">
           <span className="user-name">Benvenuto, {user?.name || 'Utente'}</span>
           <div className="avatar" title={user?.name || 'Utente'}>
             {user?.name?.charAt(0).toUpperCase() || 'U'}
           </div>
+          {/* 🔹 TOGGLE SWITCH DESKTOP */}
+          <label className="theme-switch" htmlFor="checkbox-navbar">
+            <input
+              type="checkbox"
+              id="checkbox-navbar"
+              checked={isDarkMode}
+              onChange={onToggleChange}
+            />
+            <div className="slider round">
+              <i className="fas fa-sun"></i>
+              <i className="fas fa-moon"></i>
+            </div>
+          </label>
           <button
             onClick={handleLogout}
             className="admin-navbar-logout"
-          > 
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-          </svg>
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+            </svg>
           </button>
         </div>
       </div>
-    </nav> 
+    </nav>
   )
 }
 
