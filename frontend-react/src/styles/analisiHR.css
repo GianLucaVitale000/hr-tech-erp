@@ -11,7 +11,7 @@
 .analisi-hr-title {
   margin: 0 0 2rem 0;
   line-height: 1.2;
-  color: white;
+  color: var(--text-h);
 }
 
 .analisi-hr-selection {
@@ -24,7 +24,7 @@
 }
 
 .analisi-hr-label {
-  color: white;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
   display: block;
 }
@@ -32,8 +32,9 @@
 .analisi-hr-select {
   padding: 0.5rem;
   border-radius: 4px;
-  background-color: #374151;
-  color: white;
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--select-border);
   width: 300px;
 }
 
@@ -54,11 +55,11 @@
 }
 
 .analisi-hr-widget {
-  background-color: #374151;
-  border: 1px solid #4b5563;
+  background-color: var(--widget-bg);
+  border: 1px solid var(--select-border);
   border-radius: 8px;
   padding: 1rem 1.5rem;
-  color: white;
+  color: var(--text-color);
   min-width: 180px;
   max-width: 220px;
   text-align: center;
@@ -67,7 +68,7 @@
 
 .analisi-hr-widget-title {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
   font-weight: 500;
 }
@@ -75,13 +76,13 @@
 .analisi-hr-widget-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #f3f4f6;
+  color: var(--text-h);
 }
 
 .analisi-hr-widget-subtitle {
   font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  color: var(--text-color); 
+  margin-top: 0.25rem; 
 }
 
 .analisi-hr-widget-content {
@@ -98,33 +99,33 @@
    ============================================ */
 
 .analisi-hr-card {
-  background-color: #374151;
-  color: white;
-  border: 1px solid #4b5563;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--select-border);
   max-width: 500px;
   width: 100%;
 }
 
 .analisi-hr-card-header {
-  background-color: #1f2937;
-  border-bottom: 1px solid #4b5563;
+  background-color: var(--card-header-bg);
+  border-bottom: 1px solid var(--select-border);
   padding: 1rem 1.5rem;
 }
 
 .analisi-hr-card-header-sm {
-  background-color: #1f2937;
-  border-bottom: 1px solid #4b5563;
+  background-color: var(--card-header-bg);
+  border-bottom: 1px solid var(--select-border);
   padding: 0.75rem 1rem;
 }
 
 .analisi-hr-card-title {
-  color: white;
+  color: var(--text-h);
   font-size: 1.1rem;
   font-weight: 600;
 }
 
 .analisi-hr-card-divider {
-  background-color: #4b5563;
+  background-color: var(--select-border);
   border: none;
   height: 1px;
   margin: 0;
@@ -132,7 +133,7 @@
 
 .analisi-hr-card-body {
   padding: 1.2rem;
-  color: #d1d5db;
+  color: var(--text-color);
   height: 400px;
   display: flex;
   flex-direction: column;
@@ -140,13 +141,13 @@
 
 .analisi-hr-card-body-no-height {
   padding: 1.5rem;
-  color: #d1d5db;
+  color: var(--text-color);
   min-height: 400px;
 }
 
 .analisi-hr-card-body-flex {
   padding: 1.5rem;
-  color: #d1d5db;
+  color: var(--text-color);
   min-height: 400px;
   display: flex;
   flex-direction: column;
@@ -154,13 +155,13 @@
 
 .analisi-hr-card-body-short {
   padding: 1rem;
-  color: #d1d5db;
+  color: var(--text-color);
   min-height: 400px;
 }
 
 .analisi-hr-card-body-chart {
   padding: 1.5rem;
-  color: #d1d5db;
+  color: var(--text-color);
   min-height: 400px;
   display: flex;
   flex-direction: column;
@@ -174,10 +175,10 @@
 .analisi-hr-big-number {
     font-size: 2rem;
     font-weight: 700;
-    color: #f3f4f6;
+    color: var(--text-h);
 }
 
-.analisi-hr-warning-text {
+.analisi-hr-warning-text { 
     font-size: 0.75rem;
     color: #f59e0b;
     margin-top: 0.5rem;
@@ -194,21 +195,21 @@
 .analisi-hr-text-value {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f3f4f6;
+  color: var(--text-h);
 }
 
 .analisi-hr-text-label {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--text-color);
 }
 
 .analisi-hr-text-sm {
   font-size: 0.72rem;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 .analisi-hr-text-gray {
-  color: #9ca3af;
+  color: var(--text-color); 
 }
 
 .analisi-hr-text-status {
@@ -216,7 +217,7 @@
 }
 
 .analisi-hr-text-muted {
-  color: #9ca3af;
+  color: var(--text-color);
 }
 
 /* ============================================
@@ -287,7 +288,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.72rem;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 /* ============================================
@@ -373,7 +374,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #d1d5db;
+  color: var(--text-color);
   white-space: nowrap;
 }
 
@@ -387,7 +388,7 @@
   display: grid;
   gap: 0.35rem;
   font-size: 0.72rem;
-  color: #d1d5db;
+  color: var(--text-color);
   text-align: left;
 }
 
@@ -396,7 +397,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
   font-size: 0.72rem;
-  color: #d1d5db;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
@@ -405,7 +406,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.72rem;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 .analisi-hr-label-sm {
@@ -422,8 +423,8 @@
    ============================================ */
 
 .analisi-hr-message {
-  background-color: #1f2937;
-  border: 1px solid #4b5563;
+  background-color: var(--card-bg);
+  border: 1px solid var(--select-border);
   border-radius: 4px;
   padding: 0.6rem 0.8rem;
   font-size: 0.72rem;
@@ -445,11 +446,12 @@
    ============================================ */
 
 .analisi-hr-select-pt {
-  background-color: #1f2937;
-  color: white;
-  border: 1px solid #4b5563;
+  background-color: var(--select-bg);
+  color: var(--select-text);
+  border: 1px solid var(--select-border);
   border-radius: 4px;
   padding: 0.25rem 0.5rem;
+  margin-bottom: 0.5rem;
   font-size: 0.72rem;
   cursor: pointer;
 }
@@ -459,27 +461,27 @@
    ============================================ */
 
 .analisi-hr-parttime-result {
-  background-color: #1f2937;
-  border: 1px solid #4b5563;
+  background-color: var(--card-bg);
+  margin-top: 0.5rem;
+  border: 1px solid var(--select-border);
   border-radius: 4px;
   padding: 0.6rem 0.8rem;
   font-size: 0.72rem;
-  color: #d1d5db;
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
 
 .analisi-hr-parttime-divider {
-  border-top: 1px solid #4b5563;
+  border-top: 1px solid var(--select-border);
   padding-top: 0.4rem;
-  margin-top: 0.2rem;
 }
 
 .analisi-hr-parttime-divider-dashed {
   margin-top: 0.3rem;
   padding-top: 0.3rem;
-  border-top: 1px dashed #4b5563;
+  border-top: 1px dashed var(--select-border);
 }
 
 .analisi-hr-parttime-text-yellow {

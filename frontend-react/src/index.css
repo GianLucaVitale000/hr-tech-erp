@@ -147,6 +147,13 @@
 --modal-action-text: #08060d;
 --modal-field-bg: #ffffff;
 --modal-field-last-bg: #f9fafb;
+--modal-button-cancel-bg: #ffffff;
+--modal-button-cancel-border: #6b6375;
+--modal-button-cancel-text: #08060d;
+
+/* Variabili per table */
+--header-bg: #f3f4f6;
+--footer-bg: #f3f4f6;
 }
 
 :root[data-theme='dark'] {
@@ -199,6 +206,13 @@
 --modal-action-text: #f3f4f6;
 --modal-field-bg: #16171d;
 --modal-field-last-bg: #1f2028;
+--modal-button-cancel-bg: ##1f2937;
+--modal-button-cancel-border: #9ca3af;
+--modal-button-cancel-text: #9ca3af;
+
+/* Variabili per table */
+--header-bg: #6b6375;
+--footer-bg: #1f2937;
 }
 
 :root[data-theme='light'] .mobile-date-input {

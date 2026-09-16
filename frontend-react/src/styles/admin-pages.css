@@ -1331,7 +1331,6 @@
 }
 
 .dashboard-main-title {
-  color: white;
   margin-bottom: 2rem;
   font-size: 2rem;
 }
@@ -1344,7 +1343,6 @@
 }
 
 .dashboard-section-title {
-  color: white;
   margin: 0;
   font-size: 1.25rem;
 }
@@ -1358,8 +1356,6 @@
 .dashboard-select {
   padding: 0.5rem;
   border-radius: 4px;
-  background-color: #374151;
-  color: white;
   border: none;
 }
 
@@ -1397,38 +1393,38 @@
 }
 
 .dashboard-table-header {
-  background-color: #f3f4f6;
+  background-color: var(--header-bg);
 }
 
 .dashboard-table-header th {
   padding: 0.2rem 1rem;
-  text-align: center;
+  text-align: center; 
   font-weight: 600;
-  color: #374151;
+  color: var(--text-color);
   font-size: 0.75rem;
   letter-spacing: 0.05em;
 }
 
 .dashboard-table-row {
-  background-color: #374151;
-  border-bottom: 1px solid #4b5563;
+  background-color: var(--select-bg);
+  border-bottom: 1px solid var(--select-border);
 }
 
 .dashboard-table-row td {
   padding: 0.75rem 1rem;
   text-align: center;
-  color: white;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
 .dashboard-table-footer {
-  background-color: #1f2937;
+  background-color: var(--footer-bg); 
 }
 
 .dashboard-table-footer td {
   padding: 0.75rem 1rem;
   text-align: center;
-  color: white;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
@@ -1441,10 +1437,10 @@
 }
 
 .dashboard-mobile-widget {
-  background-color: #374151;
+  background-color: var(--select-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
 }
 
 .dashboard-mobile-widget-full {
@@ -1452,10 +1448,10 @@
 }
 
 .dashboard-mobile-widget-title {
-  color: white;
+  color: var(--text-color);
   margin: 0 0 1rem 0;
   font-size: 1.1rem;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid var(--select-border);
   padding-bottom: 0.5rem;
 }
 
@@ -1470,7 +1466,7 @@
 }
 
 .dashboard-mobile-widget-item {
-  background-color: #1f2937;
+  background-color: var(--card-bg);
   border-radius: 4px;
   padding: 0.5rem;
   text-align: center;
@@ -1481,13 +1477,13 @@
 
 .dashboard-mobile-widget-label {
   display: block;
-  color: #9ca3af;
+  color: var(--text-color);
   font-size: 0.75rem;
   margin-bottom: 0.25rem;
 }
 
 .dashboard-mobile-widget-value {
-  color: white;
+  color: var(--text-color);
   font-size: 1rem;
   font-weight: 600;
 }
@@ -1501,15 +1497,15 @@
 
 /* Totale widget */
 .dashboard-totale-widget {
-  background-color: #374151;
+  background-color: var(--select-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
   grid-column: 1 / -1;
 }
 
 .dashboard-empty-message {
-  color: white;
+  color: var(--text-color);
   font-style: italic;
 }
 
@@ -1695,10 +1691,10 @@
 }
 
 .contratti-card {
-  background-color: #374151;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
 }
 
 .contratti-card-fields {
@@ -1712,7 +1708,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid var(--select-border);
 }
 
 .contratti-card-field:last-child {
@@ -1720,12 +1716,12 @@
 }
 
 .contratti-card-label {
-  color: #9ca3af;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
 .contratti-card-value {
-  color: white;
+  color: var(--text-color);
   font-size: 0.95rem;
   font-weight: 500;
 }
@@ -1765,21 +1761,21 @@
 .contratti-expanded-versions {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 2px solid #4b5563;
+  border-top: 2px solid var(--select-border);
 }
 
 .contratti-expanded-title {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
 .contratti-altra-version-card {
-  background-color: #1f2937;
+  background-color: var(--card-bg);
   border-radius: 6px;
   padding: 0.6rem;
   margin-bottom: 0.4rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
 }
 
 .contratti-altra-version-fields {
@@ -1794,12 +1790,12 @@
 }
 
 .contratti-altra-version-label {
-  color: #9ca3af;
+  color: var(--text-color);
   font-size: 0.75rem;
 }
 
 .contratti-altra-version-value {
-  color: white;
+  color: var(--text-color);
   font-size: 0.75rem;
 }
 
@@ -1850,11 +1846,12 @@
 }
 
 .contratti-table-row-expanded {
-  background-color: #374151;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: var(--card-bg); 
+  border-bottom: 1px solid var(--select-border);
+  font-size: 0.50rem;
 }
 
-.contratti-table-cell-contratto {
+.contratti-table-cell-contratto { 
   color: #00A896;
   font-weight: bold;
 }
@@ -1873,7 +1870,7 @@
 
 .contratti-table-cell-data {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-color);
 }
 
 .contratti-table-cell-data-green {
@@ -1921,14 +1918,14 @@
 }
 
 .contratti-modal {
-  background-color: #1f2937;
+  background-color: var(--card-bg);
   padding: 2rem;
   border-radius: 8px;
   width: 100%;
   max-width: 700px;
   max-height: 80vh;
   overflow-y: auto;
-  color: white;
+  color: var(--text-color);
 }
 
 .contratti-modal-header {
@@ -1941,7 +1938,7 @@
 .contratti-modal-title {
   margin: 0.5rem 1rem;
   font-size: 1.1rem;
-  color: white;
+  color: var(--text-color);
 }
 
 .contratti-modal-close {
@@ -1961,16 +1958,16 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 .contratti-modal-input {
   display: block;
   padding: 0.5rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
   border-radius: 4px;
-  background-color: #374151;
-  color: white;
+  background-color: var(--input-bg);
+  color: var(--input-text);
 }
 
 .contratti-modal-input-ore {
@@ -1983,11 +1980,11 @@
 }
 
 .contratti-modal-input-descrizione {
-  width: 90%;
+  width: 60%;
 }
 
 .contratti-modal-divider {
-  border-top: 1px solid #374151;
+  border-top: 1px solid var(--select-border);
   padding-top: 1.5rem;
   margin-bottom: 1rem;
 }
@@ -1995,15 +1992,16 @@
 .contratti-modal-divider-title {
   font-size: 1rem;
   margin-bottom: 1rem;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 /* Modal Profilo */
 .contratti-modal-profilo {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background-color: #374151;
+  background-color: var(--card-bg);
   border-radius: 6px;
+  border: 1px solid var(--select-border);
 }
 
 .contratti-modal-profilo-header {
@@ -2015,7 +2013,7 @@
 
 .contratti-modal-profilo-title {
   font-weight: 500;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 .contratti-modal-profilo-remove {
@@ -2046,17 +2044,17 @@
   display: block;
   margin-bottom: 0.25rem;
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--text-color);
 }
 
 .contratti-modal-profilo-field-input {
   display: block;
-  width: 100%;
+  width: 90%;
   padding: 0.5rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
   border-radius: 4px;
-  background-color: #1f2937;
-  color: white;
+  background-color: var(--input-bg);
+  color: var(--input-text);
 }
 
 /* Modal Select */
@@ -2068,13 +2066,13 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #d1d5db;
+  color: var(--text-color);
 }
 
 .contratti-modal-select-hint {
   font-size: 0.75rem;
   font-weight: normal;
-  color: #9ca3af;
+  color: var(--modal-hint-text); 
 }
 
 .contratti-modal-select-loading {
@@ -2091,16 +2089,16 @@
   display: block;
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--select-border);
   border-radius: 4px;
-  background-color: #1f2937;
-  color: white;
+  background-color: var(--card-bg);
+  color: var(--text-color);
   min-height: 80px;
 }
 
 .contratti-modal-select-option {
-  background-color: #1f2937;
-  color: white;
+  background-color: var(--card-bg);
+  color: var(--text-color);
 }
 
 .contratti-modal-select-option-selected {
@@ -2143,8 +2141,9 @@
 }
 
 .contratti-modal-button-cancel {
-  background-color: #4b5563;
-  color: white;
+  background-color: var(--modal-button-cancel-bg);
+  border: 1px solid var(--modal-button-cancel-border);
+  color: var(--modal-button-cancel-text);
 }
 
 .contratti-modal-button-save {

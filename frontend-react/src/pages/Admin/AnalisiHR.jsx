@@ -1041,7 +1041,7 @@ function AnalisiHR() {
                     { 
                       name: 'Non lavorati', 
                       value: Math.max(0, datiAnnuali.giorniTeoriciLavorabili - datiAnnuali.giorniLavorati), 
-                      color: '#4b5563' 
+                      color: '#4b5563'
                     }
                   ]}
                   cx="50%"
@@ -1059,7 +1059,7 @@ function AnalisiHR() {
                   ].map((entry, index) => (
                     <Cell key={`cell-giorni-${index}`} fill={entry.color} />
                   ))}
-                </Pie>
+                </Pie> 
               </PieChart>
             </ResponsiveContainer>
             <div style={{
@@ -1068,7 +1068,7 @@ function AnalisiHR() {
               left: '50%',
               transform: 'translate(-50%, -50%)',
               textAlign: 'center',
-              color: 'white',
+              color: 'var(--color-text)',
               fontSize: '0.65rem',
               fontWeight: '700',
               paddingLeft: '6px',
