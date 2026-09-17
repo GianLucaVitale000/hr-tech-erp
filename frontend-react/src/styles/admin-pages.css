@@ -516,7 +516,20 @@
   margin-bottom: 1rem;
 }
 
+.edit-dipendente-riposi-inline {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .edit-dipendente-field {
+  margin-bottom: 1.5rem;
+}
+
+.edit-dipendente-riposo-item {
+  flex: 1;
+  min-width: 140px;
   margin-bottom: 1.5rem;
 }
 
@@ -553,12 +566,13 @@
   margin-right: 0.5rem;
 }
 
+
 /* Ratei section */
 .edit-dipendente-label-ratei {
   display: block;
   margin-bottom: 0.75rem;
   font-weight: 500;
-  color: #d1d5db;
+  color: var(text-color);
 }
 
 .edit-dipendente-ratei-grid {
@@ -571,21 +585,21 @@
   display: block;
   margin-bottom: 0.25rem;
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--text-color);
 }
 
 .edit-dipendente-ratei-input {
   display: block;
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
 }
 
 .edit-dipendente-hint {
   display: block;
   margin-top: 0.35rem;
-  color: #6b7280;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 

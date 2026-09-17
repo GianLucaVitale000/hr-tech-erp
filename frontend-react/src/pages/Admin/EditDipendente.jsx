@@ -615,11 +615,58 @@ function EditDipendente() {
             required
             className="edit-dipendente-input"
           >
+            <option value="1">1 giorni</option>
+            <option value="2">2 giorni</option>
+            <option value="3">3 giorni</option>
             <option value="4">4 giorni</option>
             <option value="5">5 giorni</option>
             <option value="6">6 giorni</option>
           </select>
         </div>
+        
+        {/* I campi R1 ed R2 compaiono solo se il dipendente NON è part-time (< 100%) */}
+        {Number(form.percentuale_part_time ?? 100) >= 100 && (
+          <div className="edit-dipendente-riposi-inline">
+            <div className="edit-dipendente-field">
+              {/* Mostra R1 se i giorni lavorativi sono 5 oppure 6 */}
+              {(Number(form.giorni_lavorativi_settimanali) === 5 || Number(form.giorni_lavorativi_settimanali) === 6) && (
+                <div className="edit-dipendente-riposo-item">
+                  <label className="edit-dipendente-label">
+                    R1*
+                  </label>
+                  <select name="R1" id="R1" className="edit-dipendente-input">
+                    <option value="1">lunedì</option>
+                    <option value="2">martedì</option>
+                    <option value="3">mercoledì</option>
+                    <option value="4">giovedì</option>
+                    <option value="5">venerdì</option>
+                    <option value="6">sabato</option>
+                    <option value="7">domenica</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Mostra R2 SOLO se i giorni lavorativi sono 5 */}
+              {Number(form.giorni_lavorativi_settimanali) === 5 && (
+                <div className="edit-dipendente-riposo-item">
+                  <label className="edit-dipendente-label">
+                    R2*
+                  </label>
+                  <select name="R2" id="R2" className="edit-dipendente-input">
+                    <option value="1">lunedì</option>
+                    <option value="2">martedì</option>
+                    <option value="3">mercoledì</option>
+                    <option value="4">giovedì</option>
+                    <option value="5">venerdì</option>
+                    <option value="6">sabato</option>
+                    <option value="7">domenica</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
 
         {/* Ratei mensili per calcolo ferie e permessi */}
         <div className="edit-dipendente-field">
@@ -652,7 +699,7 @@ function EditDipendente() {
             ))}
           </div>
           <small className="edit-dipendente-hint">
-            Anzianità per maturazione permessi/ROL: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
+            Anzianità per calcolo permessi/ROL maturati: <strong>{formatGiorni(giorniDallAssunzione)}</strong>
           </small>
         </div>
 

@@ -1482,18 +1482,18 @@ useEffect(() => {
   {/* Primo gruppo */}
   <div className="totals-group">
     <div className="badge badge-blue">
-      <strong>Ore Ordinarie:</strong> {totaleOrdinarie}
+      <strong>Ore Ordinarie:</strong> {Number(totaleOrdinarie).toFixed(2)}
     </div>
 
     {!isFullTime && (
       <div className="badge badge-amber">
-        <strong>Ore Eccedenti:</strong> {totaleEccedenti}
+        <strong>Ore Eccedenti:</strong> {Number(totaleEccedenti).toFixed(2)}
       </div>
     )}
 
     {isFullTime && (
       <div className="badge badge-amber">
-        <strong>Straordinari:</strong> {totaleStraordinarie}
+        <strong>Straordinari:</strong> {Number(totaleStraordinarie).toFixed(2)}
       </div>
     )}
   </div>
@@ -1501,30 +1501,30 @@ useEffect(() => {
   {/* Secondo gruppo */}
   <div className="totals-group">
     <div className="badge badge-green">
-      <strong>Ferie/Permessi:</strong> {totaleFeriePermessi}
+      <strong>Ferie/Permessi:</strong> {Number(totaleFeriePermessi).toFixed(2)}
     </div>
 
     <div className="badge badge-green">
-      <strong>PR:</strong> {totalePermessiRetribuiti}
+      <strong>PR:</strong> {Number(totalePermessiRetribuiti).toFixed(2)}
     </div>
 
     <div className="badge badge-green">
-      <strong>PNR:</strong> {totalePermessiNonRetribuiti}
+      <strong>PNR:</strong> {Number(totalePermessiNonRetribuiti).toFixed(2)}
     </div>
   </div>
 
   {/* Terzo gruppo */}
   <div className="totals-group">
     <div className="badge badge-yellow">
-      <strong>INPS:</strong> {totaleOreINPS}
+      <strong>INPS:</strong> {Number(totaleOreINPS).toFixed(2)}
     </div>
 
     <div className="badge badge-red">
-      <strong>INAIL:</strong> {totaleOreINAIL}
+      <strong>INAIL:</strong> {Number(totaleOreINAIL).toFixed(2)}
     </div>
 
     <div className="badge badge-indigo">
-      <strong>CIG:</strong> {totaleCassaIntegrazione}
+      <strong>CIG:</strong> {Number(totaleCassaIntegrazione).toFixed(2)}
     </div>
   </div>
 </div>
