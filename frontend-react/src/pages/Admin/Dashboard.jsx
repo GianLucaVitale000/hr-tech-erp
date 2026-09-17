@@ -340,8 +340,8 @@ function AdminDashboard() {
                         <th>Dipendenti</th>
                         <th>Full-time</th>
                         <th>Part-time</th>
-                        <th>Tempo Determinato</th>
-                        <th>Tempo Indeterminato</th>
+                        <th>T. Det.</th>
+                        <th>T. Indet.</th>
                         <th>5 gg./sett.</th>
                         <th>6 gg./sett.</th>
                       </tr>

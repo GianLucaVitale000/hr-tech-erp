@@ -48,10 +48,10 @@
 }
 
 .utenti-card {
-  background-color: #374151;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--card-border);
 }
 
 .utenti-card-fields {
@@ -66,7 +66,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid var(--border);
 }
 
 .utenti-card-field:last-child {
@@ -74,12 +74,12 @@
 }
 
 .utenti-card-label {
-  color: #9ca3af;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
 .utenti-card-value {
-  color: white;
+  color: var(--card-value-color);
   font-size: 0.95rem;
   font-weight: 500;
 }
@@ -379,10 +379,10 @@
 }
 
 .dipendenti-card {
-  background-color: #374151;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--card-border);
 }
 
 .dipendenti-card-fields {
@@ -396,7 +396,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid var(--border);
 }
 
 .dipendenti-card-field:last-child {
@@ -404,18 +404,18 @@
 }
 
 .dipendenti-card-label {
-  color: #9ca3af;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
 .dipendenti-card-value {
-  color: white;
+  color: var(--card-value-color);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .dipendenti-card-value-codfiscale {
-  color: white;
+  color: var(--card-value-color);
   font-size: 0.875rem;
   font-weight: 500;
 }
@@ -449,17 +449,17 @@
 }
 
 .dipendenti-table-header {
-  background-color: #f3f4f6;
+  background-color: var(--header-bg);
   text-align: center;
 }
 
 .dipendenti-table-header th {
-  padding: 0.3rem;
+  padding: 0.75rem 0.3rem;
   white-space: nowrap;
 }
 
 .dipendenti-table-row {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .dipendenti-table-row td {
@@ -1426,7 +1426,7 @@
 }
 
 .dashboard-table-header th {
-  padding: 0.2rem 1rem;
+  padding: 0.75rem 1rem;
   text-align: center; 
   font-weight: 600;
   color: var(--text-color);
@@ -1581,7 +1581,7 @@
 
 .contratti-search-input {
   padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   font-size: 0.875rem;
   box-sizing: border-box;
@@ -1861,7 +1861,7 @@
 }
 
 .contratti-table-header th {
-  padding: 0.5rem;
+  padding: 0.75rem 1.25rem;
   font-size: 0.75rem;
 }
 

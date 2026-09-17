@@ -558,9 +558,9 @@ function Contratti() {
           <table className="contratti-table">
             <thead>
               <tr className="contratti-table-header">
-                <th>Nome CCNL</th>
-                <th>codice CNEL</th>
-                <th>tipologia</th>
+                <th>Denominazione</th>
+                <th>sigla CNEL</th>
+                <th>tipo</th>
                 <th>Parte Datoriale</th>
                 <th>Parte Sindacale</th>
                 <th>orario sett.</th>

@@ -1357,7 +1357,7 @@ function AnalisiHR() {
                   <Tooltip
                     cursor={false}
                     content={({ payload }) => (
-                      <div style={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', padding: '8px 12px', fontSize: '0.75rem', zIndex: 1000 }}>
+                      <div style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'white', padding: '8px 12px', fontSize: '0.75rem', zIndex: 1000 }}>
                         {payload.map((entry, index) => (
                           <div key={index} style={{ color: entry.fill || 'white' }}>{`${entry.name}: ${formatValue(entry.value, 2)} h`}</div>
                         ))}
@@ -1438,7 +1438,7 @@ function AnalisiHR() {
                       <Tooltip
                         cursor={false}
                         wrapperStyle={{ opacity: 1 }}
-                        contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
+                        contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--card-value-color)', fontSize: '0.75rem' }}
                         formatter={(value, name) => [formatValue(value, 2) + ' ore', name === 'ferie' || name === 'Ferie' ? 'Ferie' : 'Permessi/ROL-ex festività']}
                       />
                       <Legend wrapperStyle={{ fontSize: '0.7rem', marginBottom: 0 }} />
@@ -1491,7 +1491,7 @@ function AnalisiHR() {
                       <Tooltip
                         cursor={false}
                         wrapperStyle={{ opacity: 1 }}
-                        contentStyle={{ backgroundColor: '#374151', border: '1px solid #4b5563', color: 'white', fontSize: '0.75rem' }}
+                        contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--card-value-color)', fontSize: '0.75rem' }}
                         formatter={(value, name) => {
                           let label = ''
                           if (name === 'ordinarie') label = 'Ordinarie'
