@@ -17,7 +17,7 @@ class DipendenteController extends Controller
 
     public function me(Request $request)
     {
-        $dipendente = \App\Models\Dipendente::with(['contratto', 'contratto.regoleCalcolo', 'orariSettimanali'])
+        $dipendente = \App\Models\Dipendente::with(['contratto', 'contratto.regoleCalcolo', 'orariSettimanali', 'condizioniContrattuali'])
             ->where('user_id', $request->user()->id)
             ->first();
 
@@ -43,6 +43,8 @@ class DipendenteController extends Controller
             'data_scadenza_contratto' => 'nullable|date|required_if:tipo_contratto,determinato',
             'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
             'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
+            'R1' => 'nullable|integer|min:1|max:7',
+            'R2' => 'nullable|integer|min:1|max:7',
             'rateo_mensile_ferie' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_permessi_rol' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_ex_festivita' => 'nullable|numeric|decimal:0,5|min:0',
@@ -78,6 +80,8 @@ class DipendenteController extends Controller
             'data_scadenza_contratto' => 'nullable|date|required_if:tipo_contratto,determinato',
             'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
             'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
+            'R1' => 'nullable|integer|min:1|max:7',
+            'R2' => 'nullable|integer|min:1|max:7',
             'data_decorrenza_variazione' => 'nullable|date',
             'rateo_mensile_ferie' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_permessi_rol' => 'nullable|numeric|decimal:0,5|min:0',

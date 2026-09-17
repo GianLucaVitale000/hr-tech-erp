@@ -11,6 +11,18 @@
   font-family: sans-serif;
 }
 
+.rg-row.rg-row-riposo {
+  background-color: #f3a6a6 !important;
+  color: #721c24 !important;
+}
+
+.rg-row.rg-row-riposo input,
+.rg-row.rg-row-riposo select {
+  border-color: #f5c6cb !important;
+  color: red !important;
+  background-color: var(--input-bg) !important;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

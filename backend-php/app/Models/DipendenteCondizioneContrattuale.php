@@ -13,6 +13,8 @@ class DipendenteCondizioneContrattuale extends Model
         'dipendente_id',
         'contratto_id',
         'percentuale_part_time',
+        'R1',
+        'R2',
         'data_inizio',
         'data_fine',
     ];

@@ -86,6 +86,8 @@ function EditDipendente() {
     data_scadenza_contratto: '',
     percentuale_part_time: 100,
     giorni_lavorativi_settimanali: 5,
+    R1: 6,
+    R2: 7,
     rateo_mensile_ferie: null,
     rateo_mensile_permessi_rol: null,
     rateo_mensile_ex_festivita: null
@@ -150,6 +152,8 @@ function EditDipendente() {
           data_scadenza_contratto: formatDateForInput(d.data_scadenza_contratto) || '',
           percentuale_part_time: d.percentuale_part_time || 100,
           giorni_lavorativi_settimanali: d.giorni_lavorativi_settimanali || 5,
+          R1: d.R1 || 6,
+          R2: d.R2 || 7,
           rateo_mensile_ferie: d.rateo_mensile_ferie ?? null,
           rateo_mensile_permessi_rol: d.rateo_mensile_permessi_rol ?? null,
           rateo_mensile_ex_festivita: d.rateo_mensile_ex_festivita ?? null
@@ -634,7 +638,11 @@ function EditDipendente() {
                   <label className="edit-dipendente-label">
                     R1*
                   </label>
-                  <select name="R1" id="R1" className="edit-dipendente-input">
+                  <select name="R1"
+                          id="R1"
+                          value={form.R1}
+                          onChange={(e) => setForm({ ...form, R1: e.target.value })}
+                          className="edit-dipendente-input">
                     <option value="1">lunedì</option>
                     <option value="2">martedì</option>
                     <option value="3">mercoledì</option>
@@ -652,7 +660,11 @@ function EditDipendente() {
                   <label className="edit-dipendente-label">
                     R2*
                   </label>
-                  <select name="R2" id="R2" className="edit-dipendente-input">
+                  <select name="R2"
+                          id="R2"
+                          value={form.R2}
+                          onChange={(e) => setForm({ ...form, R2: e.target.value })}
+                          className="edit-dipendente-input">
                     <option value="1">lunedì</option>
                     <option value="2">martedì</option>
                     <option value="3">mercoledì</option>

@@ -22,6 +22,8 @@ class Dipendente extends Model
         'data_scadenza_contratto',
         'percentuale_part_time',
         'giorni_lavorativi_settimanali',
+        'R1',
+        'R2',
         'ore_settimanali',
         'rateo_mensile_ferie',
         'rateo_mensile_permessi_rol',

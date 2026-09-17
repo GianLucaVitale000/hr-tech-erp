@@ -56,7 +56,8 @@ function RigaGiorno({
   giorno, nomeGiorno, riga, onChange, onSalva, salvando,
   onApriModaleMalattia, onApriModaleCassaIntegrazione, onUploadTrasferta, onUploadInfortunio, 
   onApriModaleQrSettings,
-  isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese, disabled = false
+  isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese, disabled = false,
+  isRiposo = false
 }) {
   // Mostra modalità per lavoro, permessi, assemblea, OPPURE per cassa integrazione parziale (< 100%)
   const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale) || 
@@ -122,7 +123,7 @@ function RigaGiorno({
   }
 
   return (
-    <tr className="rg-row">
+    <tr className={`rg-row ${isRiposo ? 'rg-row-riposo' : ''}`}>
       <td className="rg-cell">
         {giorno} <span className="rg-day-name">({nomeGiorno})</span>
       </td>
@@ -1633,6 +1634,14 @@ useEffect(() => {
             const dataStr = getDataStr(anno, mese, giorno)
             const riga = getRiga(dataStr)
 
+            const isMeseCorrente = mese === (oggi.getMonth() + 1) && anno === oggi.getFullYear()
+            const dataObj = new Date(anno, mese - 1, giorno)
+            const jsDay = dataObj.getDay()
+            const giornoSettimanaNum = jsDay === 0 ? 7 : jsDay
+            const isR1 = isMeseCorrente && dipendente?.R1 && Number(dipendente.R1) === giornoSettimanaNum
+            const isR2 = isMeseCorrente && dipendente?.R2 && Number(dipendente.R2) === giornoSettimanaNum
+            const isRiposo = isR1 || isR2
+
             return (
               <RigaGiorno
                 key={dataStr}
@@ -1653,6 +1662,7 @@ useEffect(() => {
                 anno={anno}
                 mese={mese}
                 disabled={!puoInserirePresenze()}
+                isRiposo={isRiposo}
               />
             )
           })}
