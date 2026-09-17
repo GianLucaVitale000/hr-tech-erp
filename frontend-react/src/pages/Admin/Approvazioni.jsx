@@ -225,7 +225,7 @@ function Approvazioni() {
                       </div>
                       <div className="approvazioni-card-field">
                         <span className="approvazioni-card-label">Mese:</span>
-                        <span className="approvazioni-card-value">{NOMI_MESI[parseInt(m.mese) - 1]} {m.anno}</span>
+                        <span className="approvazioni-card-value-color">{NOMI_MESI[parseInt(m.mese) - 1]} {m.anno}</span>
                       </div>
                       <div className="approvazioni-card-field">
                         <span className="approvazioni-card-label">Giorni Inviati:</span>
@@ -263,7 +263,7 @@ function Approvazioni() {
                   <tr className="approvazioni-table-header">
                     <th>Dipendente</th>
                     <th>Mese</th>
-                    <th>Giorni Inviati</th>
+                    <th>GG.</th>
                     <th>Ore Ordinarie</th>
                     <th>Ore Eccedenti</th>
                     <th>Straordinari</th>

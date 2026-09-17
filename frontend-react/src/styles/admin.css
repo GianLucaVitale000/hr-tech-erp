@@ -208,12 +208,12 @@
 /* Mobile hamburger button */
 .admin-mobile-hamburger {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: 0.5rem;
+  right: 0.5rem;
   z-index: 500;
   padding: 0.5rem;
-  background-color: #374151;
-  color: #f3f4f6;
+  background-color: var(--accent);
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   cursor: pointer;

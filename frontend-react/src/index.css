@@ -91,7 +91,7 @@
 }
 
 /*
- * Override espliciti, pronti per il futuro toggle manuale dell'utente
+ * Override espliciti, per il toggle manuale dell'utente
  * (all'interno dell'area protetta da login).
  * Basterà impostare document.documentElement.dataset.theme = 'light' | 'dark'
  * (o rimuoverlo per tornare a seguire il sistema operativo).

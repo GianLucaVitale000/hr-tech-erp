@@ -67,7 +67,7 @@ function DipendenteLayout() {
       />
 
       {/* Mobile hamburger button */}
-      {isMobile && (
+      {isMobile && !sidebarOpen && (
         <button
           className="sidebar-hamburger"
           onClick={() => setSidebarOpen(true)}
@@ -81,7 +81,6 @@ function DipendenteLayout() {
       {isMobile && sidebarOpen && (
         <div
           className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
         >
           <div
             className="sidebar-panel"

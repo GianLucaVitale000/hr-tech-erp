@@ -121,16 +121,18 @@
 }
 
 .utenti-table-header {
-  background-color: #f3f4f6;
+  background-color: var(--header-bg);
   text-align: center;
 }
 
 .utenti-table-header th {
   padding: 0.75rem;
+  font-size: 0.75rem;
 }
 
 .utenti-table-row {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
 }
 
 .utenti-table-row td {
@@ -983,6 +985,9 @@
 .approvazioni-select-mese {
   padding: 0.5rem;
   border-radius: 4px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
 }
 
 /* Filtri */
@@ -1010,7 +1015,9 @@
 .approvazioni-filter-select {
   padding: 0.5rem;
   border-radius: 4px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  color: var(--input-text);
 }
 
 /* Layout Mobile - Card */
@@ -1021,10 +1028,10 @@
 }
 
 .approvazioni-card {
-  background-color: #374151;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--card-border);
 }
 
 .approvazioni-card-fields {
@@ -1037,7 +1044,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid var(--border);
 }
 
 .approvazioni-card-field:last-child {
@@ -1050,13 +1057,20 @@
 }
 
 .approvazioni-card-value {
-  color: white;
+  color: var(--text);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
+.approvazioni-card-value-color {
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 500; 
+}
+
 .approvazioni-card-value-clickable {
   cursor: pointer;
+  color: #2563eb;
   text-decoration: underline;
 }
 
@@ -1072,13 +1086,14 @@
 }
 
 .approvazioni-table-header {
-  background-color: #f3f4f6;
+  background-color: var(--header-bg);
   text-align: center;
 }
 
 .approvazioni-table-header th {
   padding: 0.75rem;
   min-width: 150px;
+  font-size: 0.75rem;
 }
 
 .approvazioni-table-header th:nth-child(1) { min-width: 150px; }
@@ -1090,11 +1105,12 @@
 .approvazioni-table-header th:nth-child(7) { min-width: 120px; }
 
 .approvazioni-table-row {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .approvazioni-table-row td {
   padding: 0.75rem;
+  font-size: 0.75rem;
 }
 
 .approvazioni-table-cell-clickable {
@@ -1152,8 +1168,8 @@
 .dettaglio-mese-back-button {
   margin-bottom: 1rem;
   padding: 0.4rem 0.8rem;
-  background-color: #6b7280;
-  color: white;
+  background-color: var(--accent);
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -1215,10 +1231,10 @@
 }
 
 .dettaglio-mese-card {
-  background-color: #374151;
+  background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1rem;
-  border: 1px solid #4b5563;
+  border: 1px solid var(--card-border);
 }
 
 .dettaglio-mese-card-fields {
@@ -1231,7 +1247,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0.25rem 0;
-  border-bottom: 1px solid #4b5563;
+  border-bottom: 1px solid var(--border);
 }
 
 .dettaglio-mese-card-field:last-child {
@@ -1239,14 +1255,12 @@
 }
 
 .dettaglio-mese-card-label {
-  color: #9ca3af;
+  color: var(--text-color);
   font-size: 0.875rem;
 }
 
 .dettaglio-mese-card-value {
-  color: white;
-  font-size: 0.95rem;
-  font-weight: 500;
+  color: var(--text);
 }
 
 /* Layout Desktop - Tabella */
@@ -1256,7 +1270,7 @@
 }
 
 .dettaglio-mese-table-header {
-  background-color: #f3f4f6;
+  background-color: var(--header-bg);
   text-align: center;
 }
 
@@ -1265,11 +1279,12 @@
 }
 
 .dettaglio-mese-table-row {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .dettaglio-mese-table-row td {
   padding: 0.5rem;
+  font-size: 0.875rem;
 }
 
 /* Azioni */
@@ -1827,17 +1842,17 @@
 }
 
 .contratti-table-header {
-  background-color: #f3f4f6;
+  background-color: var(--header-bg);
   text-align: center;
 }
 
 .contratti-table-header th {
-  padding: 0.25rem;
+  padding: 0.5rem;
   font-size: 0.75rem;
 }
 
 .contratti-table-row {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .contratti-table-row td {

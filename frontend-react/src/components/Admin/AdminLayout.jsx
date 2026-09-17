@@ -66,7 +66,7 @@ function AdminLayout() {
       />
 
       {/* Mobile hamburger button */}
-      {isMobile && (
+      {isMobile && !sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
           className="admin-mobile-hamburger"
@@ -78,7 +78,6 @@ function AdminLayout() {
       {/* Mobile sidebar */}
       {isMobile && sidebarOpen && (
         <div
-          onClick={() => setSidebarOpen(false)}
           className="admin-sidebar-overlay"
         >
           <div

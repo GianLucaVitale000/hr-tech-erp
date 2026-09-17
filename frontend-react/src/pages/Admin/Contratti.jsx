@@ -490,7 +490,7 @@ function Contratti() {
                       <span className="contratti-card-value">{formatFirmatari(main.partiSindacaliFirmatarie)}</span>
                     </div>
                     <div className="contratti-card-field">
-                      <span className="contratti-card-label">Ore Sett.:</span>
+                      <span className="contratti-card-label">orario sett. TP da CCNL:</span>
                       <span className="contratti-card-value">
                         {Number(main.ore_settimanali_teoriche) === 0 || main.ore_settimanali_teoriche === null ? '-' : main.ore_settimanali_teoriche}
                       </span>
@@ -558,13 +558,13 @@ function Contratti() {
           <table className="contratti-table">
             <thead>
               <tr className="contratti-table-header">
-                <th>Nome Contratto</th>
-                <th>Cod. CNEL</th>
-                <th>Tipo</th>
+                <th>Nome CCNL</th>
+                <th>codice CNEL</th>
+                <th>tipologia</th>
                 <th>Parte Datoriale</th>
                 <th>Parte Sindacale</th>
-                <th>Ore Sett.</th>
-                <th>Decorrenza</th>
+                <th>orario sett.</th>
+                <th>data</th>
                 <th>Azioni</th>
               </tr>
             </thead>
