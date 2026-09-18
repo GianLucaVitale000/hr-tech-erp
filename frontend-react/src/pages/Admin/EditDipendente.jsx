@@ -604,7 +604,7 @@ function EditDipendente() {
             className="edit-dipendente-input"
           />
           <small className="edit-dipendente-hint">
-            Compila solo se cambi CCNL o % part-time.
+            da compilare se cambi CCNL, giorni di riposo o % part-time.
           </small>
         </div>
 

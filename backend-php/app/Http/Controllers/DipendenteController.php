@@ -55,6 +55,8 @@ class DipendenteController extends Controller
             'dipendente_id' => $dipendente->id,
             'contratto_id' => $dipendente->contratto_id,
             'percentuale_part_time' => $dipendente->percentuale_part_time ?? 100,
+            'R1' => $dipendente->R1,
+            'R2' => $dipendente->R2,
             'data_inizio' => $dipendente->data_assunzione ?? Carbon::today(),
         ]);
 
@@ -89,7 +91,9 @@ class DipendenteController extends Controller
         ]);
 
         $variazione = $dipendente->contratto_id != ($validated['contratto_id'] ?? $dipendente->contratto_id)
-            || (float) $dipendente->percentuale_part_time !== (float) ($validated['percentuale_part_time'] ?? $dipendente->percentuale_part_time);
+            || (float) $dipendente->percentuale_part_time !== (float) ($validated['percentuale_part_time'] ?? $dipendente->percentuale_part_time)
+            || $dipendente->R1 != ($validated['R1'] ?? $dipendente->R1)
+            || $dipendente->R2 != ($validated['R2'] ?? $dipendente->R2);
         if ($variazione && empty($validated['data_decorrenza_variazione'])) {
             return response()->json(['message' => 'Indica la data di decorrenza della variazione contrattuale'], 422);
         }
@@ -104,6 +108,8 @@ class DipendenteController extends Controller
                     'dipendente_id' => $dipendente->id,
                     'contratto_id' => $dipendente->contratto_id,
                     'percentuale_part_time' => $dipendente->percentuale_part_time ?? 100,
+                    'R1' => $dipendente->R1,
+                    'R2' => $dipendente->R2,
                     'data_inizio' => $dipendente->data_assunzione ?? Carbon::today(),
                 ]);
             }
@@ -117,6 +123,8 @@ class DipendenteController extends Controller
                 'dipendente_id' => $dipendente->id,
                 'contratto_id' => $dipendente->contratto_id,
                 'percentuale_part_time' => $dipendente->percentuale_part_time ?? 100,
+                'R1' => $dipendente->R1,
+                'R2' => $dipendente->R2,
                 'data_inizio' => $dataVariazione,
             ]);
         }
