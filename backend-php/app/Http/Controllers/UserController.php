@@ -24,11 +24,20 @@ class UserController extends Controller
             'create_dipendente' => 'boolean',
             'contratto_id' => 'nullable|exists:contratti,id',
             'codice_fiscale' => 'nullable|string|unique:dipendenti,codice_fiscale',
+            'iban' => 'nullable|string',
             'livello' => 'nullable|string',
             'mansione' => 'nullable|string',
             'data_assunzione' => 'nullable|date',
+            'sesso' => 'nullable|in:M,F',
+            'tipo_contratto' => 'nullable|in:determinato,indeterminato',
+            'data_scadenza_contratto' => 'nullable|date|required_if:tipo_contratto,determinato',
             'percentuale_part_time' => 'nullable|numeric|min:0|max:100',
-            'giorni_lavorativi_settimanali' => 'nullable|integer|min:4|max:6',
+            'giorni_lavorativi_settimanali' => 'nullable|integer|min:1|max:6',
+            'R1' => 'nullable|integer|min:1|max:7',
+            'R2' => 'nullable|integer|min:1|max:7',
+            'rateo_mensile_ferie' => 'nullable|numeric|min:0',
+            'rateo_mensile_permessi_rol' => 'nullable|numeric|min:0',
+            'rateo_mensile_ex_festivita' => 'nullable|numeric|min:0',
         ]);
 
         $user = User::create([
@@ -46,11 +55,29 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'contratto_id' => $validated['contratto_id'] ?? null,
                 'codice_fiscale' => $validated['codice_fiscale'] ?? null,
+                'iban' => $validated['iban'] ?? null,
                 'livello' => $validated['livello'] ?? null,
                 'mansione' => $validated['mansione'] ?? null,
                 'data_assunzione' => $validated['data_assunzione'] ?? null,
+                'sesso' => $validated['sesso'] ?? null,
+                'tipo_contratto' => $validated['tipo_contratto'] ?? 'indeterminato',
+                'data_scadenza_contratto' => $validated['data_scadenza_contratto'] ?? null,
                 'percentuale_part_time' => $validated['percentuale_part_time'] ?? 100,
                 'giorni_lavorativi_settimanali' => $validated['giorni_lavorativi_settimanali'] ?? 5,
+                'R1' => $validated['R1'] ?? 6,
+                'R2' => $validated['R2'] ?? 7,
+                'rateo_mensile_ferie' => $validated['rateo_mensile_ferie'] ?? null,
+                'rateo_mensile_permessi_rol' => $validated['rateo_mensile_permessi_rol'] ?? null,
+                'rateo_mensile_ex_festivita' => $validated['rateo_mensile_ex_festivita'] ?? null,
+            ]);
+
+            \App\Models\DipendenteCondizioneContrattuale::create([
+                'dipendente_id' => $dipendente->id,
+                'contratto_id' => $dipendente->contratto_id,
+                'percentuale_part_time' => $dipendente->percentuale_part_time ?? 100,
+                'R1' => $dipendente->R1,
+                'R2' => $dipendente->R2,
+                'data_inizio' => $dipendente->data_assunzione ?? \Carbon\Carbon::today(),
             ]);
 
             return response()->json([

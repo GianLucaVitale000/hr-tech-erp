@@ -32,6 +32,9 @@ class MariaCartaSeeder extends Seeder
                 'password' => bcrypt('password'), // Password temporanea
             ]);
         }
+        if (!$user->hasRole('dipendente')) {
+            $user->assignRole('dipendente');
+        }
 
         // 3. Crea il dipendente (se non esiste già)
         $dipendente = Dipendente::where('user_id', $user->id)->first();

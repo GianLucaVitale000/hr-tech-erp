@@ -61,6 +61,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$marioRossi->hasRole('dipendente')) {
+            $marioRossi->assignRole('dipendente');
+        }
 
         // Crea Paolo Bianchi
         $paoloBianchi = User::firstOrCreate(
@@ -71,6 +74,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$paoloBianchi->hasRole('dipendente')) {
+            $paoloBianchi->assignRole('dipendente');
+        }
 
         // Crea Antonio Verdi
         $antonioVerdi = User::firstOrCreate(
@@ -81,6 +87,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$antonioVerdi->hasRole('dipendente')) {
+            $antonioVerdi->assignRole('dipendente');
+        }
 
         // Mario Rossi: C011, tempo pieno, indeterminato
         $dipendenteMario = Dipendente::updateOrCreate(
@@ -149,6 +158,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$userI100FullTime->hasRole('dipendente')) {
+            $userI100FullTime->assignRole('dipendente');
+        }
 
         // Luca Neri: I100, tempo pieno (100%), commesso vendita al pubblico, livello 4, 6 giorni
         $dipendenteI100Full = Dipendente::updateOrCreate(
@@ -181,6 +193,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$userI100PartTime->hasRole('dipendente')) {
+            $userI100PartTime->assignRole('dipendente');
+        }
 
         // Marco Gialli: I100, part-time 75%, commesso vendita al pubblico, livello 4, 6 giorni
         // Calcolo ore settimanali: 75% di 39 ore = 29.25 ore
@@ -236,6 +251,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$userH011_45->hasRole('dipendente')) {
+            $userH011_45->assignRole('dipendente');
+        }
 
         // Giuseppe Bruni: H011, tempo pieno, pompista specializzato, livello 4, 5 giorni, 45 ore
         $dipendenteH011_45 = Dipendente::updateOrCreate(
@@ -292,6 +310,9 @@ class DipendentiSeeder extends Seeder
                 'password' => Hash::make('password'),
             ]
         );
+        if (!$userH011_42->hasRole('dipendente')) {
+            $userH011_42->assignRole('dipendente');
+        }
 
         // Franco Neri: H011, tempo pieno, pompista specializzato, livello 4, 5 giorni, 42 ore
         $dipendenteH011_42 = Dipendente::updateOrCreate(

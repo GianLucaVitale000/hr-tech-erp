@@ -23,6 +23,19 @@
   background-color: var(--input-bg) !important;
 }
 
+.card-giorno.card-giorno-riposo {
+  background-color: #f3a6a6 !important;
+  border-color: #f5c6cb !important;
+  color: #721c24 !important;
+}
+
+.card-giorno.card-giorno-riposo input,
+.card-giorno.card-giorno-riposo select {
+  border-color: #f5c6cb !important;
+  color: red !important;
+  background-color: var(--input-bg) !important;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

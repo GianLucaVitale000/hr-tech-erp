@@ -11,20 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Aggiungi i campi ratei alla tabella dipendenti
+        // Aggiungi i campi ratei alla tabella dipendenti se non esistono già
         Schema::table('dipendenti', function (Blueprint $table) {
-            $table->decimal('rateo_mensile_ferie', 8, 5)->nullable()->after('percentuale_part_time');
-            $table->decimal('rateo_mensile_permessi_rol', 8, 5)->nullable()->after('rateo_mensile_ferie');
-            $table->decimal('rateo_mensile_ex_festivita', 8, 5)->nullable()->after('rateo_mensile_permessi_rol');
+            if (!Schema::hasColumn('dipendenti', 'rateo_mensile_ferie')) {
+                $table->decimal('rateo_mensile_ferie', 8, 5)->nullable()->after('percentuale_part_time');
+            }
+            if (!Schema::hasColumn('dipendenti', 'rateo_mensile_permessi_rol')) {
+                $table->decimal('rateo_mensile_permessi_rol', 8, 5)->nullable()->after('rateo_mensile_ferie');
+            }
+            if (!Schema::hasColumn('dipendenti', 'rateo_mensile_ex_festivita')) {
+                $table->decimal('rateo_mensile_ex_festivita', 8, 5)->nullable()->after('rateo_mensile_permessi_rol');
+            }
         });
 
-        // Copia i dati dai contratti ai dipendenti (migration data)
-        // Questo viene fatto in un seeder separato o tramite script
-        // Per la migration, rimuoviamo solo i campi da contratti dopo averli aggiunti a dipendenti
-        
-        // Rimuovi i campi ratei dalla tabella contratti
+        // Rimuovi i campi ratei dalla tabella contratti se esistono
         Schema::table('contratti', function (Blueprint $table) {
-            $table->dropColumn(['rateo_mensile_ferie', 'rateo_mensile_permessi_rol', 'rateo_mensile_ex_festivita']);
+            if (Schema::hasColumn('contratti', 'rateo_mensile_ferie')) {
+                $table->dropColumn(['rateo_mensile_ferie', 'rateo_mensile_permessi_rol', 'rateo_mensile_ex_festivita']);
+            }
         });
     }
 

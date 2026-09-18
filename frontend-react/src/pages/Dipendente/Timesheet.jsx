@@ -581,7 +581,8 @@ function CardGiorno({
   orariSettimanali,
   anno,
   mese,
-  disabled
+  disabled,
+  isRiposo = false
 }) {
   const mostraModalita = CAUSALI_CON_MODALITA.includes(riga.causale) ||
                         (riga.causale === 'cassa_integrazione' && (riga.percentuale_cassa_integrazione ?? 100) < 100)
@@ -631,7 +632,7 @@ function CardGiorno({
   }
 
   return (
-    <div className="card-giorno">
+    <div className={`card-giorno ${isRiposo ? 'card-giorno-riposo' : ''}`}>
       {/* Header con data */}
       <div className="card-giorno-header">
         <div className="card-giorno-date">{giorno} {nomeMese}</div>
@@ -1402,6 +1403,39 @@ useEffect(() => {
     return orariSettimanali[giornoSettimana] || 0
   }
 
+  // 🔹 Funzione per determinare se un giorno è di riposo (R1 o R2) in base alle condizioni contrattuali attive o fallback
+  const getIsRiposo = (dataStr) => {
+    if (!dipendente) return false
+    const [y, m, d] = dataStr.split('-')
+    const dataObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+    const jsDay = dataObj.getDay() // 0-6 (0=Dom, 1=Lun... 6=Sab)
+    const giornoSettimanaNum = jsDay === 0 ? 7 : jsDay // 1-7 (1=Lun... 7=Dom)
+
+    const condizioneGiorno = dipendente?.condizioni_contrattuali?.find(c => {
+      const inizio = c.data_inizio
+      const fine = c.data_fine || '9999-12-31'
+      return dataStr >= inizio && dataStr <= fine
+    }) || dipendente
+
+    const r1 = condizioneGiorno?.R1 ?? dipendente?.R1
+    const r2 = condizioneGiorno?.R2 ?? dipendente?.R2
+
+    if (r1 === null || r1 === undefined) {
+      // fallback default se non impostato: 6 (Sabato) e 7 (Domenica)
+      const isDefR1 = 6 === giornoSettimanaNum || 6 === jsDay
+      const isDefR2 = 7 === giornoSettimanaNum || 7 === jsDay || 0 === jsDay
+      return Boolean(isDefR1 || isDefR2)
+    }
+
+    const r1Num = Number(r1)
+    const r2Num = Number(r2)
+
+    const matchR1 = (r1Num === giornoSettimanaNum) || (r1Num === jsDay) || (r1Num === 7 && jsDay === 0) || (r1Num === 0 && jsDay === 0)
+    const matchR2 = !isNaN(r2Num) && ((r2Num === giornoSettimanaNum) || (r2Num === jsDay) || (r2Num === 7 && jsDay === 0) || (r2Num === 0 && jsDay === 0))
+
+    return Boolean(matchR1 || matchR2)
+  }
+
   const totaleOrdinarie = Object.values(righe).reduce(
     (acc, r) => acc + (parseFloat(r.ore_ordinarie) || 0), 0
   )
@@ -1588,6 +1622,7 @@ useEffect(() => {
         {(() => {
           const dataStr = getDataStr(anno, mese, giornoSelezionato)
           const riga = getRiga(dataStr)
+          const isRiposo = getIsRiposo(dataStr)
           return (
             <CardGiorno
               giorno={giornoSelezionato}
@@ -1608,6 +1643,7 @@ useEffect(() => {
               anno={anno}
               mese={mese}
               disabled={!puoInserirePresenze()}
+              isRiposo={isRiposo}
             />
           )
         })()}
@@ -1633,14 +1669,7 @@ useEffect(() => {
           {giorni.map((giorno) => {
             const dataStr = getDataStr(anno, mese, giorno)
             const riga = getRiga(dataStr)
-
-            const isMeseCorrente = mese === (oggi.getMonth() + 1) && anno === oggi.getFullYear()
-            const dataObj = new Date(anno, mese - 1, giorno)
-            const jsDay = dataObj.getDay()
-            const giornoSettimanaNum = jsDay === 0 ? 7 : jsDay
-            const isR1 = isMeseCorrente && dipendente?.R1 && Number(dipendente.R1) === giornoSettimanaNum
-            const isR2 = isMeseCorrente && dipendente?.R2 && Number(dipendente.R2) === giornoSettimanaNum
-            const isRiposo = isR1 || isR2
+            const isRiposo = getIsRiposo(dataStr)
 
             return (
               <RigaGiorno

@@ -30,10 +30,35 @@ class CnelContractsSeeder extends Seeder
             $this->command->info('Processazione Archivio Storico...');
             $this->processArchive('ARCHIVIO_STORICO', false);
 
+            $this->ensureEssentialContracts();
+
             $this->command->info('Seeding completato con successo!');
         } catch (\Exception $e) {
             $this->command->error('Errore durante il seeding: ' . $e->getMessage());
             Log::error('CNEL Seeder Error: ' . $e->getMessage());
+            // Anche in caso di errore di rete, assicurati che i contratti essenziali siano presenti
+            $this->ensureEssentialContracts();
+        }
+    }
+
+    private function ensureEssentialContracts(): void
+    {
+        $essentials = [
+            ['codice_cnel' => 'C011', 'nome_contratto' => 'Contratto Metalmeccanica Industria', 'ore_settimanali_teoriche' => 40.00],
+            ['codice_cnel' => 'H011', 'nome_contratto' => 'Contratto Distributori Carburante', 'ore_settimanali_teoriche' => 40.00],
+            ['codice_cnel' => 'I100', 'nome_contratto' => 'Contratto Commercio Terziario', 'ore_settimanali_teoriche' => 39.00],
+        ];
+
+        foreach ($essentials as $item) {
+            Contratto::firstOrCreate(
+                ['codice_cnel' => $item['codice_cnel']],
+                [
+                    'nome_contratto' => $item['nome_contratto'],
+                    'ore_settimanali_teoriche' => $item['ore_settimanali_teoriche'],
+                    'data_decorrenza' => '2020-01-01',
+                    'ultimo_accordo_vigente' => true,
+                ]
+            );
         }
     }
 

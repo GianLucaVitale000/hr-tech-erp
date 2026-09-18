@@ -204,7 +204,7 @@
   display: block;
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 4px;
 }
 
@@ -212,13 +212,13 @@
   display: block;
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 4px;
 }
 
 .edit-utente-hint {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-color);
   margin-top: 0.25rem;
 }
 
@@ -289,7 +289,7 @@
   display: block;
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 4px;
 }
 
@@ -301,7 +301,7 @@
 
 .nuovo-utente-section-title {
   margin-bottom: 1.5rem;
-  color: #4b5563;
+  color: var(--text-color);
   font-size: 1.125rem;
 }
 
@@ -332,6 +332,58 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+.nuovo-utente-riposi-inline {
+  display: flex;
+  gap: 1rem;
+}
+
+.nuovo-utente-riposo-item {
+  flex: 1;
+  margin-top: 1rem;
+}
+
+.nuovo-utente-radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.nuovo-utente-radio-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.nuovo-utente-radio-input {
+  margin-right: 0.5rem;
+}
+
+.nuovo-utente-label-ratei {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.nuovo-utente-ratei-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.nuovo-utente-ratei-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+
+.nuovo-utente-ratei-input {
+  display: block;
+  width: 80%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
 /* ==========================================
@@ -572,7 +624,7 @@
   display: block;
   margin-bottom: 0.75rem;
   font-weight: 500;
-  color: var(text-color);
+  color: var(--text-color);
 }
 
 .edit-dipendente-ratei-grid {
