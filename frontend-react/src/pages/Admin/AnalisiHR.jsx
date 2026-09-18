@@ -152,25 +152,21 @@ function AnalisiHR() {
     ]
   }, [calcolaPasqua])
 
-  // Calcola i giorni teorici lavorabili per un anno
-  const calcolaGiorniTeoriciLavorabili = useCallback((anno, giorniSettimanali) => {
-    const festivita = getFestivitaItaliane(anno)
-    const dateToString = (date) => date.toISOString().split('T')[0]
-    const festivitaSet = new Set(festivita.map(dateToString))
+  // Mappa R1/R2 (1-7 dove 7 = domenica) a JavaScript getDay() (0-6 dove 0 = domenica)
+  const rToDayOfWeek = (r) => (r === 7 || r === '7') ? 0 : Number(r)
 
+  // Calcola i giorni teorici lavorabili per un anno
+  const calcolaGiorniTeoriciLavorabili = useCallback((anno, riposiSet, festivitaSet) => {
     let count = 0
     const startDate = new Date(anno, 0, 1)
     const endDate = new Date(anno, 11, 31)
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const dayOfWeek = d.getDay() // 0 = Domenica, 1 = Lunedì, ..., 6 = Sabato
-      const dateStr = dateToString(new Date(d))
+      const dateStr = d.toISOString().split('T')[0]
 
-      // Escludi sempre le domeniche
-      if (dayOfWeek === 0) continue
-
-      // Per 5 giorni (Lun-Ven): escludi anche il sabato
-      if (giorniSettimanali === 5 && dayOfWeek === 6) continue
+      // Escludi i giorni di riposo configurati (R1/R2 o part-time a 0h)
+      if (riposiSet.has(dayOfWeek)) continue
 
       // Escludi le festività che cadono in giorni lavorativi
       if (festivitaSet.has(dateStr)) continue
@@ -179,7 +175,7 @@ function AnalisiHR() {
     }
 
     return count
-  }, [getFestivitaItaliane])
+  }, [])
 
   // Calcola supplementari e straordinarie mensili con compensazione intra-mese
   // Algoritmo corretto:
@@ -478,9 +474,11 @@ function AnalisiHR() {
         const assenzeIndividualiPerGiornoSettimana = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
         const malattieBreviPerGiorno = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
         
-        const isFullTime = Number(tuttePresenze[0]?.dipendente?.percentuale_part_time) === 100
-        const giorniSettimanali = tuttePresenze[0]?.dipendente?.giorni_lavorativi_settimanali || 5
-        const percentualePartTime = Number(tuttePresenze[0]?.dipendente?.percentuale_part_time) || 100
+        const dipendenteObj = dipendenti.find(d => String(d.id) === String(dipendenteSelezionato)) || tuttePresenze[0]?.dipendente
+
+        const isFullTime = Number(dipendenteObj?.percentuale_part_time ?? tuttePresenze[0]?.dipendente?.percentuale_part_time ?? 100) >= 100
+        const giorniSettimanali = dipendenteObj?.giorni_lavorativi_settimanali || tuttePresenze[0]?.dipendente?.giorni_lavorativi_settimanali || 5
+        const percentualePartTime = Number(dipendenteObj?.percentuale_part_time ?? tuttePresenze[0]?.dipendente?.percentuale_part_time ?? 100)
         
         // Estrai ore settimanali teoriche dal CCNL (regola di calcolo)
         let oreSettimanaliTeoricheFT = 40 // default: 40h settimanali
@@ -488,49 +486,52 @@ function AnalisiHR() {
           oreSettimanaliTeoricheFT = parseFloat(tuttePresenze[0].dipendente.contratto.ore_settimanali_teoriche)
         }
         
-        // Calcola giorni teorici lavorabili dal calendario
-        const giorniTeoriciLavorabili = calcolaGiorniTeoriciLavorabili(annoSelezionato, giorniSettimanali)
-        
-        // Set per tracciare giorni unici lavorati
-        const giorniUniciSet = new Set()
-        
         // Ottieni festività per correlazione
         const festivita = getFestivitaItaliane(annoSelezionato)
         const dateToString = (date) => date.toISOString().split('T')[0]
         const festivitaSet = new Set(festivita.map(dateToString))
         
-        // Determina i giorni di riposo del dipendente
+        // Determina i giorni di riposo del dipendente (utilizzando R1, R2 storicizzati/attuali per FT o orari settimanali a 0 per PT)
         const getGiorniDiRiposo = () => {
-          if (isFullTime) {
-            // Tempo pieno: riposi standard basati su giorniSettimanali
-            if (giorniSettimanali === 5) {
-              return new Set([0, 6]) // Domenica e Sabato
-            } else if (giorniSettimanali === 6) {
-              return new Set([0]) // Solo Domenica
-            }
-          }
-          
-          // Part-time: analizza distribuzione oraria - giorni senza lavoro sono riposi
-          const giorniConLavoro = new Set()
-          tuttePresenze.forEach(p => {
-            if (p.causale === 'lavoro' || parseFloat(p.ore_ordinarie || 0) > 0) {
-              const date = new Date(p.data)
-              const dayOfWeek = date.getDay()
-              giorniConLavoro.add(dayOfWeek)
-            }
-          })
-          
-          // I riposi sono i giorni senza nessun record di lavoro
           const riposi = new Set()
-          for (let i = 0; i <= 6; i++) {
-            if (!giorniConLavoro.has(i)) {
-              riposi.add(i)
+          if (isFullTime) {
+            const condizioneAnno = dipendenteObj?.condizioni_contrattuali?.find(c => {
+              const inizio = new Date(c.data_inizio).getFullYear()
+              const fine = c.data_fine ? new Date(c.data_fine).getFullYear() : 9999
+              return parseInt(annoSelezionato) >= inizio && parseInt(annoSelezionato) <= fine
+            }) || dipendenteObj
+
+            const r1 = condizioneAnno?.R1 ?? dipendenteObj?.R1 ?? 6
+            const r2 = condizioneAnno?.R2 ?? dipendenteObj?.R2 ?? 7
+
+            riposi.add(rToDayOfWeek(r1))
+            if (Number(giorniSettimanali) === 5) {
+              riposi.add(rToDayOfWeek(r2))
+            }
+          } else {
+            // Part-time: verifica quali giorni nella distribuzione dell'orario settimanale sono a 0 o assenti
+            const orari = dipendenteObj?.orari_settimanali || []
+            for (let i = 0; i <= 6; i++) {
+              const orarioGiorno = orari.find(o => Number(o.giorno_settimana) === i)
+              if (!orarioGiorno || parseFloat(orarioGiorno.ore_giornaliere_previste || 0) === 0) {
+                riposi.add(i)
+              }
+            }
+            if (riposi.size === 0) {
+              if (giorniSettimanali === 5) riposi.add(0).add(6)
+              else riposi.add(0)
             }
           }
           return riposi
         }
         
         const riposiSet = getGiorniDiRiposo()
+
+        // Calcola giorni teorici lavorabili dal calendario
+        const giorniTeoriciLavorabili = calcolaGiorniTeoriciLavorabili(annoSelezionato, riposiSet, festivitaSet)
+        
+        // Set per tracciare giorni unici lavorati
+        const giorniUniciSet = new Set()
 
         // Tipologie di assenza da considerare per analisi comportamentale
         const causaliAssenza = ['malattia', 'maternita', 'infortunio', 'cassa_integrazione', 'permesso_non_retribuito']
@@ -841,7 +842,7 @@ function AnalisiHR() {
     }
 
     fetchDatiAnnuali()
-  }, [dipendenteSelezionato, annoSelezionato, calcolaGiorniTeoriciLavorabili, getFestivitaItaliane, calcolaSupplementariEStraordinarieMensili])
+  }, [dipendenteSelezionato, annoSelezionato, calcolaGiorniTeoriciLavorabili, getFestivitaItaliane, calcolaSupplementariEStraordinarieMensili, dipendenti])
 
   useEffect(() => {
     if (!dipendenteSelezionato || !annoSelezionato) {

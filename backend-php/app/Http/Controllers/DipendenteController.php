@@ -12,7 +12,7 @@ class DipendenteController extends Controller
 {
     public function index()
     {
-        return Dipendente::with(['user', 'contratto', 'contratto.regoleCalcolo', 'regoleCalcolo', 'orariSettimanali'])->get();
+        return Dipendente::with(['user', 'contratto', 'contratto.regoleCalcolo', 'regoleCalcolo', 'orariSettimanali', 'condizioniContrattuali'])->get();
     }
 
     public function me(Request $request)
