@@ -82,10 +82,10 @@ class DipendenteOrarioSettimanaleController extends Controller
             'orari' => 'required|array',
             'orari.*.giorno_settimana' => 'required|integer|min:0|max:6',
             'orari.*.ore_giornaliere_previste' => 'required|numeric|min:0|max:24',
-            'orari.*.turno1_dalle' => 'nullable|date_format:H:i',
-            'orari.*.turno1_alle' => 'nullable|date_format:H:i',
-            'orari.*.turno2_dalle' => 'nullable|date_format:H:i',
-            'orari.*.turno2_alle' => 'nullable|date_format:H:i',
+            'orari.*.turno1_dalle' => ['nullable', 'string', 'regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/'],
+            'orari.*.turno1_alle' => ['nullable', 'string', 'regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/'],
+            'orari.*.turno2_dalle' => ['nullable', 'string', 'regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/'],
+            'orari.*.turno2_alle' => ['nullable', 'string', 'regex:/^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/'],
         ]);
 
         $oreSettimanaliPartTime = $dipendente->ore_settimanali_part_time;

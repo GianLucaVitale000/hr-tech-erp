@@ -184,6 +184,14 @@
     margin-top: 0.5rem;
 }
 
+.analisi-hr-highlight-yellow {
+  background-color: rgba(251, 191, 36, 0.15);
+  border-left: 3px solid #fbbf24;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+
 /* ============================================
    TEXT STYLES
    ============================================ */

@@ -13,13 +13,17 @@ export function FeriePermessiCard({ dipendenteSelezionato, annoSelezionato, anal
         ) : (
           <div className="analisi-hr-flex-column-gap">
             <div className="analisi-hr-grid-2cols">
-              <div><strong>Ferie: </strong> <span>{formatValue(analisiFerie.ferie.maturate)} mat. / {formatValue(analisiFerie.ferie.godute)} god.</span></div>
-              <div><strong>Residuo: </strong> <span>{formatValue(analisiFerie.ferie.residue)} ore</span></div>
+              <div className="analisi-hr-highlight-yellow">
+              <div><strong>Ferie: </strong> <span>{formatValue(analisiFerie.ferie.maturate)} mat. / {formatValue(analisiFerie.ferie.godute)} god.</span></div></div>
+              <div className="analisi-hr-highlight-yellow">
+              <div><strong>Residuo: </strong> <span>{formatValue(analisiFerie.ferie.residue)} ore</span></div></div>
               <div><strong>Min. 2 settimane:</strong> <span>{formatValue(analisiFerie.ferie.percentuale_due_settimane, 1)}%</span></div>
               <div><strong>Smaltimento legale:</strong> <span>{formatValue(analisiFerie.ferie.percentuale_smaltimento, 1)}%</span></div>
               <div><strong>situazione ferie:</strong> <span className="analisi-hr-text-status" style={{ color: analisiFerie.ferie.stato === 'regolare' ? '#34d399' : '#fbbf24' }}>{analisiFerie.ferie.stato}</span></div>
-              <div><strong>ROL + Ex-fest.: </strong> <span>{formatValue(analisiFerie.permessi_rol_ex_festivita.maturati)} maturati / {formatValue(analisiFerie.permessi_rol_ex_festivita.goduti)} goduti</span></div>
-              <div><strong>Residuo:</strong> <span>{formatValue(analisiFerie.permessi_rol_ex_festivita.residui)} ore</span></div>
+              <div className="analisi-hr-highlight-yellow">
+              <div><strong>ROL + Ex-fest.: </strong> <span>{formatValue(analisiFerie.permessi_rol_ex_festivita.maturati)} maturati / {formatValue(analisiFerie.permessi_rol_ex_festivita.goduti)} goduti</span></div></div>
+              <div className="analisi-hr-highlight-yellow">
+              <div><strong>Residuo:</strong> <span>{formatValue(analisiFerie.permessi_rol_ex_festivita.residui)} ore</span></div></div>
             </div>
             <div className="analisi-hr-chart-220">
               <ResponsiveContainer width="100%" height="100%">
