@@ -24,7 +24,8 @@ class DatabaseSeeder extends Seeder
         // Nuovi seeders per le tabelle aggiuntive
             MariaCartaSeeder::class,
             PresenzeTableSeeder::class,
-            MariaCartaPresenzeSeeder::class, // Sovrascrive le presenze di Maria Carta con regole specifiche
+            // Seed di test Maria Carta (in seeders/test/ - regole specifiche: maternità, part-time, ferie maturate)
+            Database\Seeders\Test\MariaCartaPresenzeSeeder::class,
             MarcoGialliPresenzeSeeder::class, // Genera presenze di Marco Gialli con supplementari/straordinarie
         ]);
     }
