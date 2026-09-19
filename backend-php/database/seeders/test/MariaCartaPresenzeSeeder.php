@@ -20,9 +20,7 @@ class MariaCartaPresenzeSeeder extends Seeder
         $dipendente = Dipendente::with('user')
             ->whereHas('user', function($query) {
                 $query->where('email', 'maria.carta@example.com')
-                      ->orWhere('email', 'maria.carte@example.com')
-                      ->orWhere('name', 'Maria Carta')
-                      ->orWhere('name', 'Maria Carte');
+                      ->orWhere('name', 'Maria Carta');
             })
             ->first();
 
