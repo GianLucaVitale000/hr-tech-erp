@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/useAuth'
-import Logo from './Admin/Logo'
+import { useAuth } from '../../context/useAuth'
+import Logo from '../Admin/Logo'
 import QrCodeInfoModal from './QrCodeInfoModal'
 
 /**

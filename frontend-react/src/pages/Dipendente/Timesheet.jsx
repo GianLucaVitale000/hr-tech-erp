@@ -11,7 +11,7 @@ import {
   generateQrToken,
 } from '../../services/presenzeService'
 import { isFoglioCompleto } from '../../utils/foglioCompleto'
-import QrCodeModal from '../../components/QrCodeModal'
+import QrCodeModal from '../../components/Dipendente/QrCodeModal'
 import '../../styles/dipendente-pages.css'
 
 const CAUSALI = [

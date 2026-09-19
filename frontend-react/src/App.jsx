@@ -18,7 +18,7 @@ import AnalisiHR from './pages/Admin/AnalisiHR'
 import Kiosk from './pages/Kiosk'
 import KioskTest from './tools/KioskTest'
 import AdminLayout from './components/Admin/AdminLayout'
-import DipendenteLayout from './components/DipendenteLayout'
+import DipendenteLayout from './components/Dipendente/DipendenteLayout'
 
 import './styles/admin.css'
 import './styles/dipendente.css'

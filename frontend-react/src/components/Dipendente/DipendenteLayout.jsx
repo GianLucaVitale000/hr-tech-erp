@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/useAuth'
+import { useAuth } from '../../context/useAuth'
 import DipendenteNavbar from './DipendenteNavbar'
 import DipendenteFooter from './DipendenteFooter'
-import Logo from './Admin/Logo'
+import Logo from '../Admin/Logo'
 import QrCodeInfoModal from './QrCodeInfoModal'
 
 /**

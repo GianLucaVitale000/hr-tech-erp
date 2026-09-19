@@ -1,8 +1,8 @@
-import Logo from './Admin/Logo'
+import Logo from '../Admin/Logo'
 
 /**
  * DipendenteFooter - Footer fisso per l'area dipendente
- * Utilizza le classi CSS dedcate in dipendente.css per la formattazione
+ * Utilizza le classi CSS dedicate in dipendente.css per la formattazione
  */
 function DipendenteFooter() {
   return (

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import '../styles/QrCodeModal.css'
+import '../../styles/QrCodeModal.css'
 
 /**
  * Modale per visualizzare il QR Code dinamico

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import '../styles/QrCodeInfoModal.css'
+import '../../styles/QrCodeInfoModal.css'
 
 /**
  * Modale informativa per la rilevazione presenze con QR Code
