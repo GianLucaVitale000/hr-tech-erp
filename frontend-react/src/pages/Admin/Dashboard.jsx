@@ -7,7 +7,7 @@ function DonutCard({ titolo, valore, totale, colore }) {
   const percent = totale > 0 ? (valore / totale) * 100 : 0
   return (
     <div className="dashboard-donut-card">
-      <div className="dashboard-donut-title">{titolo}</div>
+      <div className="dashboard-donut-title" style={{ color: colore }}>{titolo}</div>
       <div className="dashboard-donut-wrapper">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -390,99 +390,98 @@ function AdminDashboard() {
                   )}
                 </div> 
               ) : (
-                <>
-                  <div className="dashboard-table-wrapper">
-                    <div className="dashboard-table-container">
-                      <table className="dashboard-table">
-                        <colgroup>
-                          <col span="1" />
-                          <col span="1" />
-                          <col span="1" />
-                          <col span="1" />
-                          <col span="1" />
-                          <col span="1" />
-                          <col span="1" />
-                          <col span="1" />
-                        </colgroup>
-                        <thead>
-                          <tr className="dashboard-table-header">
-                            <th>CCNL</th>
-                            <th>unità</th>
-                            <th>TP</th>
-                            <th>PT</th>
-                            <th>T. Det.</th>
-                            <th>T. Indet.</th>
-                            <th>5 gg.</th>
-                            <th>6 gg.</th>
+                <div className="dashboard-table-wrapper">
+                  <div className="dashboard-table-container">
+                    <table className="dashboard-table">
+                      <colgroup>
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                      </colgroup>
+                      <thead>
+                        <tr className="dashboard-table-header">
+                          <th>CCNL</th>
+                          <th>unità</th>
+                          <th>TP</th>
+                          <th>PT</th>
+                          <th>T. Det.</th>
+                          <th>T. Indet.</th>
+                          <th>5 gg.</th>
+                          <th>6 gg.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {datiCCNL.map((ccnl) => (
+                          <tr key={ccnl.sigla} className="dashboard-table-row">
+                            <td><strong>{ccnl.sigla}</strong></td>
+                            <td>{ccnl.totale}</td>
+                            <td>{ccnl.tempoPieno}</td>
+                            <td>{ccnl.tempoParziale}</td>
+                            <td>{ccnl.tempoDeterminato}</td>
+                            <td>{ccnl.tempoIndeterminato}</td>
+                            <td>{ccnl.giorni5}</td>
+                            <td>{ccnl.giorni6}</td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {datiCCNL.map((ccnl) => (
-                            <tr key={ccnl.sigla} className="dashboard-table-row">
-                              <td><strong>{ccnl.sigla}</strong></td>
-                              <td>{ccnl.totale}</td>
-                              <td>{ccnl.tempoPieno}</td>
-                              <td>{ccnl.tempoParziale}</td>
-                              <td>{ccnl.tempoDeterminato}</td>
-                              <td>{ccnl.tempoIndeterminato}</td>
-                              <td>{ccnl.giorni5}</td>
-                              <td>{ccnl.giorni6}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                        <tfoot>
-                          <tr className="dashboard-table-footer">
-                            <td>Totali</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
-                            <td>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                    <div className="dashboard-pie-chart-render-table">
-                      {renderPieChart(datiCCNL)}
-                    </div>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="dashboard-table-footer">
+                          <td>Totali</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
                   </div>
-                  {/* Sezione Donut Chart: distribuzione dipendenti per gg settimanali e contratto */}
-                  {dipendentiAttivi.length > 0 && (
-                    <div className="dashboard-donut-section">
-                      <div className="dashboard-donut-title-section">Giorni Lavorati (media per tipologia)</div>
-                      <div className="dashboard-donut-container">
-                        {/* Gruppo 1: Tempo Pieno */}
-                        <DonutCard
-                          titolo="Tempo pieno - 5 gg."
-                          valore={conta5ft}
-                          totale={totale}
-                          colore="#10b981"
-                        />
-                        <DonutCard
-                          titolo="Tempo pieno - 6 gg."
-                          valore={conta6ft}
-                          totale={totale}
-                          colore="#3b82f6"
-                        />
-                        {/* Gruppo 2: Part-time */}
-                        <DonutCard
-                          titolo="Part-time - 5 gg."
-                          valore={conta5pt}
-                          totale={totale}
-                          colore="#f59e0b"
-                        />
-                        <DonutCard
-                          titolo="Part-time - 6 gg."
-                          valore={conta6pt}
-                          totale={totale}
-                          colore="#ef4444"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
+                  <div className="dashboard-pie-chart-render-table">
+                    {renderPieChart(datiCCNL)}
+                  </div>
+                </div>
+              )}
+
+              {/* Sezione Donut Chart: distribuzione dipendenti per gg settimanali e contratto */}
+              {dipendentiAttivi.length > 0 && (
+                <div className="dashboard-donut-section">
+                  <h2 className="dashboard-donut-title-section">GG. Lavorati <br/>(aggrega valori medi per tipologia) </h2>
+                  <div className="dashboard-donut-container">
+                    {/* Gruppo 1: Tempo Pieno */}
+                    <DonutCard
+                      titolo ="Tempo pieno - 5 gg."
+                      valore={conta5ft}
+                      totale={totale}
+                      colore="#10b981"
+                    />
+                    <DonutCard
+                      titolo="Tempo pieno - 6 gg."
+                      valore={conta6ft}
+                      totale={totale}
+                      colore="#3b82f6"
+                    />
+                    {/* Gruppo 2: Part-time */}
+                    <DonutCard
+                      titolo="Part-time - 5 gg."
+                      valore={conta5pt}
+                      totale={totale}
+                      colore="#f59e0b"
+                    />
+                    <DonutCard
+                      titolo="Part-time - 6 gg."
+                      valore={conta6pt}
+                      totale={totale}
+                      colore="#ef4444"
+                    />
+                  </div>
+                </div>
               )}
             </div>
           ) : (
