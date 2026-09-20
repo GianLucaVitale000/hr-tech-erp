@@ -1,5 +1,47 @@
 import { useState, useEffect } from 'react'
 import api from '../../services/api'
+import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+
+// Componente per le card donut
+function DonutCard({ titolo, valore, totale, colore }) {
+  const percent = totale > 0 ? (valore / totale) * 100 : 0
+  return (
+    <div className="dashboard-donut-card">
+      <div className="dashboard-donut-title">{titolo}</div>
+      <div className="dashboard-donut-wrapper">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={[
+                { name: 'Attivi', value: valore },
+                { name: 'Inattivi', value: totale - valore }
+              ]}
+              cx="50%" cy="50%" innerRadius={30} outerRadius={40}
+              fill="#8884d8" dataKey="value" labelLine={false} isAnimationActive={false}
+              stroke="var(--donut-stroke)"
+              strokeWidth={1}
+            >
+              {[
+                { name: 'Attivi', fill: colore },
+                { name: 'Inattivi', fill: 'var(--card-bg)' }
+              ].map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          color: 'var(--text-color)',
+          fontSize: '0.7rem', fontWeight: '700'
+        }}>{percent.toFixed(1)}%</div>
+      </div>
+    </div>
+  )
+}
+
 
 function AdminDashboard() {
   const [dipendenti, setDipendenti] = useState([])
@@ -75,6 +117,21 @@ function AdminDashboard() {
   }
 
   const dipendentiAttivi = dipendenti.filter(d => dipendenteAttivoInPeriodo(d, meseSelezionato, annoSelezionato))
+
+  // Calcolo conteggi per le 4 categorie: (5gg/FT, 5gg/PT, 6gg/FT, 6gg/PT)
+  let conta5ft = 0, conta5pt = 0, conta6ft = 0, conta6pt = 0
+  dipendentiAttivi.forEach(d => {
+    const ggSett = d.giorni_lavorativi_settimanali || 5
+    const isFT = (d.percentuale_part_time ?? 100) >= 100
+    if (ggSett === 5) {
+      if (isFT) conta5ft++
+      else conta5pt++
+    } else if (ggSett === 6) {
+      if (isFT) conta6ft++
+      else conta6pt++
+    }
+  })
+  const totale = dipendentiAttivi.length
 
   const aggregaPerCCNL = () => {
     const risultato = {}
@@ -199,7 +256,7 @@ function AdminDashboard() {
       <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
         {elements}
       </svg>
-    )
+        )
   }
 
   return (
@@ -249,7 +306,7 @@ function AdminDashboard() {
           </div>
 
           {datiCCNL.length > 0 ? (
-            <>
+            <div>
               {isMobile ? (
                 <div className="dashboard-mobile-container">
                   {datiCCNL.map((ccnl) => (
@@ -333,65 +390,101 @@ function AdminDashboard() {
                   )}
                 </div> 
               ) : (
-                <div className="dashboard-table-wrapper">
-                  <div className="dashboard-table-container">
-                    <table className="dashboard-table">
-                      <colgroup>
-                        <col span="1" />
-                        <col span="1" />
-                        <col span="1" />
-                        <col span="1" />
-                        <col span="1" />
-                        <col span="1" />
-                        <col span="1" />
-                        <col span="1" />
-                      </colgroup>
-                      <thead>
-                        <tr className="dashboard-table-header">
-                          <th>CCNL</th>
-                          <th>unità</th>
-                          <th>TP</th>
-                          <th>PT</th>
-                          <th>T. Det.</th>
-                          <th>T. Indet.</th>
-                          <th>5 gg.</th>
-                          <th>6 gg.</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {datiCCNL.map((ccnl) => (
-                          <tr key={ccnl.sigla} className="dashboard-table-row">
-                            <td><strong>{ccnl.sigla}</strong></td>
-                            <td>{ccnl.totale}</td>
-                            <td>{ccnl.tempoPieno}</td>
-                            <td>{ccnl.tempoParziale}</td>
-                            <td>{ccnl.tempoDeterminato}</td>
-                            <td>{ccnl.tempoIndeterminato}</td>
-                            <td>{ccnl.giorni5}</td>
-                            <td>{ccnl.giorni6}</td>
+                <>
+                  <div className="dashboard-table-wrapper">
+                    <div className="dashboard-table-container">
+                      <table className="dashboard-table">
+                        <colgroup>
+                          <col span="1" />
+                          <col span="1" />
+                          <col span="1" />
+                          <col span="1" />
+                          <col span="1" />
+                          <col span="1" />
+                          <col span="1" />
+                          <col span="1" />
+                        </colgroup>
+                        <thead>
+                          <tr className="dashboard-table-header">
+                            <th>CCNL</th>
+                            <th>unità</th>
+                            <th>TP</th>
+                            <th>PT</th>
+                            <th>T. Det.</th>
+                            <th>T. Indet.</th>
+                            <th>5 gg.</th>
+                            <th>6 gg.</th>
                           </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="dashboard-table-footer">
-                          <td>Totali</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
-                          <td>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {datiCCNL.map((ccnl) => (
+                            <tr key={ccnl.sigla} className="dashboard-table-row">
+                              <td><strong>{ccnl.sigla}</strong></td>
+                              <td>{ccnl.totale}</td>
+                              <td>{ccnl.tempoPieno}</td>
+                              <td>{ccnl.tempoParziale}</td>
+                              <td>{ccnl.tempoDeterminato}</td>
+                              <td>{ccnl.tempoIndeterminato}</td>
+                              <td>{ccnl.giorni5}</td>
+                              <td>{ccnl.giorni6}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="dashboard-table-footer">
+                            <td>Totali</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
+                            <td>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <div className="dashboard-pie-chart-render-table">
+                      {renderPieChart(datiCCNL)}
+                    </div>
                   </div>
-                  <div className="dashboard-pie-chart-render-table">
-                    {renderPieChart(datiCCNL)}
-                  </div>
-                </div>
+                  {/* Sezione Donut Chart: distribuzione dipendenti per gg settimanali e contratto */}
+                  {dipendentiAttivi.length > 0 && (
+                    <div className="dashboard-donut-section">
+                      <div className="dashboard-donut-title-section">Giorni Lavorati (media per tipologia)</div>
+                      <div className="dashboard-donut-container">
+                        {/* Gruppo 1: Tempo Pieno */}
+                        <DonutCard
+                          titolo="Tempo pieno - 5 gg."
+                          valore={conta5ft}
+                          totale={totale}
+                          colore="#10b981"
+                        />
+                        <DonutCard
+                          titolo="Tempo pieno - 6 gg."
+                          valore={conta6ft}
+                          totale={totale}
+                          colore="#3b82f6"
+                        />
+                        {/* Gruppo 2: Part-time */}
+                        <DonutCard
+                          titolo="Part-time - 5 gg."
+                          valore={conta5pt}
+                          totale={totale}
+                          colore="#f59e0b"
+                        />
+                        <DonutCard
+                          titolo="Part-time - 6 gg."
+                          valore={conta6pt}
+                          totale={totale}
+                          colore="#ef4444"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
-            </>
+            </div>
           ) : (
             <p className="dashboard-empty-message">
               Nessun dipendente attivo nel periodo selezionato

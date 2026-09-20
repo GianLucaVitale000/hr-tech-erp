@@ -6,7 +6,7 @@ export function AnalisiHRWidgets({ datiAnnuali, formatValue }) {
     { 
       name: 'Non lavorati', 
       value: Math.max(0, datiAnnuali.giorniTeoriciLavorabili - datiAnnuali.giorniLavorati), 
-      color: '#4b5563'
+      color: 'var(--donut-stroke)'
     }
   ]
 
@@ -64,7 +64,7 @@ export function AnalisiHRWidgets({ datiAnnuali, formatValue }) {
             left: '50%',
             transform: 'translate(-50%, -50%)',
             textAlign: 'center',
-            color: 'var(--color-text)',
+            color: 'var(--text-color)',
             fontSize: '0.65rem',
             fontWeight: '700',
             paddingLeft: '6px',

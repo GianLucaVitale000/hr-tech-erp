@@ -154,6 +154,8 @@
 /* Variabili per table */
 --header-bg: #f3f4f6;
 --footer-bg: #f3f4f6;
+
+--donut-stroke: #c4c4c4;
 }
 
 :root[data-theme='dark'] {
@@ -213,6 +215,8 @@
 /* Variabili per table */
 --header-bg: #6b6375;
 --footer-bg: #1f2937;
+
+--donut-stroke: #4b5563;
 }
 
 :root[data-theme='light'] .mobile-date-input {
