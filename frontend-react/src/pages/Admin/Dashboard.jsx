@@ -255,30 +255,41 @@ function AdminDashboard() {
                   {datiCCNL.map((ccnl) => (
                     <div key={ccnl.sigla} className="dashboard-mobile-widget">
                       <h3 className="dashboard-mobile-widget-title">{ccnl.sigla}</h3>
-                      <div className="dashboard-mobile-widget-grid">
-                        <div className="dashboard-mobile-widget-item">
-                          <span className="dashboard-mobile-widget-label">Tempo Pieno</span>
-                          <div className="dashboard-mobile-widget-value">{ccnl.tempoPieno}</div>
+                       <div className="dashboard-mobile-widget-list">
+                        {/* Coppia 1: Tempo Pieno vs Tempo Parziale */}
+                        <div className="dashboard-mobile-widget-pair">
+                          <div className="dashboard-mobile-widget-field">
+                            <span className="dashboard-mobile-widget-field-label">Tempo Pieno</span>
+                            <span className="dashboard-mobile-widget-field-value">{ccnl.tempoPieno}</span>
+                          </div>
+                          <div className="dashboard-mobile-widget-field">
+                            <span className="dashboard-mobile-widget-field-label">Tempo Parziale</span>
+                            <span className="dashboard-mobile-widget-field-value">{ccnl.tempoParziale}</span>
+                          </div>
                         </div>
-                        <div className="dashboard-mobile-widget-item">
-                          <span className="dashboard-mobile-widget-label">Tempo Parziale</span>
-                          <div className="dashboard-mobile-widget-value">{ccnl.tempoParziale}</div>
+
+                        {/* Coppia 2: T. Determinato vs T. Indeterminato */}
+                        <div className="dashboard-mobile-widget-pair">
+                          <div className="dashboard-mobile-widget-field">
+                            <span className="dashboard-mobile-widget-field-label">T. Determinato</span>
+                            <span className="dashboard-mobile-widget-field-value">{ccnl.tempoDeterminato}</span>
+                          </div>
+                          <div className="dashboard-mobile-widget-field">
+                            <span className="dashboard-mobile-widget-field-label">T. Indeterminato</span>
+                            <span className="dashboard-mobile-widget-field-value">{ccnl.tempoIndeterminato}</span>
+                          </div>
                         </div>
-                        <div className="dashboard-mobile-widget-item">
-                          <span className="dashboard-mobile-widget-label">T. Determinato</span>
-                          <div className="dashboard-mobile-widget-value">{ccnl.tempoDeterminato}</div>
-                        </div>
-                        <div className="dashboard-mobile-widget-item">
-                          <span className="dashboard-mobile-widget-label">T. Indeterminato</span>
-                          <div className="dashboard-mobile-widget-value">{ccnl.tempoIndeterminato}</div>
-                        </div>
-                        <div className="dashboard-mobile-widget-item">
-                          <span className="dashboard-mobile-widget-label">5 gg./sett.</span>
-                          <div className="dashboard-mobile-widget-value">{ccnl.giorni5}</div>
-                        </div>
-                        <div className="dashboard-mobile-widget-item">
-                          <span className="dashboard-mobile-widget-label">6 gg./sett.</span>
-                          <div className="dashboard-mobile-widget-value">{ccnl.giorni6}</div>
+
+                        {/* Coppia 3: 5 gg. vs 6 gg. */}
+                        <div className="dashboard-mobile-widget-pair">
+                          <div className="dashboard-mobile-widget-field">
+                            <span className="dashboard-mobile-widget-field-label">5 gg./sett.</span>
+                            <span className="dashboard-mobile-widget-field-value">{ccnl.giorni5}</span>
+                          </div>
+                          <div className="dashboard-mobile-widget-field">
+                            <span className="dashboard-mobile-widget-field-label">6 gg./sett.</span>
+                            <span className="dashboard-mobile-widget-field-value">{ccnl.giorni6}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -320,59 +331,64 @@ function AdminDashboard() {
                       </div>
                     </div>
                   )}
-                </div>
+                </div> 
               ) : (
-                <div className="dashboard-table-container">
-                  <table className="dashboard-table">
-                    <colgroup>
-                      <col span="1" />
-                      <col span="1" />
-                      <col span="1" />
-                      <col span="1" />
-                      <col span="1" />
-                      <col span="1" />
-                      <col span="1" />
-                      <col span="1" />
-                    </colgroup>
-                    <thead>
-                      <tr className="dashboard-table-header">
-                        <th>Sigla CCNL</th>
-                        <th>Dipendenti</th>
-                        <th>Full-time</th>
-                        <th>Part-time</th>
-                        <th>T. Det.</th>
-                        <th>T. Indet.</th>
-                        <th>5 gg./sett.</th>
-                        <th>6 gg./sett.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {datiCCNL.map((ccnl) => (
-                        <tr key={ccnl.sigla} className="dashboard-table-row">
-                          <td><strong>{ccnl.sigla}</strong></td>
-                          <td>{ccnl.totale}</td>
-                          <td>{ccnl.tempoPieno}</td>
-                          <td>{ccnl.tempoParziale}</td>
-                          <td>{ccnl.tempoDeterminato}</td>
-                          <td>{ccnl.tempoIndeterminato}</td>
-                          <td>{ccnl.giorni5}</td>
-                          <td>{ccnl.giorni6}</td>
+                <div className="dashboard-table-wrapper">
+                  <div className="dashboard-table-container">
+                    <table className="dashboard-table">
+                      <colgroup>
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                        <col span="1" />
+                      </colgroup>
+                      <thead>
+                        <tr className="dashboard-table-header">
+                          <th>CCNL</th>
+                          <th>unità</th>
+                          <th>TP</th>
+                          <th>PT</th>
+                          <th>T. Det.</th>
+                          <th>T. Indet.</th>
+                          <th>5 gg.</th>
+                          <th>6 gg.</th>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="dashboard-table-footer">
-                        <td>Totali</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
-                        <td>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {datiCCNL.map((ccnl) => (
+                          <tr key={ccnl.sigla} className="dashboard-table-row">
+                            <td><strong>{ccnl.sigla}</strong></td>
+                            <td>{ccnl.totale}</td>
+                            <td>{ccnl.tempoPieno}</td>
+                            <td>{ccnl.tempoParziale}</td>
+                            <td>{ccnl.tempoDeterminato}</td>
+                            <td>{ccnl.tempoIndeterminato}</td>
+                            <td>{ccnl.giorni5}</td>
+                            <td>{ccnl.giorni6}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="dashboard-table-footer">
+                          <td>Totali</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.totale, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoPieno, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoParziale, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoDeterminato, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.tempoIndeterminato, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.giorni5, 0)}</td>
+                          <td>{datiCCNL.reduce((sum, c) => sum + c.giorni6, 0)}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <div className="dashboard-pie-chart-render-table">
+                    {renderPieChart(datiCCNL)}
+                  </div>
                 </div>
               )}
             </>
