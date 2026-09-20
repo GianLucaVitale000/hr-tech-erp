@@ -382,7 +382,7 @@ function AdminDashboard() {
                   </div>
                   {datiCCNL.length > 0 && (
                     <div className="dashboard-mobile-widget dashboard-mobile-widget-full">
-                      <h3 className="dashboard-mobile-widget-title">Composizione CCNL</h3>
+                      <h3 className="dashboard-mobile-widget-title">Dipendenti per CCNL applicato</h3>
                       <div className="dashboard-pie-chart-container">
                         {renderPieChart(datiCCNL)}
                       </div>
