@@ -548,7 +548,7 @@ function AdminDashboard() {
               {dipendentiAttivi.length > 0 && (
                 <div className="dashboard-donut-section">
                   <h2 className="dashboard-donut-title-section">
-                    Media GG. Lavorati Mensili ({NOMI_MESI[meseSelezionato - 1]} {annoSelezionato} — {maxTeorici5gg} gg. su 5gg / {maxTeorici6gg} gg. su 6gg)
+                    Media GG. Lavorati Mensili - {NOMI_MESI[meseSelezionato - 1]} {annoSelezionato}
                   </h2>
                   <div className="dashboard-donut-container">
                     <DonutCard
