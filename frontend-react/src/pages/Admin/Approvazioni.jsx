@@ -11,6 +11,7 @@ function Approvazioni() {
   const [filtroDipendente, setFiltroDipendente] = useState('')
   const [filtroMese, setFiltroMese] = useState('')
   const [filtroAnno, setFiltroAnno] = useState('')
+  const [filtroStato, setFiltroStato] = useState('')
   const [isMobile, setIsMobile] = useState(false)
   const navigate = useNavigate()
 
@@ -199,6 +200,19 @@ function Approvazioni() {
                   ))}
                 </select>
               </div>
+              <div className="approvazioni-filter-group">
+                <label className="approvazioni-filter-label">Stato:</label>
+                <select
+                  value={filtroStato}
+                  onChange={(e) => setFiltroStato(e.target.value)}
+                  className="approvazioni-filter-select"
+                >
+                  <option value="">Tutti</option>
+                  <option value="da_approvare">Da approvare</option>
+                  <option value="reinviato">Da approvare (Reinviato)</option>
+                  <option value="approvato">Approvato</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -209,7 +223,12 @@ function Approvazioni() {
                 .filter(m => (
                   (filtroDipendente === '' || m.dipendente_nome === filtroDipendente) &&
                   (filtroMese === '' || m.mese === filtroMese) &&
-                  (filtroAnno === '' || m.anno === filtroAnno)
+                  (filtroAnno === '' || m.anno === filtroAnno) &&
+                  (filtroStato === '' ||
+                    (filtroStato === 'da_approvare' && (m.stato === 'inviato' || m.stato === 'rifiutato')) ||
+                    (filtroStato === 'reinviato' && m.stato === 'reinviato') ||
+                    (filtroStato === 'approvato' && m.stato === 'approvato')
+                  )
                 ))
                 .map((m) => (
                   <div key={`${m.dipendente_id}-${m.mese}-${m.anno}`} className="approvazioni-card">
@@ -275,7 +294,12 @@ function Approvazioni() {
                     .filter(m => (
                       (filtroDipendente === '' || m.dipendente_nome === filtroDipendente) &&
                       (filtroMese === '' || m.mese === filtroMese) &&
-                      (filtroAnno === '' || m.anno === filtroAnno)
+                      (filtroAnno === '' || m.anno === filtroAnno) &&
+                      (filtroStato === '' ||
+                        (filtroStato === 'da_approvare' && (m.stato === 'inviato' || m.stato === 'rifiutato')) ||
+                        (filtroStato === 'reinviato' && m.stato === 'reinviato') ||
+                        (filtroStato === 'approvato' && m.stato === 'approvato')
+                      )
                     ))
                     .map((m) => (
                       <tr key={`${m.dipendente_id}-${m.mese}-${m.anno}`} className="approvazioni-table-row">
