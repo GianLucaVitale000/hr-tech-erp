@@ -20,11 +20,10 @@ export function haDatiSignificativi(riga) {
  */
 function giorniObbligatori(dipendente, anno, mese, giorni) {
   const ym = `${anno}-${String(mese).padStart(2, '0')}`
-  const oggi = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
   const ultimoDelMese = `${ym}-${String(new Date(anno, mese, 0).getDate()).padStart(2, '0')}`
 
-  // dataFine: oggi OPPURE la scadenza contratto se cade entro il mese corrente
-  let dataFine = oggi < ultimoDelMese ? oggi : ultimoDelMese
+  // dataFine: sempre l'ultimo del mese (l'utente compila tutto il mese e invia alla fine)
+  let dataFine = ultimoDelMese
   if (
     dipendente.tipo_contratto === 'determinato' &&
     dipendente.data_scadenza_contratto &&
@@ -84,7 +83,7 @@ export function isFoglioCompleto(dipendente, anno, mese, giorni, righe) {
   if (mancanti.length > 0) {
     return {
       completo: false,
-      message: `Compilazione presenze non completata: mancano ${mancanti.length} giorno/i`,
+      message: `Compilazione presenze non completata: - ${mancanti.length} giorn${mancanti.length === 1 ? 'o' : 'i'}`,
     }
   }
 
