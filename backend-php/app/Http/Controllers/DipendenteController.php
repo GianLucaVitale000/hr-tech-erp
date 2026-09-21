@@ -10,14 +10,33 @@ use Illuminate\Http\Request;
 
 class DipendenteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Dipendente::with(['user', 'contratto', 'contratto.regoleCalcolo', 'regoleCalcolo', 'orariSettimanali', 'condizioniContrattuali'])->get();
+        $mese = (int) $request->input('mese', Carbon::now()->month);
+        $anno = (int) $request->input('anno', Carbon::now()->year);
+
+        return Dipendente::with([
+            'user',
+            'contratto',
+            'contratto.regoleCalcolo',
+            'regoleCalcolo',
+            'orariSettimanali',
+            'condizioniContrattuali'
+        ])
+        ->withCount(['presenze as giorni_lavorati' => function ($query) use ($mese, $anno) {
+            $query->whereYear('data', $anno)
+                  ->whereMonth('data', $mese)
+                  ->where('causale', 'lavoro')
+                  ->where('ore_ordinarie', '>', 0)
+                  ->where('stato', '!=', 'bozza')
+                  ->where('data', '<=', Carbon::today());
+        }])
+        ->get();
     }
 
     public function me(Request $request)
     {
-        $dipendente = \App\Models\Dipendente::with(['contratto', 'contratto.regoleCalcolo', 'orariSettimanali', 'condizioniContrattuali'])
+        $dipendente = Dipendente::with(['contratto', 'contratto.regoleCalcolo', 'orariSettimanali', 'condizioniContrattuali'])
             ->where('user_id', $request->user()->id)
             ->first();
 
@@ -94,6 +113,7 @@ class DipendenteController extends Controller
             || (float) $dipendente->percentuale_part_time !== (float) ($validated['percentuale_part_time'] ?? $dipendente->percentuale_part_time)
             || $dipendente->R1 != ($validated['R1'] ?? $dipendente->R1)
             || $dipendente->R2 != ($validated['R2'] ?? $dipendente->R2);
+
         if ($variazione && empty($validated['data_decorrenza_variazione'])) {
             return response()->json(['message' => 'Indica la data di decorrenza della variazione contrattuale'], 422);
         }

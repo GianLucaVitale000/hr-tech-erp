@@ -5,6 +5,7 @@ import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 // Componente per le card donut
 function DonutCard({ titolo, valore, totale, colore }) {
   const percent = totale > 0 ? (valore / totale) * 100 : 0
+  
   return (
     <div className="dashboard-donut-card">
       <div className="dashboard-donut-title" style={{ color: colore }}>{titolo}</div>
@@ -13,8 +14,8 @@ function DonutCard({ titolo, valore, totale, colore }) {
           <PieChart>
             <Pie
               data={[
-                { name: 'Attivi', value: valore },
-                { name: 'Inattivi', value: totale - valore }
+                { name: 'Lavorati', value: valore },
+                { name: 'Rimanenti', value: Math.max(0, totale - valore) }
               ]}
               cx="50%" cy="50%" innerRadius={30} outerRadius={40}
               fill="#8884d8" dataKey="value" labelLine={false} isAnimationActive={false}
@@ -22,8 +23,8 @@ function DonutCard({ titolo, valore, totale, colore }) {
               strokeWidth={1}
             >
               {[
-                { name: 'Attivi', fill: colore },
-                { name: 'Inattivi', fill: 'var(--card-bg)' }
+                { name: 'Lavorati', fill: colore },
+                { name: 'Rimanenti', fill: 'var(--card-bg)' }
               ].map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
@@ -36,52 +37,76 @@ function DonutCard({ titolo, valore, totale, colore }) {
           textAlign: 'center',
           color: 'var(--text-color)',
           fontSize: '0.7rem', fontWeight: '700'
-        }}>{percent.toFixed(1)}%</div>
+        }}>
+          <div>{valore} gg</div>
+          <div style={{ fontSize: '0.6rem', opacity: 0.8 }}>{percent.toFixed(0)}%</div>
+        </div>
       </div>
     </div>
   )
 }
 
-
 function AdminDashboard() {
   const [dipendenti, setDipendenti] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true) // Caricamento solo al primo avvio
+  const [isRefreshing, setIsRefreshing] = useState(false)   // Aggiornamento in background
   const [error, setError] = useState(null)
   const [meseSelezionato, setMeseSelezionato] = useState(new Date().getMonth() + 1)
   const [annoSelezionato, setAnnoSelezionato] = useState(new Date().getFullYear())
   const [isMobile, setIsMobile] = useState(false)
 
-  // Rileva se è mobile
+  const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
+
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  const NOMI_MESI = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre']
-
+  // CHIAMATA API: Passa mese e anno selezionati e si riattiva ad ogni cambio di filtro SENZA smontare l'interfaccia
   useEffect(() => {
     const fetchDipendenti = async () => {
       try {
-        setLoading(true)
-        const response = await api.get('/dipendenti')
+        setIsRefreshing(true)
+        const response = await api.get('/dipendenti', {
+          params: {
+            mese: meseSelezionato,
+            anno: annoSelezionato
+          }
+        })
         setDipendenti(response.data)
         setError(null)
       } catch (err) {
         setError('Errore nel recupero dei dati dei dipendenti')
         console.error('Error fetching dipendenti:', err)
       } finally {
-        setLoading(false)
+        setInitialLoading(false)
+        setIsRefreshing(false)
       }
     }
 
     fetchDipendenti()
-  }, [])
+  }, [meseSelezionato, annoSelezionato])
 
-  // Calcola il primo anno di assunzione tra tutti i dipendenti
+  // Calcolo dei giorni teorici lavorabili nel mese selezionato
+  const calcolaGiorniTeoriciMese = (mese, anno, giorniSettimanali) => {
+    const giorniNelMese = new Date(anno, mese, 0).getDate()
+    let lavorabili = 0
+    for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
+      const dayOfWeek = new Date(anno, mese - 1, giorno).getDay() // 0 = Dom, 6 = Sab
+      if (giorniSettimanali === 5) {
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) lavorabili++
+      } else {
+        if (dayOfWeek !== 0) lavorabili++
+      }
+    }
+    return lavorabili
+  }
+
+  const maxTeorici5gg = calcolaGiorniTeoriciMese(meseSelezionato, annoSelezionato, 5)
+  const maxTeorici6gg = calcolaGiorniTeoriciMese(meseSelezionato, annoSelezionato, 6)
+
   const getAnnoMinimoAssunzione = () => {
     if (dipendenti.length === 0) return new Date().getFullYear()
     const anniAssunzione = dipendenti
@@ -90,7 +115,6 @@ function AdminDashboard() {
     return anniAssunzione.length > 0 ? Math.min(...anniAssunzione) : new Date().getFullYear()
   }
 
-  // Funzione per verificare se un dipendente è attivo in un dato mese/anno
   const dipendenteAttivoInPeriodo = (dipendente, mese, anno) => {
     const tipoContratto = dipendente.tipo_contratto || 'indeterminato'
     const dataScadenza = dipendente.data_scadenza_contratto
@@ -101,16 +125,12 @@ function AdminDashboard() {
 
     if (dataAssunzione) {
       const assunzioneDate = new Date(dataAssunzione)
-      if (assunzioneDate > fineMeseSelezionato) {
-        return false
-      }
+      if (assunzioneDate > fineMeseSelezionato) return false
     }
 
     if (tipoContratto === 'determinato' && dataScadenza) {
       const scadenzaDate = new Date(dataScadenza)
-      if (inizioMeseSelezionato > scadenzaDate) {
-        return false
-      }
+      if (inizioMeseSelezionato > scadenzaDate) return false
     }
 
     return true
@@ -118,20 +138,36 @@ function AdminDashboard() {
 
   const dipendentiAttivi = dipendenti.filter(d => dipendenteAttivoInPeriodo(d, meseSelezionato, annoSelezionato))
 
-  // Calcolo conteggi per le 4 categorie: (5gg/FT, 5gg/PT, 6gg/FT, 6gg/PT)
-  let conta5ft = 0, conta5pt = 0, conta6ft = 0, conta6pt = 0
+  // CALCOLO MEDIA GIORNI LAVORATI PER I 4 GRUPPI
+  const datiGruppi = {
+    ft5: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici5gg },
+    ft6: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici6gg },
+    pt5: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici5gg },
+    pt6: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici6gg }
+  }
+
   dipendentiAttivi.forEach(d => {
     const ggSett = d.giorni_lavorativi_settimanali || 5
     const isFT = (d.percentuale_part_time ?? 100) >= 100
+    const giorniLavorati = Number(d.giorni_lavorati ?? d.giorniLavorati ?? 0)
+
+    let gruppoKey = ''
     if (ggSett === 5) {
-      if (isFT) conta5ft++
-      else conta5pt++
+      gruppoKey = isFT ? 'ft5' : 'pt5'
     } else if (ggSett === 6) {
-      if (isFT) conta6ft++
-      else conta6pt++
+      gruppoKey = isFT ? 'ft6' : 'pt6'
+    }
+
+    if (gruppoKey) {
+      datiGruppi[gruppoKey].sommaGiorni += giorniLavorati
+      datiGruppi[gruppoKey].conteggio += 1
     }
   })
-  const totale = dipendentiAttivi.length
+
+  const media5ft = datiGruppi.ft5.conteggio > 0 ? Number((datiGruppi.ft5.sommaGiorni / datiGruppi.ft5.conteggio).toFixed(1)) : 0
+  const media6ft = datiGruppi.ft6.conteggio > 0 ? Number((datiGruppi.ft6.sommaGiorni / datiGruppi.ft6.conteggio).toFixed(1)) : 0
+  const media5pt = datiGruppi.pt5.conteggio > 0 ? Number((datiGruppi.pt5.sommaGiorni / datiGruppi.pt5.conteggio).toFixed(1)) : 0
+  const media6pt = datiGruppi.pt6.conteggio > 0 ? Number((datiGruppi.pt6.sommaGiorni / datiGruppi.pt6.conteggio).toFixed(1)) : 0
 
   const aggregaPerCCNL = () => {
     const risultato = {}
@@ -179,7 +215,6 @@ function AdminDashboard() {
 
   const datiCCNL = aggregaPerCCNL()
 
-  // Funzione per generare il pie chart SVG con label esterni
   const renderPieChart = (data) => {
     const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
     const total = data.reduce((sum, c) => sum + c.totale, 0)
@@ -256,20 +291,25 @@ function AdminDashboard() {
       <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
         {elements}
       </svg>
-        )
+    )
   }
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-header">
-      </div>
+      <div className="dashboard-header"></div>
 
-      {loading ? (
+      {initialLoading ? (
         <p className="dashboard-loading">Caricamento dati dipendenti...</p>
       ) : error ? (
         <p className="dashboard-error">{error}</p>
       ) : (
-        <div className="dashboard-main">
+        <div
+          className="dashboard-main"
+          style={{
+            opacity: isRefreshing ? 0.7 : 1,
+            transition: 'opacity 0.2s ease-in-out'
+          }}
+        >
           <h1 className="dashboard-main-title">
             Dashboard di Amministrazione
           </h1>
@@ -312,8 +352,7 @@ function AdminDashboard() {
                   {datiCCNL.map((ccnl) => (
                     <div key={ccnl.sigla} className="dashboard-mobile-widget">
                       <h3 className="dashboard-mobile-widget-title">{ccnl.sigla}</h3>
-                       <div className="dashboard-mobile-widget-list">
-                        {/* Coppia 1: Tempo Pieno vs Tempo Parziale */}
+                      <div className="dashboard-mobile-widget-list">
                         <div className="dashboard-mobile-widget-pair">
                           <div className="dashboard-mobile-widget-field">
                             <span className="dashboard-mobile-widget-field-label">Tempo Pieno</span>
@@ -325,7 +364,6 @@ function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Coppia 2: T. Determinato vs T. Indeterminato */}
                         <div className="dashboard-mobile-widget-pair">
                           <div className="dashboard-mobile-widget-field">
                             <span className="dashboard-mobile-widget-field-label">T. Determinato</span>
@@ -337,7 +375,6 @@ function AdminDashboard() {
                           </div>
                         </div>
 
-                        {/* Coppia 3: 5 gg. vs 6 gg. */}
                         <div className="dashboard-mobile-widget-pair">
                           <div className="dashboard-mobile-widget-field">
                             <span className="dashboard-mobile-widget-field-label">5 gg./sett.</span>
@@ -388,7 +425,7 @@ function AdminDashboard() {
                       </div>
                     </div>
                   )}
-                </div> 
+                </div>
               ) : (
                 <div className="dashboard-table-wrapper">
                   <div className="dashboard-table-container">
@@ -449,35 +486,35 @@ function AdminDashboard() {
                 </div>
               )}
 
-              {/* Sezione Donut Chart: distribuzione dipendenti per gg settimanali e contratto */}
+              {/* Sezione Donut Chart */}
               {dipendentiAttivi.length > 0 && (
                 <div className="dashboard-donut-section">
-                  <h2 className="dashboard-donut-title-section">GG. Lavorati <br/>(aggrega valori medi per tipologia) </h2>
+                  <h2 className="dashboard-donut-title-section">
+                    Media GG. Lavorati Mensili ({NOMI_MESI[meseSelezionato - 1]} {annoSelezionato})
+                  </h2>
                   <div className="dashboard-donut-container">
-                    {/* Gruppo 1: Tempo Pieno */}
                     <DonutCard
-                      titolo ="Tempo pieno - 5 gg."
-                      valore={conta5ft}
-                      totale={totale}
+                      titolo="Tempo pieno - 5 gg."
+                      valore={media5ft}
+                      totale={datiGruppi.ft5.maxTeorici}
                       colore="#10b981"
                     />
                     <DonutCard
                       titolo="Tempo pieno - 6 gg."
-                      valore={conta6ft}
-                      totale={totale}
+                      valore={media6ft}
+                      totale={datiGruppi.ft6.maxTeorici}
                       colore="#3b82f6"
                     />
-                    {/* Gruppo 2: Part-time */}
                     <DonutCard
                       titolo="Part-time - 5 gg."
-                      valore={conta5pt}
-                      totale={totale}
+                      valore={media5pt}
+                      totale={datiGruppi.pt5.maxTeorici}
                       colore="#f59e0b"
                     />
                     <DonutCard
                       titolo="Part-time - 6 gg."
-                      valore={conta6pt}
-                      totale={totale}
+                      valore={media6pt}
+                      totale={datiGruppi.pt6.maxTeorici}
                       colore="#ef4444"
                     />
                   </div>

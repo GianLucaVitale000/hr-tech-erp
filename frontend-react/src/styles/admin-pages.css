@@ -1432,6 +1432,8 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  position: relative;
+  z-index:10;
 }
 
 .dashboard-select {
@@ -1440,6 +1442,7 @@
   background-color: var(--input-bg);
   border: 1px solid var(--select-border);
   color: var(--input-text);
+  cursor: pointer;
 }
 
 /* Table Styles */
