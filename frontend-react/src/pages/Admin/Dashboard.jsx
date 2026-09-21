@@ -2,6 +2,43 @@ import { useState, useEffect } from 'react'
 import api from '../../services/api'
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
+// Elenco delle festività nazionali fisse italiane (MM-DD)
+const FESTIVITA_FISSE = [
+  '01-01', // Capodanno
+  '01-06', // Epifania
+  '04-25', // Festa della Liberazione
+  '05-01', // Festa del Lavoro
+  '06-02', // Festa della Repubblica
+  '08-15', // Ferragosto
+  '11-01', // Ognissanti
+  '12-08', // Immacolata Concezione
+  '12-25', // Natale
+  '12-26', // Santo Stefano
+]
+
+// Algoritmo di Meeus/Butcher per calcolare la Pasquetta (Lunedì dell'Angelo)
+const getPasquetta = (year) => {
+  const a = year % 19
+  const b = Math.floor(year / 100)
+  const c = year % 100
+  const d = Math.floor(b / 4)
+  const e = b % 4
+  const f = Math.floor((b + 8) / 25)
+  const g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30
+  const i = Math.floor(c / 4)
+  const k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7
+  const m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31)
+  const day = ((h + l - 7 * m + 114) % 31) + 1
+
+  const pasqua = new Date(year, month - 1, day)
+  const pasquetta = new Date(pasqua)
+  pasquetta.setDate(pasqua.getDate() + 1)
+  return pasquetta
+}
+
 // Componente per le card donut
 function DonutCard({ titolo, valore, totale, colore }) {
   const percent = totale > 0 ? (valore / totale) * 100 : 0
@@ -48,8 +85,8 @@ function DonutCard({ titolo, valore, totale, colore }) {
 
 function AdminDashboard() {
   const [dipendenti, setDipendenti] = useState([])
-  const [initialLoading, setInitialLoading] = useState(true) // Caricamento solo al primo avvio
-  const [isRefreshing, setIsRefreshing] = useState(false)   // Aggiornamento in background
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState(null)
   const [meseSelezionato, setMeseSelezionato] = useState(new Date().getMonth() + 1)
   const [annoSelezionato, setAnnoSelezionato] = useState(new Date().getFullYear())
@@ -64,7 +101,6 @@ function AdminDashboard() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // CHIAMATA API: Passa mese e anno selezionati e si riattiva ad ogni cambio di filtro SENZA smontare l'interfaccia
   useEffect(() => {
     const fetchDipendenti = async () => {
       try {
@@ -89,18 +125,41 @@ function AdminDashboard() {
     fetchDipendenti()
   }, [meseSelezionato, annoSelezionato])
 
-  // Calcolo dei giorni teorici lavorabili nel mese selezionato
+  // CALCOLO GIORNI TEORICI LAVORABILI DEPURATI DALLE FESTIVITÀ INFRASETTIMANALI
   const calcolaGiorniTeoriciMese = (mese, anno, giorniSettimanali) => {
     const giorniNelMese = new Date(anno, mese, 0).getDate()
+    const pasquetta = getPasquetta(anno)
     let lavorabili = 0
+
     for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
-      const dayOfWeek = new Date(anno, mese - 1, giorno).getDay() // 0 = Dom, 6 = Sab
-      if (giorniSettimanali === 5) {
-        if (dayOfWeek !== 0 && dayOfWeek !== 6) lavorabili++
-      } else {
-        if (dayOfWeek !== 0) lavorabili++
+      const dataCorrente = new Date(anno, mese - 1, giorno)
+      const dayOfWeek = dataCorrente.getDay() // 0 = Dom, 6 = Sab
+
+      // 1. Verifica se è un giorno lavorativo in base alla settimana di 5 o 6 gg
+      const isGiornoLavorativo = giorniSettimanali === 5
+        ? (dayOfWeek !== 0 && dayOfWeek !== 6)
+        : (dayOfWeek !== 0)
+
+      if (isGiornoLavorativo) {
+        // 2. Controllo festività fissa
+        const mm = String(mese).padStart(2, '0')
+        const dd = String(giorno).padStart(2, '0')
+        const isFestaFissa = FESTIVITA_FISSE.includes(`${mm}-${dd}`)
+
+        // 3. Controllo Pasquetta
+        const isPasquetta = (
+          dataCorrente.getFullYear() === pasquetta.getFullYear() &&
+          dataCorrente.getMonth() === pasquetta.getMonth() &&
+          dataCorrente.getDate() === pasquetta.getDate()
+        )
+
+        // Incrementa solo se è lavorativo e NON è un giorno festivo
+        if (!isFestaFissa && !isPasquetta) {
+          lavorabili++
+        }
       }
     }
+
     return lavorabili
   }
 
@@ -138,7 +197,6 @@ function AdminDashboard() {
 
   const dipendentiAttivi = dipendenti.filter(d => dipendenteAttivoInPeriodo(d, meseSelezionato, annoSelezionato))
 
-  // CALCOLO MEDIA GIORNI LAVORATI PER I 4 GRUPPI
   const datiGruppi = {
     ft5: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici5gg },
     ft6: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici6gg },
@@ -486,11 +544,11 @@ function AdminDashboard() {
                 </div>
               )}
 
-              {/* Sezione Donut Chart */}
+              {/* Sezione Donut Chart con indicazione dinamica dei giorni effettivi lavorabili */}
               {dipendentiAttivi.length > 0 && (
                 <div className="dashboard-donut-section">
                   <h2 className="dashboard-donut-title-section">
-                    Media GG. Lavorati Mensili ({NOMI_MESI[meseSelezionato - 1]} {annoSelezionato})
+                    Media GG. Lavorati Mensili ({NOMI_MESI[meseSelezionato - 1]} {annoSelezionato} — {maxTeorici5gg} gg. su 5gg / {maxTeorici6gg} gg. su 6gg)
                   </h2>
                   <div className="dashboard-donut-container">
                     <DonutCard
