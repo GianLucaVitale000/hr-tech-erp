@@ -171,6 +171,10 @@
   padding: 2rem;
   font-family: sans-serif;
   max-width: 600px;
+  margin:3rem auto;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .edit-utente-header {
@@ -202,16 +206,21 @@
 
 .edit-utente-input {
   display: block;
-  width: 100%;
+  margin: 0 auto;
+  width: 70%;
   padding: 0.5rem;
+  background-color: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 4px;
 }
 
 .edit-utente-select {
   display: block;
-  width: 100%;
+  margin: 0 auto;
+  width: 70%;
   padding: 0.5rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
   border: 1px solid var(--border);
   border-radius: 4px;
 }
@@ -224,6 +233,7 @@
 
 .edit-utente-buttons {
   display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -252,6 +262,10 @@
   padding: 2rem;
   font-family: sans-serif;
   max-width: 600px;
+  margin:3rem auto;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .nuovo-utente-header {
@@ -269,6 +283,7 @@
 
 .nuovo-utente-field {
   margin-bottom: 1.5rem;
+  
 }
 
 .nuovo-utente-field-checkbox {
@@ -287,8 +302,11 @@
 
 .nuovo-utente-input {
   display: block;
-  width: 100%;
+  margin: 0 auto;
+  width: 70%;
   padding: 0.5rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
   border: 1px solid var(--border);
   border-radius: 4px;
 }
@@ -307,6 +325,7 @@
 
 .nuovo-utente-buttons {
   display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -329,6 +348,7 @@
 
 .nuovo-utente-checkbox-container {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
@@ -336,16 +356,19 @@
 
 .nuovo-utente-riposi-inline {
   display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
 .nuovo-utente-riposo-item {
   flex: 1;
+  width: 130%;
   margin-top: 1rem;
 }
 
 .nuovo-utente-radio-group {
   display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -382,7 +405,9 @@
   display: block;
   width: 80%;
   padding: 0.5rem;
+  background-color: var(--input-bg);
   border: 1px solid var(--border);
+  color: var(--text-color);
   border-radius: 4px;
 }
 
@@ -553,6 +578,10 @@
   padding: 2rem;
   font-family: sans-serif;
   max-width: 600px;
+  margin:3rem auto;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .edit-dipendente-header {
@@ -576,6 +605,9 @@
 }
 
 .edit-dipendente-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 1.5rem;
 }
 
@@ -592,10 +624,13 @@
 }
 
 .edit-dipendente-input {
-  display: block;
-  width: 100%;
+  display: flex;
+  margin: 0 auto;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border);
+  width: 70%;
   padding: 0.5rem;
-  border: 1px solid #d1d5db;
   border-radius: 4px;
 }
 
@@ -605,6 +640,7 @@
 
 .edit-dipendente-radio-group {
   display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -644,6 +680,8 @@
   display: block;
   width: 100%;
   padding: 0.5rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
   border: 1px solid var(--input-border);
   border-radius: 4px;
 }
@@ -851,6 +889,7 @@
 /* Form buttons */
 .edit-dipendente-buttons {
   display: flex;
+  justify-content: center;
   gap: 1rem;
 }
 
@@ -1046,6 +1085,9 @@
 .approvazioni-select {
   padding: 0.5rem;
   border-radius: 4px;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--input-text);
 }
 
 .approvazioni-select-mese {
@@ -1118,7 +1160,7 @@
 }
 
 .approvazioni-card-label {
-  color: #9ca3af;
+  color: var(--text);
   font-size: 0.875rem;
 }
 
@@ -1990,7 +2032,7 @@
 }
 
 .contratti-table-header th {
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1rem;
   font-size: 0.75rem;
 }
 

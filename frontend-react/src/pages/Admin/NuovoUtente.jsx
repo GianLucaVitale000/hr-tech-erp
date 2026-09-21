@@ -190,7 +190,7 @@ function NuovoUtente() {
             <span>Crea anche anagrafica dipendente</span>
           </label>
           <p className="nuovo-utente-hint">
-            Seleziona per creare anche il record nella tabella dipendenti
+            Seleziona per compilare anche il resto dei dati per l'anagrafica dipendenti
           </p>
         </div>
 
