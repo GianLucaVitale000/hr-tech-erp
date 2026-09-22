@@ -60,7 +60,7 @@ function DipendenteDashboard() {
           )}
           {profilo.giorni_lavorativi_settimanali !== undefined && profilo.giorni_lavorativi_settimanali !== null && (
             <div>
-              <strong>Giorni Settimanali:</strong> {profilo.giorni_lavorativi_settimanali}
+              <strong>GG. Lav. Settimanali:</strong> {profilo.giorni_lavorativi_settimanali}
             </div>
           )}
           {profilo.ore_giornaliere && (
