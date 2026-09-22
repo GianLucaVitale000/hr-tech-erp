@@ -1,488 +1,190 @@
 # Sistema di Rilevazione Presenze con QR Code
 
-## Sommario
+Modulo integrato nel sistema HR-Tech ERP per la registrazione automatica e sicura delle presenze (ingresso e uscita) tramite QR code dinamici a scadenza temporale, scansionati presso i kiosk aziendali (tablet o strumenti di emulazione).
 
-- [Panoramica](#panoramica)
-- [Architettura del Sistema](#architettura-del-sistema)
-- [Flusso Dettagliato](#flusso-dettagliato)
-- [Componenti Frontend](#componenti-frontend)
-- [API Backend](#api-backend)
-- [Configurazione Ambienti](#configurazione-ambienti)
-- [Passaggio da Sviluppo a Produzione](#passaggio-da-sviluppo-a-produzione)
-- [Sicurezza](#sicurezza)
-- [Testing e Debugging](#testing-e-debugging)
+---
+
+## Indice
+
+- [Sistema di Rilevazione Presenze con QR Code](#sistema-di-rilevazione-presenze-con-qr-code)
+  - [Indice](#indice)
+  - [Panoramica](#panoramica)
+  - [Architettura del Sistema](#architettura-del-sistema)
+  - [Prerequisiti e Regole di Business](#prerequisiti-e-regole-di-business)
+  - [Flusso Operativo](#flusso-operativo)
+  - [Endpoint API](#endpoint-api)
+    - [Esempi di Richiesta e Risposta](#esempi-di-richiesta-e-risposta)
+      - [Generazione Token (`GET /presenze/{id}/generate-qr`)](#generazione-token-get-presenzeidgenerate-qr)
+      - [Scansione QR Code (`POST /api/presenze/scan-qr`)](#scansione-qr-code-post-apipresenzescan-qr)
+  - [Configurazione degli Ambienti](#configurazione-degli-ambienti)
+    - [Frontend (`frontend-react/.env` / `.env.example`)](#frontend-frontend-reactenv--envexample)
+    - [Backend (`backend-php/.env` / `.env.example`)](#backend-backend-phpenv--envexample)
+  - [Sviluppo e Testing](#sviluppo-e-testing)
+  - [Checklist per la Produzione](#checklist-per-la-produzione)
+  - [Considerazioni sulla Sicurezza](#considerazioni-sulla-sicurezza)
 
 ---
 
 ## Panoramica
 
-Il sistema di rilevazione presenze con QR Code consente ai dipendenti di timbrare l'ingresso e l'uscita in modo automatico e sicuro tramite codici QR generati dinamicamente.
+Il modulo QR Code semplifica il rilevamento delle presenze aziendali e previene errori di inserimento manuale attraverso:
 
-**Obiettivi:**
-
-- Eliminare gli errori manuali nell'inserimento delle ore
-- Garantire la tracciabilita delle timbrature
-- Fornire un'esperienza utente semplice e intuitiva
-- Mantenere un alto livello di sicurezza attraverso token temporanei
+1. La generazione dinamica di token JWT protetti e a tempo limitato per ciascun record di presenza.
+2. L'interfaccia nel foglio presenze mensile del dipendente (`Timesheet.jsx`) per l'attivazione e la visualizzazione del QR code.
+3. Una pagina Kiosk dedicata (`Kiosk.jsx`) per la scansione tramite fotocamera o strumenti di test e la registrazione automatica delle timbrature.
+4. Il calcolo automatico delle ore ordinarie e straordinarie al momento del check-out, tenendo conto delle pause configurate e dei contratti di lavoro.
 
 ---
 
 ## Architettura del Sistema
 
 ```text
-┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
-│      DIPENDENTE          │     │        BACKEND           │     │        KIOSK             │
-│   (Frontend React)       │◄───►│      (Laravel API)        │◄───►│     (Tablet Android)     │
-└─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
-           │                              │                              │
-           ▼                              ▼                              ▼
-    ┌──────────────┐               ┌──────────────┐               ┌──────────────┐
-    │ Timesheet.jsx │──────────────►│ GET /presenze/│               │ Lettore QR   │
-    │               │               │ {id}/generate-│               │ Code         │
-    │ - Attiva QR   │               │ qr           │               │              │
-    │ - Salva riga  │               └──────────────┘               │ Scansiona    │
-    │ - Genera QR   │               ┌──────────────┐               │ Token        │
-    └──────────────┘               │ POST /api/   │◄──────────────┘
-           │                       │ presenze/    │
-           ▼                       │ scan-qr      │
-    ┌──────────────┐               └──────────────┘
-    │QrCodeModal.jsx│
-    │ - Visualizza  │
-    │   QR Code     │
-    │ - Countdown   │
-    │ - Auto-refresh│
-    └──────────────┘
+┌─────────────────────────┐       ┌─────────────────────────┐       ┌─────────────────────────┤
+│   Frontend Dipendente   │       │     Backend Laravel     │       │     Dispositivo Kiosk   │
+│    (Timesheet React)    │◄─────►│   (API REST & Service   │◄─────►│    (Scanner HTML5 o     │
+│                         │       │      Token JWT)         │       │     KioskTest.jsx)      │
+└─────────────────────────┘       └─────────────────────────┘       └─────────────────────────┘
+            │                                  │                                  │
+            ▼                                  ▼                                  ▼
+   GET /presenze/{id}/generate-qr     POST /api/presenze/scan-qr         Scansione della stringa QR
+   (Aggiornamento ogni 25s)           (Verifica header X-Kiosk-Token)    (Registra ingresso/uscita)
 ```
 
 ---
 
-## Flusso Dettagliato
+## Prerequisiti e Regole di Business
 
-### 1. Attivazione QR Code (Lato Dipendente)
+Per poter attivare e utilizzare la timbratura con QR Code su una riga del foglio presenze, devono essere soddisfatti i seguenti vincoli validati sia a livello frontend che backend:
 
-**Pre-requisiti per attivare il QR Code:**
-
-- Dipendente deve essere full-time (`percentuale_part_time === 100`)
-- Causale deve essere `lavoro`
-- Modalita di lavoro deve essere `in_sede`
-
-**Processo:**
-
-1. Il dipendente accede al foglio presenze (`Timesheet.jsx`) e trova di default, in corrisponenza allo specifico giorno per il quale deve essere inserita la presenza, la causale "-- Nessuna --", equivalente a `lavoro`
-2. il dipendente sceglie la modalità di lavoro, selezionando il radiobutton `in_sede`: a quel punto il checkbox **QR Code** diventa visibile (ma se sceglie `SW` o `trasferta`, il checkbox **QR Code** non comparirà o, se già attivo, verrà disattivato automaticamente)
-3. il dipendente clicca sul pulsante **Salva** per salvare le impostazioni della riga
-4. il dipendente spunta il checkbox **QR Code** per attivare la generazione del QR Code
-5. si apre la modale di configurazione (per impostare le ore di pausa, se necessario)
-6. Il dipendente salva nuovamente la riga (pulsante **Salva**) per confermare
-
-**Stato della riga dopo il salvataggio:**
-
-- `usa_qr: true`
-- `fonte_dato: "QR_CODE"`
-
-**Nota:** Se la riga non ha ancora un ID, il sistema la salva automaticamente prima di generare il QR Code.
+- **Tipo di Contratto:** Il dipendente deve essere a tempo pieno (`percentuale_part_time === 100`). I contratti part-time non possono utilizzare la timbratura QR.
+- **Causale:** La causale della presenza deve essere tassativamente impostata su `'lavoro'`.
+- **Modalità di Lavoro:** La modalità di lavoro deve essere tassativamente `'in_sede'`. Selezionando `'smart_working'` o `'trasferta'`, l'opzione QR Code viene disattivata o nascosta automaticamente.
 
 ---
 
-### 2. Generazione Token JWT
+## Flusso Operativo
 
-**Trigger:** Clic sul pulsante **QR** nella riga con `usa_qr = true`
-
-**Frontend (`Timesheet.jsx` - `handleGenerateQr`):**
-
-```javascript
-const handleGenerateQr = async (dataStr) => {
-  const riga = getRiga(dataStr)
-  let presenzaId = riga.id
-  
-  // Se la riga non ha ID, salvala automaticamente
-  if (!presenzaId) {
-    const payload = {
-      dipendente_id: dipendente.id,
-      data: dataStr,
-      ore_ordinarie: 0,
-      ore_straordinarie: 0,
-      ore_eccedenti: 0,
-      ore_causale: 0,
-      causale: riga.causale || 'lavoro',
-      modalita_lavoro: riga.modalita_lavoro || 'in_sede',
-      usa_qr: true,
-      pausa_ore: riga.pausa_ore || 0,
-      fonte_dato: 'QR_CODE',
-    }
-    const response = await salvaPresenza(payload)
-    presenzaId = response.data.id
-  }
-  
-  // Genera token QR
-  const token = await generateQrToken(presenzaId)
-  setQrToken(token)
-  setSelectedPresence(getRiga(dataStr))
-  setShowQrModal(true)
-  
-  // Auto-refresh ogni 25 secondi
-  const interval = setInterval(async () => {
-    const currentRiga = getRiga(dataStr)
-    if (currentRiga.ora_ingresso && currentRiga.ora_uscita) {
-      clearInterval(interval)
-      setShowQrModal(false)
-      return
-    }
-    const newToken = await generateQrToken(presenzaId)
-    setQrToken(newToken)
-  }, 25000)
-}
-```
-
-**Service (`presenzeService.js` - `generateQrToken`):**
-
-```javascript
-export const generateQrToken = async (presenzaId) => {
-  const response = await api.get(`/presenze/${presenzaId}/generate-qr`)
-  return response.data.qr_token
-}
-```
-
-**Backend (Laravel):**
-
-- Endpoint: `GET /presenze/{presenzaId}/generate-qr`
-- Genera token JWT con payload: `{presenza_id, dipendente_id, exp}`
-- Scadenza: 30 secondi
-- Restituisce: `{ qr_token: "eyJhbGci..." }`
+1. **Attivazione:**
+   - Il dipendente accede al proprio timesheet mensile (`Timesheet.jsx`).
+   - Seleziona la modalità `in_sede` per il giorno desiderato, rendendo visibile la spunta **QR Code**.
+   - Spunta la casella **QR Code**: si apre la modale di configurazione (`ModaleQrSettings`) per impostare o verificare la durata della pausa (`pausa_ore`).
+2. **Generazione del Token:**
+   - Cliccando su **"Scansiona il QR code"**, l'applicazione richiede un token JWT al backend (`GET /presenze/{id}/generate-qr`). Se la riga non è ancora salvata, viene salvata automaticamente prima di procedere.
+   - Il token viene mostrato all'interno di una modale con QR code SVG (`QrCodeModal.jsx`), la quale aggiorna automaticamente il token ogni 25 secondi (scadenza impostata a 30 secondi).
+3. **Scansione al Kiosk:**
+   - Il tablet aziendale in modalità Kiosk (`Kiosk.jsx`) o l'emulatore di test (`KioskTest.jsx`) inquadra e legge la stringa del QR code.
+   - Il kiosk invia il token al backend tramite richiesta POST all'endpoint `POST /api/presenze/scan-qr` includendo l'header di sicurezza `X-Kiosk-Token`.
+4. **Elaborazione e Registrazione:**
+   - Il backend decodifica il token JWT, verifica la validità e l'autorizzazione del kiosk, quindi aggiorna il record:
+     - Prima scansione: registra l'orario di ingresso (`ora_ingresso`).
+     - Seconda scansione: registra l'orario di uscita (`ora_uscita`) e calcola in automatico le ore lavorate, sottraendo la pausa configurata.
 
 ---
 
-### 3. Visualizzazione Modale QR Code
+## Endpoint API
 
-**Componente:** `QrCodeModal.jsx`
+| Metodo | Endpoint | Autenticazione | Descrizione |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/presenze/{presenza}/generate-qr` | Bearer Token (Sanctum) | Genera un token JWT QR valido per 30 secondi per la presenza specificata. |
+| **POST** | `/api/presenze/scan-qr` | Header `X-Kiosk-Token` | Elabora la scansione del QR code e registra l'ingresso o l'uscita. |
 
-**Funzionalita:**
+### Esempi di Richiesta e Risposta
 
-- Visualizza QR Code con il token JWT
-- Countdown da 30 secondi con auto-chiusura alla scadenza
-- Auto-refresh del token ogni 25 secondi
-- Si ferma automaticamente se la presenza e completata (entrata e uscita registrate)
-- Campo testo con il token per copia manuale (per testing)
-- Pulsante **Copia Token** per clipboard
-- Chiusura: pulsante **Chiudi**, tastiera ESC, click fuori dalla modale
+#### Generazione Token (`GET /presenze/{id}/generate-qr`)
 
----
-
-### 4. Scansione al Kiosk
-
-**Dispositivo Kiosk (Tablet Android):**
-
-- App dedicata con lettore QR Code integrato
-- Token Kiosk fisso per autenticazione (configurato in ogni dispositivo)
-
-**Service (`presenzeService.js` - `scanQrCode`):**
-
-```javascript
-export const scanQrCode = async (qrToken, kioskToken) => {
-  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/presenze/scan-qr`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Kiosk-Token': kioskToken,
-    },
-    body: JSON.stringify({ qr_token: qrToken }),
-  })
-  return response.json()
-}
-```
-
----
-
-### 5. Validazione e Registrazione (Backend)
-
-**Backend esegue:**
-
-1. Verifica token JWT (firma, scadenza)
-2. Autorizzazione kiosk (header `X-Kiosk-Token`)
-3. Recupero presenza dal database
-4. Registrazione timbratura:
-   - Se `ora_ingresso` e NULL: registra `ora_ingresso`
-   - Se `ora_ingresso` valorizzato e `ora_uscita` NULL: registra `ora_uscita`
-   - Se entrambi valorizzati: errore
-5. Calcolo automatico ore (sottrae pausa, divide in ordinarie/straordinarie)
-6. Imposta `fonte_dato: "QR_CODE"`
-
----
-
-### 6. Visualizzazione Risultato (Dipendente)
-
-Quando il dipendente ricarica il foglio presenze:
-
-- Le ore sono calcolate automaticamente dal backend
-- I campi ore sono disabilitati (solo lettura) quando `fonte_dato === "QR_CODE"`
-- Viene mostrato lo stato: **Ingresso: 08:00:00** o **Completato**
-
----
-
-## Componenti Frontend
-
-### Timesheet.jsx
-
-**Funzioni chiave:**
-
-- Gestione flag `usa_qr`
-- `handleGenerateQr(dataStr)`: Genera token, auto-salva riga se necessario, apre modale
-- Auto-refresh token ogni 25s, si ferma se presenza completata
-
-**Proprieta riga:**
-
-```javascript
-{
-  id: 123,
-  usa_qr: true,
-  ora_ingresso: "08:00:00",  // NULL se non registrato
-  ora_uscita: "17:00:00",   // NULL se non registrato
-  pausa_ore: 1,
-  fonte_dato: "QR_CODE",
-  causale: "lavoro",
-  modalita_lavoro: "in_sede"
-}
-```
-
----
-
-### QrCodeModal.jsx
-
-**Props:**
-
-| Prop | Tipo | Descrizione |
-| ------ | ------ | ------------- |
-| `qrToken` | string | Token JWT |
-| `presence` | object | Oggetto presenza |
-| `onClose` | function | Callback chiusura |
-
----
-
-### KioskTest.jsx (Solo Sviluppo)
-
-Emulatore per testing. **Da rimuovere in produzione**.
-
----
-
-## API Backend
-
-### Endpoint
-
-| Metodo | Endpoint | Autenticazione |
-| -------- | ---------- | ---------------- |
-| GET | `/presenze/{presenzaId}/generate-qr` | Bearer Token |
-| POST | `/api/presenze/scan-qr` | Header `X-Kiosk-Token` |
-
-### generate-qr (GET)
-
-**Request:**
-
-``` text
-GET /presenze/123/generate-qr
-Headers: Authorization: Bearer <token>
-```
-
-**Response:**
+**Risposta (200 OK):**
 
 ```json
-{ "qr_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+{
+  "qr_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
 ```
 
-### scan-qr (POST)
+#### Scansione QR Code (`POST /api/presenze/scan-qr`)
 
-**Request:**
+**Intestazioni (Headers):**
 
-```text
-POST /api/presenze/scan-qr
-Headers:
-  Content-Type: application/json
-  X-Kiosk-Token: <kiosk_token>
-Body: { "qr_token": "..." }
+```http
+Content-Type: application/json
+X-Kiosk-Token: il_tuo_token_kiosk_segreto
 ```
 
-**Response (Successo):**
+**Corpo (Body):**
+
+```json
+{
+  "qr_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Risposta (200 OK):**
 
 ```json
 {
   "success": true,
   "message": "Ingresso registrato con successo!",
-  "data": { "ora_ingresso": "08:00:00", "ore": 8.5, "ore_ordinarie": 8, "ore_straordinarie": 0.5 }
+  "data": {
+    "ora_ingresso": "08:00:00",
+    "ore": 8.5,
+    "ore_ordinarie": 8,
+    "ore_straordinarie": 0.5
+  }
 }
 ```
 
-**Response (Errore):**
-
-```json
-{ "success": false, "error": "Token scaduto" }
-```
-
 ---
 
-## Configurazione Ambienti
+## Configurazione degli Ambienti
 
-### Frontend
+### Frontend (`frontend-react/.env` / `.env.example`)
 
-**Sviluppo:**
-
-```bash
+```env
 VITE_API_URL=http://localhost:8000/api
-VITE_KIOSK_TOKEN=test-kiosk-token
+VITE_KIOSK_TOKEN=test-kiosk-token # Solo per ambiente di sviluppo
 ```
 
-**Produzione:**
+### Backend (`backend-php/.env` / `.env.example`)
 
-```bash
-VITE_API_URL=https://api.hr-tech-erp.it/api
-# VITE_KIOSK_TOKEN NON DEVE ESISTERE
-```
-
-### Backend
-
-**Sviluppo:**
-
-```bash
+```env
 KIOSK_TOKEN=test-kiosk-token
-JWT_SECRET=development-secret-key-change-in-production
-QR_TOKEN_EXPIRY=30
-```
-
-**Produzione:**
-
-```bash
-KIOSK_TOKEN=secure-production-kiosk-token-change-regularly
-JWT_SECRET=complex-production-secret-at-least-32-characters-long
+JWT_SECRET=chiave-segreta-jwt-lunga-almeno-32-caratteri
 QR_TOKEN_EXPIRY=30
 ```
 
 ---
 
-## Passaggio da Sviluppo a Produzione
+## Sviluppo e Testing
 
-### 1. Rimuovere KioskTest.jsx
+1. **Esecuzione dei Test Automatici:**
+   Eseguire la suite di test Pest per verificare la logica di calcolo delle ore tramite QR:
+  
+   ```bash
+   cd backend-php
+   php artisan test tests/Feature/CalcoloOreQrTest.php
+   ```
 
-- Rimuovere file: `src/tools/KioskTest.jsx`
-- Rimuovere da App.jsx:
-
-  ```diff
-  - import KioskTest from './tools/KioskTest'
-  - <Route path="/kiosk-test" element={<KioskTest />} />
-  ```
-
----
-
-### 2. Rimuovere pulsante "Copia Token" dalla modale QR
-
-**Sviluppo:**
-
-- Pulsante **Copia Token** visibile in `QrCodeModal.jsx` per facilitare testing con KioskTest
-
-**Produzione:**
-
-- **Rimuovere** il pulsante "Copia Token" da `QrCodeModal.jsx` (righe 75-110)
-- Oppure nasconderlo condizionalmente:
-
-  ```javascript
-  {import.meta.env.MODE === 'development' && (
-    <button onClick={...}>Copia Token</button>
-  )}
-  ```
-
-- **Motivazione:** In produzione KioskTest non esiste e il token non deve essere copiabile manualmente
+2. **Test Manuale con Emulazione:**
+   - Attivare il flag QR su una riga del timesheet per un dipendente a tempo pieno in sede.
+   - Aprire la modale QR e copiare il token.
+   - Accedere alla pagina o tool di test Kiosk, incollare il token ed effettuare la simulazione di ingresso/uscita, verificando la corretta registrazione dei campi.
 
 ---
 
-### 3. Token Kiosk
+## Checklist per la Produzione
 
-- **Rimuovere** `VITE_KIOSK_TOKEN` dal frontend
-- Configurare **solo backend**: `KIOSK_TOKEN=` in `.env`
-- Token univoco per ogni tablet
-
-### 3. Sicurezza JWT
-
-- Generare chiave complessa (min 32 char):
-
-  ```bash
-  openssl rand -base64 32
-  ```
-
-- Non committare nel repository
-
-### 4. URL API
-
-- Usare HTTPS in produzione
-
-### 5. Dispositivi Kiosk
-
-- App Android dedicata con token univoco
-
-### 6. Sicurezza Aggiuntiva (Consigliata)
-
-- IP Whitelisting per `/api/presenze/scan-qr`
-- Rate Limiting: max 10 richieste/minuto
-- Logging: registrare tutte le timbrature
-- Monitoraggio: alert per errori ripetuti
-
-### Checklist Pre-Produzione
-
-- [ ] KioskTest.jsx rimosso
-- [ ] Route `/kiosk-test` rimossa
-- [ ] Pulsante "Copia Token" rimosso da QrCodeModal.jsx
-- [ ] `VITE_KIOSK_TOKEN` rimosso da frontend
-- [ ] `KIOSK_TOKEN` configurato solo backend
-- [ ] `JWT_SECRET` sicuro
-- [ ] URL API con HTTPS
-- [ ] CORS configurato
-- [ ] Token univoci per ogni dispositivo
-- [ ] Test completi in staging
-- [ ] Backup database
+- [ ] Rimuovere i componenti di test per lo sviluppo (`frontend-react/src/tools/KioskTest.jsx` e rotte associate).
+- [ ] Rimuovere o nascondere i pulsanti per la copia manuale del token nelle modali di produzione.
+- [ ] Rimosso `VITE_KIOSK_TOKEN` dalle variabili d'ambiente del frontend.
+- [ ] Configurare token Kiosk unici, sicuri e riservati sul backend per ciascun dispositivo fisico.
+- [ ] Generare una `JWT_SECRET` complessa (minimo 32 caratteri) nel file `.env` del server di produzione.
+- [ ] Abilitare rigorosamente HTTPS per tutte le chiamate API e frontend.
+- [ ] Configurare whitelist IP o limiti di frequenza (rate limiting) sull'endpoint `/api/presenze/scan-qr`.
+- [ ] Impostare sistemi di logging e monitoraggio per tracciare tentativi di scansione anomali o errori.
 
 ---
 
-## Sicurezza
+## Considerazioni sulla Sicurezza
 
-### Minacce
-
-| Minaccia | Mitigazione |
-| ---------- | ------------- |
-| Token JWT rubato | Scadenza 30s |
-| Token Kiosk compromesso | Token univoci, rotazione periodica |
-| Replay Attack | Token scadenti |
-| Man-in-the-middle | HTTPS |
-| Brute Force | Rate limiting |
-
-### Best Practice
-
-1. Never trust the client
-2. Minimo privilegio
-3. Defense in depth
-4. Audit trail
-
----
-
-## Testing e Debugging
-
-### Emulazione in Sviluppo
-
-1. Attivare QR su una riga
-2. Cliccare **QR** per aprire modale
-3. Cliccare **Copia Token**
-4. Aprire KioskTest (`/kiosk-test`)
-5. Incollare token e cliccare **INGRESSO** o **USCITA**
-6. Verificare:
-   - `ora_ingresso`/`ora_uscita` registrati
-   - `fonte_dato` = "QR_CODE"
-   - Ore calcolate
-
-### Problemi Comuni
-
-| Problema | Soluzione |
-| ---------- | ----------- |
-| QR non si aggiorna | Verificare `presenza_id` valorizzato |
-| Token scaduto | Controllare `QR_TOKEN_EXPIRY` |
-| Scan fallisce 401 | Verificare `X-Kiosk-Token` |
-| Scan fallisce 400 | Generare nuovo QR |
-| Ore non calcolate | Completare timbratura |
-
----
-
-Documentazione aggiornata al 24/07/2026
+- **Scadenza Ridotta:** I token QR scadono dopo soli 30 secondi per prevenire attacchi di tipo *replay* o usi non autorizzati se inquadrati da terzi.
+- **Autenticazione dei Kiosk:** I terminali tablet comunicano tramite token dedicati (`X-Kiosk-Token`) isolati dai token di sessione utente.
+- **Validazione Rigida:** Controlli lato server ferrei impediscono la generazione e la scansione di QR code per dipendenti part-time o modalità lavorative non conformi.
