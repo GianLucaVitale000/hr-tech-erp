@@ -102,7 +102,8 @@
 }
 
 .login-form {
-  width: 100%;
+  width: 90%;
+  margin: 0 auto;
 }
 
 .login-form-group {
@@ -122,6 +123,91 @@
   background-color: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: 4px;}
+
+  .login-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-input-wrapper .login-input {
+  padding-right: 40px;
+  width: 100%;
+}
+
+.login-input-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-input-clear:hover {
+  color: var(--border);
+}
+
+
+.login-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.login-password-wrapper .login-input {
+  padding-right: 40px;
+  width: 100%;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  padding: 0;
+}
+
+.login-password-toggle:hover {
+  color: #333;
+}
+
+
+.login-remember-me {
+  display: none;
+}
+
+.login-options {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+}
+
+.login-remember-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.login-remember-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
 
 .login-button {
   display: block;
