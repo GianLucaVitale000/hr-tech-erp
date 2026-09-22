@@ -141,10 +141,15 @@ function NuovoDipendente() {
             required
             className="edit-dipendente-input"
           >
-            <option value="">-- Seleziona dipendente --</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
+            <option value="">-- Seleziona utente --</option>
+            {users
+              .filter(u => {
+                if (u.dipendente?.id) return false;
+                return u.roles?.some(r => r.name === 'dipendente');
+              })
+              .map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
           </select>
         </div>
 
