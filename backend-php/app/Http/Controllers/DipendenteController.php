@@ -67,6 +67,8 @@ class DipendenteController extends Controller
             'rateo_mensile_ferie' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_permessi_rol' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_ex_festivita' => 'nullable|numeric|decimal:0,5|min:0',
+            'residuo_precedente_ferie' => 'nullable|numeric|min:0',
+            'residuo_precedente_permessi' => 'nullable|numeric|min:0',
         ]);
 
         $dipendente = Dipendente::create($validated);
@@ -107,6 +109,8 @@ class DipendenteController extends Controller
             'rateo_mensile_ferie' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_permessi_rol' => 'nullable|numeric|decimal:0,5|min:0',
             'rateo_mensile_ex_festivita' => 'nullable|numeric|decimal:0,5|min:0',
+            'residuo_precedente_ferie' => 'nullable|numeric|min:0',
+            'residuo_precedente_permessi' => 'nullable|numeric|min:0',
         ]);
 
         $variazione = $dipendente->contratto_id != ($validated['contratto_id'] ?? $dipendente->contratto_id)

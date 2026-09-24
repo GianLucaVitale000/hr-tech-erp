@@ -28,6 +28,8 @@ class Dipendente extends Model
         'rateo_mensile_ferie',
         'rateo_mensile_permessi_rol',
         'rateo_mensile_ex_festivita',
+        'residuo_precedente_ferie',
+        'residuo_precedente_permessi',
     ];
 
     protected $casts = [
@@ -36,6 +38,8 @@ class Dipendente extends Model
         'rateo_mensile_ferie' => 'decimal:5',
         'rateo_mensile_permessi_rol' => 'decimal:5',
         'rateo_mensile_ex_festivita' => 'decimal:5',
+        'residuo_precedente_ferie' => 'decimal:5',
+        'residuo_precedente_permessi' => 'decimal:5',
     ];
 
     /**

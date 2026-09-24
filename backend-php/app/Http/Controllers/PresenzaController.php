@@ -571,6 +571,12 @@ class PresenzaController extends Controller
                     'stato' => $prima->stato,
                 ];
             })
+            ->values()
+            ->sortBy([
+                ['anno', 'desc'],
+                ['mese', 'asc'],
+                ['dipendente_nome', 'desc']
+            ])
             ->values();
 
         return $mesi;
@@ -613,7 +619,12 @@ class PresenzaController extends Controller
             ->values()
             ->unique(function ($item) {
                 return $item['mese'] . '-' . $item['anno'];
-            });
+            })
+            ->sortBy([
+                ['anno', 'asc'],
+                ['mese', 'asc']
+            ])
+            ->values();
 
         return $mesi;
     }

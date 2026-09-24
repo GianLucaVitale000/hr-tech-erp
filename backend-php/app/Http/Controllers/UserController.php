@@ -38,6 +38,8 @@ class UserController extends Controller
             'rateo_mensile_ferie' => 'nullable|numeric|min:0',
             'rateo_mensile_permessi_rol' => 'nullable|numeric|min:0',
             'rateo_mensile_ex_festivita' => 'nullable|numeric|min:0',
+            'residuo_precedente_ferie' => 'nullable|numeric|min:0',
+            'residuo_precedente_permessi' => 'nullable|numeric|min:0',
         ]);
 
         $user = User::create([
@@ -69,6 +71,8 @@ class UserController extends Controller
                 'rateo_mensile_ferie' => $validated['rateo_mensile_ferie'] ?? null,
                 'rateo_mensile_permessi_rol' => $validated['rateo_mensile_permessi_rol'] ?? null,
                 'rateo_mensile_ex_festivita' => $validated['rateo_mensile_ex_festivita'] ?? null,
+                'residuo_precedente_ferie' => $validated['residuo_precedente_ferie'] ?? 0,
+                'residuo_precedente_permessi' => $validated['residuo_precedente_permessi'] ?? 0,
             ]);
 
             \App\Models\DipendenteCondizioneContrattuale::create([

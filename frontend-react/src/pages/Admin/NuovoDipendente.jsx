@@ -41,7 +41,9 @@ function NuovoDipendente() {
     R2: 7,
     rateo_mensile_ferie: null,
     rateo_mensile_permessi_rol: null,
-    rateo_mensile_ex_festivita: null
+    rateo_mensile_ex_festivita: null,
+    residuo_precedente_ferie: 0,
+    residuo_precedente_permessi: 0
   })
   const [error, setError] = useState('')
   const navigate = useNavigate()
