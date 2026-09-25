@@ -262,7 +262,7 @@ function DipendenteDashboard() {
             {/* Prima colonna: Riepilogo Presenze e Malattie con i donut */}
             <div >
               <h2 className="analisi-hr-card-title">
-                Presenze e Malattie <br /> (dal {formatDate(inizioAnnoStr)} al {formatDate(oggiStr)})
+                Presenze / Malattie <br /> (dal {formatDate(inizioAnnoStr)} al {formatDate(oggiStr)})
               </h2>
               <div className="dashboard-donut-container"> 
                 <DonutCard
@@ -283,7 +283,7 @@ function DipendenteDashboard() {
             {/* Seconda colonna: Ferie e Permessi */}
             <div>
               <h2 className="analisi-hr-card-title">
-                Ferie e Permessi <br /> (calcolato fino a {mesePrecedenteDate.toLocaleDateString('it-IT', { month: 'numeric', year: 'numeric' })})
+                Ferie & Permessi <br /> (aggiornato a {mesePrecedenteDate.toLocaleDateString('it-IT', { month: 'numeric', year: 'numeric' })})
               </h2>
               <div className="dashboard-donut-card">
                 
@@ -293,7 +293,7 @@ function DipendenteDashboard() {
                     <div>
                       <h3 className="analisi-hr-card-title" style={{ textAlign: 'left', marginBottom: '0.5rem' }}>Ferie</h3>
                       <div style={{ fontSize: '0.75rem', lineHeight: '1.4rem', textAlign: 'left' }}>
-                        <div>Saldo: {ferieResiduoAnnoPrecedente.toFixed(2)} h</div>
+                        <div>Saldo A.P.: {ferieResiduoAnnoPrecedente.toFixed(2)} h</div>
                         <div>Maturato: {ferieMaturateAnnoCorrente.toFixed(2)} h</div>
                         <div>Goduto: {ferieGoduteAnnoCorrente.toFixed(2)} h</div>
                         <div>Residuo: <span style={{ backgroundColor: '#fff200', color: 'blue', padding: '0.1rem 0.5rem', borderRadius: '8px', fontWeight: 'bold' }}>{ferieResiduoAggiornato.toFixed(2)} h</span></div>
@@ -303,7 +303,7 @@ function DipendenteDashboard() {
                     <div>
                       <h3 className="analisi-hr-card-title" style={{ textAlign: 'left', marginBottom: '0.5rem' }}>Permessi</h3>
                       <div style={{ fontSize: '0.75rem', lineHeight: '1.4rem', textAlign: 'left' }}>
-                        <div>Saldo: {permessiResiduoAnnoPrecedente.toFixed(2)} h</div>
+                        <div>Saldo A.P.: {permessiResiduoAnnoPrecedente.toFixed(2)} h</div>
                         <div>Maturato: {permessiMaturatiAnnoCorrente.toFixed(2)} h</div>
                         <div>Goduto: {permessiGodutiAnnoCorrente.toFixed(2)} h</div>
                         <div>Residuo: <span style={{ backgroundColor: '#fff200', color: 'blue', padding: '0.1rem 0.35em', borderRadius: '8px', fontWeight: 'bold'}}>{permessiResiduoAggiornato.toFixed(2)} h</span></div>
