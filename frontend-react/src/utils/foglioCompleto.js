@@ -83,7 +83,7 @@ export function isFoglioCompleto(dipendente, anno, mese, giorni, righe) {
   if (mancanti.length > 0) {
     return {
       completo: false,
-      message: `Compilazione presenze non completata: - ${mancanti.length} giorn${mancanti.length === 1 ? 'o' : 'i'}`,
+      message: `Compilazione presenze incompleta: - ${mancanti.length} gg.`,
     }
   }
 
