@@ -236,8 +236,8 @@ class PermessiFerieService
         $godutoPermessi = (float) ($godutiAnno['permessi'] ?? 0);
 
         return [
-            'ferie' => max(0, $residuoFeriePP + $maturatoFerie - $godutoFerie),
-            'permessi' => max(0, $residuoPermessiPP + $maturatoPermessi - $godutoPermessi),
+            'ferie' => $residuoFeriePP + $maturatoFerie - $godutoFerie,
+            'permessi' => $residuoPermessiPP + $maturatoPermessi - $godutoPermessi,
         ];
     }
 

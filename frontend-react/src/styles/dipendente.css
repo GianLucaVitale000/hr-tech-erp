@@ -223,15 +223,6 @@
   color: var(--text-h);
 }
 
-/* Card profilo anagrafica */
-.profile-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
 
 /* Sidebar mobile - Hamburger button */
 .sidebar-hamburger {
@@ -429,9 +420,23 @@ input:checked + .slider:before {
 }
 
 input:checked + .slider .fa-sun {
+    color: var(--button-text);
+}
 /* =========================================
-   NUOVE CARD DASHBOARD DIPENDENTE
+   CARD DASHBOARD DIPENDENTE
    ========================================= */
+
+   /* Card profilo anagrafica */
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
 
 /* Container delle due card */
 .dashboard-cards-container {
@@ -445,189 +450,23 @@ input:checked + .slider .fa-sun {
 }
 
 /* Card base (riutilizza stili da analisiHR) */
-.analisi-hr-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.analisi-hr-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
 .analisi-hr-card-title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text-color);
+  margin: 1.1rem 0;
 }
 
-.analisi-hr-card-divider {
-  border: none;
-  border-top: 1px solid var(--card-border);
-  margin: 0.5rem 0;
-}
-
-.analisi-hr-card-body {
-  padding: 0.5rem 0;
-}
-
-/* Grid 2 colonne */
-.analisi-hr-grid-2cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-/* Sezione (colonna) */
-.analisi-hr-card-section {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 0.375rem;
-  padding: 0.75rem;
-}
-
-.analisi-hr-card-section-title {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 0.5rem;
-  text-align: center;
-  border-bottom: 1px solid var(--card-border);
-  padding-bottom: 0.25rem;
-}
-
-/* Riga di dati */
-.analisi-hr-card-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
-  font-size: 0.85rem;
-}
-
-.analisi-hr-card-label {
-  color: var(--text-h);
-  font-weight: 500;
-}
-
-.analisi-hr-card-value {
-  color: var(--text-color);
-  font-weight: 600;
-}
-
-.analisi-hr-card-row-highlight {
-  background: rgba(250, 204, 21, 0.1);
-  border-radius: 0.25rem;
-  padding: 0.35rem 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.analisi-hr-card-formula {
-  font-size: 0.75rem;
-  color: var(--text-h);
-  text-align: center;
-  margin-top: 0.5rem;
-  font-style: italic;
-}
-
-/* Testo grigio */
-.analisi-hr-text-gray {
-  color: var(--text-h);
-  text-align: center;
-  padding: 1rem;
-}
-
-/* Flex utilities */
-.analisi-hr-flex-space-around {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.analisi-hr-flex-row-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.analisi-hr-text-center {
-  text-align: center;
-}
-
-.analisi-hr-text-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.analisi-hr-text-label {
-  font-size: 0.75rem;
-  color: var(--text-h);
-  margin-top: 0.25rem;
-}
-
-/* Chart dimensions */
-.analisi-hr-chart-180 {
-  width: 180px;
-  height: 180px;
-  flex-shrink: 0;
-}
-
-/* Legenda */
-.analisi-hr-legend-grid {
+/* Specific Styles */
+.dashboard-page-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.analisi-hr-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-}
-
-.analisi-hr-legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* Note */
-.analisi-hr-card-note {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  background: var(--card-bg);
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--text-h);
-  text-align: center;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .dashboard-cards-container {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .analisi-hr-grid-2cols {
-    grid-template-columns: 1fr;
-  }
-  
-  .analisi-hr-chart-180 {
-    width: 150px;
-    height: 150px;
-  }
-}
-  color: var(--button-text);
+.dashboard-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
 }

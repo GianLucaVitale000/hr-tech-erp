@@ -11,6 +11,22 @@ const formatDate = (dateStr) => {
   return `${dd}-${mm}-${yyyy}`
 }
 
+const GIORNI_SETTIMANA_MAP = {
+  1: 'lunedì',
+  2: 'martedì',
+  3: 'mercoledì',
+  4: 'giovedì',
+  5: 'venerdì',
+  6: 'sabato',
+  7: 'domenica'
+}
+
+const formatRiposo = (val) => {
+  if (val === null || val === undefined || val === '') return null
+  const num = Number(val)
+  return GIORNI_SETTIMANA_MAP[num] || val
+}
+
 function DonutCard({ titolo, valore, totale, colore }) {
   
   return (
@@ -131,6 +147,7 @@ function DipendenteDashboard() {
   const giorniTeoriciLavorabili = calcolaTeoriciAnnoCorrente(profilo)
 
   const oggiStr = oggi.toISOString().split('T')[0]
+  const inizioAnnoStr = `${annoCorrente}-01-01`
   const presenzeFinoOggi = presenzeAnno.filter(p => p.data <= oggiStr)
 
   const giorniMalattia = presenzeFinoOggi.filter(p => p.causale === 'malattia' && Number(p.ore_causale || 0) > 0).length
@@ -169,8 +186,7 @@ function DipendenteDashboard() {
       {loading ? (
         <p className="text-primary">Caricamento dati in corso...</p>
       ) : profilo ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
+        <div className="dashboard-page-wrapper">
           {/* Riepilogo anagrafica originario in testa */}
           <div className="profile-card">
             {user?.name && (
@@ -206,22 +222,49 @@ function DipendenteDashboard() {
                 <strong>GG. Lav. Settimanali:</strong> {profilo.giorni_lavorativi_settimanali}
               </div>
             )}
-            {profilo.ore_giornaliere && (
-              <div>
-                <strong>Ore Giornaliere:</strong> {profilo.ore_giornaliere}
-              </div>
-            )}
+            {(() => {
+              const isFullTime = Number(profilo.percentuale_part_time ?? 100) >= 100;
+              const giorniSettimanali = Number(profilo.giorni_lavorativi_settimanali) || 5;
+              
+              if (isFullTime) {
+                const r1 = formatRiposo(profilo.R1) || (giorniSettimanali === 6 ? 'domenica' : 'sabato');
+                const r2 = giorniSettimanali === 5 ? (formatRiposo(profilo.R2) || 'domenica') : null;
+                return (
+                  <div>
+                    <strong>Riposi:</strong> {r1} (R1){r2 ? `, ${r2} (R2)` : ''}
+                  </div>
+                );
+              } else {
+                const orari = profilo.orari_settimanali || [];
+                const giorniRiposoTrovati = [];
+                for (let i = 0; i <= 6; i++) {
+                  const orarioGiorno = orari.find(o => Number(o.giorno_settimana) === i);
+                  const isRiposo = !orarioGiorno || parseFloat(orarioGiorno.ore_giornaliere_previste || 0) === 0;
+                  if (isRiposo) {
+                    giorniRiposoTrovati.push(GIORNI_SETTIMANA_MAP[i === 0 ? 7 : i]);
+                  }
+                }
+                if (giorniRiposoTrovati.length > 0) {
+                  return (
+                    <div>
+                      <strong>Riposi:</strong> {giorniRiposoTrovati.map((g, idx) => `${g} (R${idx + 1})`).join(', ')}
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
           </div>
 
-          {/* Contenitore a griglia a due colonne */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
+          {/* Contenitore a due colonne */}
+          <div className="dashboard-grid-container">
             
             {/* Prima colonna: Riepilogo Presenze e Malattie con i donut */}
-            <div className="dashboard-donut-section" style={{ marginTop: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
-              <h2 className="dashboard-donut-title-section">
-                Riepilogo Presenze e Malattie (al {formatDate(oggiStr)})
+            <div >
+              <h2 className="analisi-hr-card-title">
+                Presenze e Malattie <br /> (dal {formatDate(inizioAnnoStr)} al {formatDate(oggiStr)})
               </h2>
-              <div className="dashboard-donut-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '1rem', height: '100%' }}>
+              <div className="dashboard-donut-container"> 
                 <DonutCard
                   titolo="Giorni Malattia"
                   valore={giorniMalattia}
@@ -238,33 +281,36 @@ function DipendenteDashboard() {
             </div>
 
             {/* Seconda colonna: Ferie e Permessi */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <h2 className="dashboard-donut-title-section">
-                Ferie e Permessi ({mesePrecedenteDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })})
+            <div>
+              <h2 className="analisi-hr-card-title">
+                Ferie e Permessi <br /> (calcolato fino a {mesePrecedenteDate.toLocaleDateString('it-IT', { month: 'numeric', year: 'numeric' })})
               </h2>
-              <div className="dipendenti-card" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                <div className="dipendenti-card-fields" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div className="dashboard-donut-card">
+                
+                <div style={{ display: 'flex', flexDirection: 'row', flex: 1 }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
 
-                  <div>
-                    <h3>Ferie</h3>
                     <div>
-                      <div>Saldo iniziale: <strong>{ferieResiduoAnnoPrecedente.toFixed(2)} ore</strong></div>
-                      <div>Maturato: <strong>+ {ferieMaturateAnnoCorrente.toFixed(2)} ore</strong></div>
-                      <div>Goduto: <strong>- {ferieGoduteAnnoCorrente.toFixed(2)} ore</strong></div>
-                      <div>Residuo: <strong style={{ color: '#3b82f6' }}>{ferieResiduoAggiornato.toFixed(2)} ore</strong></div>
+                      <h3 className="analisi-hr-card-title" style={{ textAlign: 'left', marginBottom: '0.5rem' }}>Ferie</h3>
+                      <div style={{ fontSize: '0.75rem', lineHeight: '1.4rem', textAlign: 'left' }}>
+                        <div>Saldo: {ferieResiduoAnnoPrecedente.toFixed(2)} h</div>
+                        <div>Maturato: {ferieMaturateAnnoCorrente.toFixed(2)} h</div>
+                        <div>Goduto: {ferieGoduteAnnoCorrente.toFixed(2)} h</div>
+                        <div>Residuo: <span style={{ backgroundColor: '#fff200', color: 'blue', padding: '0.1rem 0.5rem', borderRadius: '8px', fontWeight: 'bold' }}>{ferieResiduoAggiornato.toFixed(2)} h</span></div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <h3>Permessi</h3>
                     <div>
-                      <div>Saldo iniziale: <strong>{permessiResiduoAnnoPrecedente.toFixed(2)} ore</strong></div>
-                      <div>Maturato: <strong>+ {permessiMaturatiAnnoCorrente.toFixed(2)} ore</strong></div>
-                      <div>Goduto: <strong>- {permessiGodutiAnnoCorrente.toFixed(2)} ore</strong></div>
-                      <div>Residuo: <strong style={{ color: '#10b981' }}>{permessiResiduoAggiornato.toFixed(2)} ore</strong></div>
+                      <h3 className="analisi-hr-card-title" style={{ textAlign: 'left', marginBottom: '0.5rem' }}>Permessi</h3>
+                      <div style={{ fontSize: '0.75rem', lineHeight: '1.4rem', textAlign: 'left' }}>
+                        <div>Saldo: {permessiResiduoAnnoPrecedente.toFixed(2)} h</div>
+                        <div>Maturato: {permessiMaturatiAnnoCorrente.toFixed(2)} h</div>
+                        <div>Goduto: {permessiGodutiAnnoCorrente.toFixed(2)} h</div>
+                        <div>Residuo: <span style={{ backgroundColor: '#fff200', color: 'blue', padding: '0.1rem 0.35em', borderRadius: '8px', fontWeight: 'bold'}}>{permessiResiduoAggiornato.toFixed(2)} h</span></div>
+                      </div>
                     </div>
-                  </div>
 
+                  </div>
                 </div>
               </div>
             </div>
