@@ -792,4 +792,31 @@ class PresenzaController extends Controller
 
         return $presenza;
     }
+
+    /**
+     * Endpoint interno per fornire i dati strutturati delle presenze approvate al microservizio Python
+     */
+    public function exportDataForPython(Request $request)
+    {
+        $mese = $request->input('mese');
+        $anno = $request->input('anno');
+
+        if (!$mese || !$anno) {
+            return response()->json(['error' => 'Parametri mese e anno obbligatori'], 400);
+        }
+
+        $presenze = Presenza::with(['dipendente.user', 'dipendente.contratto', 'dipendente.regoleCalcolo'])
+            ->whereMonth('data', $mese)
+            ->whereYear('data', $anno)
+            ->where('stato', 'approvato')
+            ->orderBy('data')
+            ->get();
+
+        return response()->json([
+            'mese' => (int)$mese,
+            'anno' => (int)$anno,
+            'totale_righe' => $presenze->count(),
+            'presenze' => $presenze
+        ]);
+    }
 }

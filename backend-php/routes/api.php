@@ -49,6 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // 🔹 Rotte per QR Code
     Route::get('/presenze/{presenza}/generate-qr', [PresenzaController::class, 'generateQrToken']);
+    
+    // 🔹 Rotta interna per l'export dei dati verso il microservizio Python
+    Route::get('/presenze/export-data', [PresenzaController::class, 'exportDataForPython']);
+
     Route::apiResource('presenze', PresenzaController::class);
 });
 
