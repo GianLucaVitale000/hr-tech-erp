@@ -5,6 +5,8 @@ export const getPresenze = (dipendenteId, mese, anno) =>
 
 export const salvaPresenza = (data) => api.post('/presenze', data)
 
+export const eliminaPresenza = (id) => api.delete(`/presenze/${id}`)
+
 export const inviaMese = (dipendenteId, mese, anno) =>
   api.post('/presenze/invia-mese', { dipendente_id: dipendenteId, mese, anno })
 

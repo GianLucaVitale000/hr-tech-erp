@@ -11,6 +11,36 @@ export function haDatiSignificativi(riga) {
   )
 }
 
+function isRiposoData(dipendente, dataStr) {
+  const [y, m, d] = dataStr.split('-')
+  const dataObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+  const jsDay = dataObj.getDay() // 0-6 (0=Dom, 1=Lun... 6=Sab)
+  const giornoSettimanaNum = jsDay === 0 ? 7 : jsDay // 1-7 (1=Lun... 7=Dom)
+
+  const condizioneGiorno = dipendente?.condizioni_contrattuali?.find(c => {
+    const inizio = c.data_inizio
+    const fine = c.data_fine || '9999-12-31'
+    return dataStr >= inizio && dataStr <= fine
+  }) || dipendente
+
+  const r1 = condizioneGiorno?.R1 ?? dipendente?.R1
+  const r2 = condizioneGiorno?.R2 ?? dipendente?.R2
+
+  if (r1 === null || r1 === undefined) {
+    const isDefR1 = 6 === giornoSettimanaNum || 6 === jsDay
+    const isDefR2 = 7 === giornoSettimanaNum || 7 === jsDay || 0 === jsDay
+    return Boolean(isDefR1 || isDefR2)
+  }
+
+  const r1Num = Number(r1)
+  const r2Num = Number(r2)
+
+  const matchR1 = (r1Num === giornoSettimanaNum) || (r1Num === jsDay) || (r1Num === 7 && jsDay === 0) || (r1Num === 0 && jsDay === 0)
+  const matchR2 = !isNaN(r2Num) && ((r2Num === giornoSettimanaNum) || (r2Num === jsDay) || (r2Num === 7 && jsDay === 0) || (r2Num === 0 && jsDay === 0))
+
+  return Boolean(matchR1 || matchR2)
+}
+
 /**
  * Determina i giorni che il dipendente è tenuto a compilare nel mese.
  * Per i dipendenti a tempo pieno (giorni_lavorativi_settimanali = 5),
@@ -39,12 +69,17 @@ function giorniObbligatori(dipendente, anno, mese, giorni) {
     dataInizio = dipendente.data_assunzione
   }
 
-  // Per FT 5/7, sabato (6) e domenica (0) non sono obbligatori
   const escludiWeekend = dipendente.giorni_lavorativi_settimanali === 5
 
   return giorni.filter(g => {
     const ds = `${ym}-${String(g).padStart(2, '0')}`
     if (ds < dataInizio || ds > dataFine) return false
+
+    // Se è un giorno di riposo configurato (R1/R2), non è obbligatorio
+    if (isRiposoData(dipendente, ds)) {
+      return false
+    }
+
     if (escludiWeekend) {
       const dow = new Date(ds).getDay()
       if (dow === 0 || dow === 6) return false // Dom o Sab non obbligatori

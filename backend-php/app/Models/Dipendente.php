@@ -154,14 +154,18 @@ class Dipendente extends Model
     {
         // Per full-time, usa il calcolo standard
         if ((float)($this->percentuale_part_time ?? 100) >= 100) {
-            $regola = $this->regolaCalcolo;
-            if ($regola && $regola->ore_settimanali_teoriche > 0) {
-                $oreGiornaliereContratto = (float)$regola->ore_settimanali_teoriche;
-                $giorniLavorativi = $this->giorni_lavorativi_settimanali ?? 5;
-                return ($oreGiornaliereContratto / $giorniLavorativi);
+            $oreSettimanali = (float)($this->ore_settimanali ?? 0);
+            if ($oreSettimanali <= 0) {
+                $regola = $this->regolaCalcolo;
+                if ($regola && $regola->ore_settimanali_teoriche > 0) {
+                    $oreSettimanali = (float)$regola->ore_settimanali_teoriche;
+                }
             }
-            // Default per full-time senza regola: 8 ore (standard contrattuale)
-            return 8;
+            $giorniLavorativi = (int)($this->giorni_lavorativi_settimanali ?? 5);
+            if ($oreSettimanali > 0 && $giorniLavorativi > 0) {
+                return $oreSettimanali / $giorniLavorativi;
+            }
+            return 0;
         }
         
         // Per part-time, cerca la configurazione personalizzata

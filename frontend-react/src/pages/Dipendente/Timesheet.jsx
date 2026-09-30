@@ -3,6 +3,7 @@ import { getMioProfilo } from '../../services/dipendentiService'
 import {
   getPresenze,
   salvaPresenza,
+  eliminaPresenza,
   inviaMese,
   registraMalattia,
   registraCassaIntegrazione,
@@ -53,7 +54,7 @@ function getDataStr(anno, mese, giorno) {
 }
 
 function RigaGiorno({
-  giorno, nomeGiorno, riga, onChange, onSalva, salvando,
+  giorno, nomeGiorno, riga, onChange, onSalva, onElimina, salvando,
   onApriModaleMalattia, onApriModaleCassaIntegrazione, onUploadTrasferta, onUploadInfortunio, 
   onApriModaleQrSettings,
   isFullTime = false, statoFoglio = null, orariSettimanali = {}, anno, mese, disabled = false,
@@ -341,6 +342,18 @@ function RigaGiorno({
         >
           {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
         </button>
+
+        {isSalvato && !isFoglioApprovato && !disabled && (
+          <button
+            onClick={onElimina}
+            disabled={salvando}
+            className="rg-btn-delete"
+            title="Elimina presenza e resetta riga"
+          >
+            Reset
+          </button>
+        )}
+        
       </td>
     </tr>
   )
@@ -570,6 +583,7 @@ function CardGiorno({
   riga,
   onChange,
   onSalva,
+  onElimina,
   salvando,
   onApriModaleMalattia,
   onApriModaleCassaIntegrazione,
@@ -840,6 +854,17 @@ function CardGiorno({
       >
         {salvando ? '...' : (isFoglioRifiutatoOReinviato ? 'Salva' : (isSalvato ? '✓ Salvato' : 'Salva'))}
       </button>
+
+      {isSalvato && !isFoglioApprovato && !disabled && (
+        <button
+          onClick={onElimina}
+          disabled={salvando}
+          className="card-btn-delete"
+          title="Elimina presenza e resetta riga"
+        >
+          Reset
+        </button>
+      )}
     </div>
   )
 }
@@ -911,8 +936,11 @@ function Timesheet() {
     // Arrotonda tutti i valori numerici a 2 decimali per evitare problemi di floating-point
     const round2 = (val) => {
       if (val === null || val === undefined) return 0;
+      if (typeof val === 'string') {
+        val = val.replace(',', '.');
+      }
       const num = parseFloat(val);
-      return Math.round(num * 100) / 100;
+      return isNaN(num) ? 0 : Math.round(num * 100) / 100;
     };
     
     return {
@@ -992,11 +1020,13 @@ useEffect(() => {
     (_, i) => i + 1
   )
 
-  const getRiga = (dataStr) => righe[dataStr] || normalizzaRiga()
+  const getRiga = (dataStr) => righe[dataStr] || normalizzaRiga({ data: dataStr })
 
   const handleChange = (dataStr, nuovaRiga) => {
-    // Normalizza tutti i valori numerici per assicurare che siano numeri
     const normalizza = (val) => {
+      if (typeof val === 'string') {
+        val = val.replace(',', '.');
+      }
       const num = parseFloat(val)
       return isNaN(num) ? 0 : num
     }
@@ -1011,12 +1041,10 @@ useEffect(() => {
     }
     
     // 🔹 Se usa QR e ha entrambi gli orari, calcola automaticamente le ore
-    // Questo permette all'utente di vedere le ore calcolate prima di salvare
     if (nuovaRiga.usa_qr && nuovaRiga.ora_ingresso && nuovaRiga.ora_uscita && 
         Object.keys(orariSettimanali).length > 0) {
       const calcolate = calcolaOreDaTimbrature(nuovaRiga, dataStr)
       if (calcolate) {
-        // Sovrascrivi le ore calcolate, ma mantieni gli altri campi
         nuovaRiga = {
           ...nuovaRiga,
           ...calcolate
@@ -1024,52 +1052,30 @@ useEffect(() => {
       }
     }
     
-    // 🔹 Se usa_qr viene attivato, imposta fonte_dato a QR_CODE
     if (nuovaRiga.usa_qr && !nuovaRiga.fonte_dato) {
       nuovaRiga.fonte_dato = 'QR_CODE'
     }
-    
-    // 🔹 Se usa_qr viene disattivato, imposta fonte_dato a MANUALE
     if (!nuovaRiga.usa_qr && nuovaRiga.fonte_dato === 'QR_CODE') {
       nuovaRiga.fonte_dato = 'MANUALE'
     }
     
-    // Gestione automatica delle ore per tutti i dipendenti
-    // (sia full-time che part-time)
-    if (Object.keys(orariSettimanali).length > 0) {
+    // Gestione automatica e SPLIT delle ore ordinarie eccedenti il limite giornaliero
+    {
       const [y, m, d] = dataStr.split('-')
       const oreOrdinarieMax = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
       
       const oreOrdinarie = nuovaRiga.ore_ordinarie || 0
-      const oreCausale = nuovaRiga.ore_causale || 0
       const causale = nuovaRiga.causale || 'lavoro'
       
-      // Per lavoro: sposta l'eccedenza in ore_eccedenti
-      if (causale === 'lavoro') {
-        const oreEccedenti = oreOrdinarie > oreOrdinarieMax ? oreOrdinarie - oreOrdinarieMax : 0
-        setRighe((prev) => ({
-          ...prev,
-          [dataStr]: {
-            ...nuovaRiga,
-            ore_causale: 0, // Azzera ore_causale per lavoro
-            ore_eccedenti: oreEccedenti
-          }
-        }))
-        return
-      }
-      
-      // Per causali diverse da 'lavoro': mantieni entrambi i valori (ore_ordinarie + ore_causale)
-      // ma non applichiamo limiti automatici qui - la validazione avviene al salvataggio
-      if (causale !== 'lavoro') {
-        setRighe((prev) => ({
-          ...prev,
-          [dataStr]: {
-            ...nuovaRiga,
-            ore_causale: oreCausale,
-            ore_ordinarie: oreOrdinarie
-          }
-        }))
-        return
+      if (causale === 'lavoro' && oreOrdinarieMax > 0 && oreOrdinarie > oreOrdinarieMax) {
+        const oreEccedenti = Math.round((oreOrdinarie - oreOrdinarieMax) * 4) / 4
+        nuovaRiga.ore_ordinarie = oreOrdinarieMax
+        nuovaRiga.ore_causale = 0
+        if (isFullTime) {
+          nuovaRiga.ore_straordinarie = (nuovaRiga.ore_straordinarie || 0) + oreEccedenti
+        } else {
+          nuovaRiga.ore_eccedenti = (nuovaRiga.ore_eccedenti || 0) + oreEccedenti
+        }
       }
     }
     
@@ -1148,6 +1154,52 @@ useEffect(() => {
       const errorMessage = error.response?.data?.message || 
                            error.response?.data?.error ||
                            'Errore nel salvataggio. Verifica i dati inseriti.'
+      setErrore(errorMessage)
+      setTimeout(() => setErrore(''), 5000)
+    } finally {
+      setSalvataggioInCorso(null)
+    }
+  }
+
+  const handleElimina = async (dataStr) => {
+    const riga = getRiga(dataStr)
+
+    if (!riga.id) {
+      // Resetta immediatamente i valori nel frontend se non ha ID
+      setRighe((prev) => ({
+        ...prev,
+        [dataStr]: normalizzaRiga({ data: dataStr })
+      }))
+      return
+    }
+
+    if (!window.confirm('Sei sicuro di voler eliminare/resettare questa presenza salvata?')) {
+      return
+    }
+
+    // Resetta immediatamente i valori nel frontend (stato locale) per azzerare i campi della riga visivamente
+    setRighe((prev) => ({
+      ...prev,
+      [dataStr]: normalizzaRiga({ data: dataStr })
+    }))
+
+    setSalvataggioInCorso(dataStr)
+    setErrore('')
+
+    try {
+      await eliminaPresenza(riga.id)
+      // Rimuovi esplicitamente la riga dallo stato locale senza sovrascriverla con dati obsoleti dal server
+      setRighe((prev) => {
+        const nuovo = { ...prev }
+        delete nuovo[dataStr]
+        return nuovo
+      })
+      setMessaggio(`Presenza del ${dataStr} eliminata con successo`)
+      setTimeout(() => setMessaggio(''), 3000)
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error ||
+                           'Errore durante l\'eliminazione della presenza.'
       setErrore(errorMessage)
       setTimeout(() => setErrore(''), 5000)
     } finally {
@@ -1398,6 +1450,15 @@ useEffect(() => {
 
   // Funzione per ottenere le ore previste per un giorno specifico
   const getOrePrevistePerGiorno = (anno, mese, giorno) => {
+    const isFullTime = Number(dipendente?.percentuale_part_time ?? 100) >= 100;
+    if (isFullTime) {
+      const oreSettimanali = parseFloat(dipendente?.ore_settimanali) || parseFloat(dipendente?.contratto?.ore_settimanali_teoriche);
+      const giorniLavorativi = parseInt(dipendente?.giorni_lavorativi_settimanali) || 5;
+      if (oreSettimanali && oreSettimanali > 0) {
+        return oreSettimanali / giorniLavorativi;
+      }
+      return 0;
+    }
     const data = new Date(anno, mese - 1, giorno)
     const giornoSettimana = data.getDay() // 0=Dom, 1=Lun, etc.
     return orariSettimanali[giornoSettimana] || 0
@@ -1631,6 +1692,7 @@ useEffect(() => {
               riga={riga}
               onChange={(nuovaRiga) => handleChange(dataStr, nuovaRiga)}
               onSalva={() => handleSalva(dataStr)}
+              onElimina={() => handleElimina(dataStr)}
               salvando={salvataggioInCorso === dataStr}
               onApriModaleMalattia={handleApriModaleMalattia}
               onApriModaleCassaIntegrazione={handleApriModaleCassaIntegrazione}
@@ -1679,6 +1741,7 @@ useEffect(() => {
                 riga={riga}
                 onChange={(nuovaRiga) => handleChange(dataStr, nuovaRiga)}
                 onSalva={() => handleSalva(dataStr)}
+                onElimina={() => handleElimina(dataStr)}
                 salvando={salvataggioInCorso === dataStr}
                 onApriModaleMalattia={handleApriModaleMalattia}
                 onApriModaleCassaIntegrazione={handleApriModaleCassaIntegrazione}
