@@ -35,11 +35,25 @@ class RegoleCalcoloContrattoSeeder extends Seeder
 
         // Terziario, Distribuzione e Servizi (H011, Confcommercio)
         $contrattoCommercio = Contratto::where('codice_cnel', 'H011')->first();
-        if ($contrattoCommercio && !RegolaCalcoloContratto::where('contratto_id', $contrattoCommercio->id)->exists()) {
-            RegolaCalcoloContratto::create([
+        if ($contrattoCommercio) {
+            RegolaCalcoloContratto::firstOrCreate([
                 'contratto_id' => $contrattoCommercio->id,
                 'ore_settimanali_teoriche' => 39.00, // 39 ore per il commercio
             ]);
+        }
+
+        // Logistica, trasporto merci e spedizione (I100)
+        // 40 ore settimanali: al 75% corrispondono a 30 ore.
+        $contrattiLogistica = Contratto::where('codice_cnel', 'I100')->get();
+        foreach ($contrattiLogistica as $contrattoLogistica) {
+            $regola = RegolaCalcoloContratto::firstOrCreate(
+                ['contratto_id' => $contrattoLogistica->id],
+                ['ore_settimanali_teoriche' => 40.00]
+            );
+
+            if ($regola->ore_settimanali_teoriche === null || (float) $regola->ore_settimanali_teoriche <= 0) {
+                $regola->update(['ore_settimanali_teoriche' => 40.00]);
+            }
         }
 
         // Autoferrotranvieri (I022, Mobilità - TPL)

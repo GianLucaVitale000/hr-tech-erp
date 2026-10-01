@@ -25,12 +25,12 @@ function calcolaOreDaTimbrature(riga, dataStr, getOrePrevistePerGiorno) {
     // Calcola ore ordinarie e straordinarie in base al contratto
     const [y, m, d] = dataStr.split('-');
     const oreOrdinarieMax = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d));
-    const oreStraordinarie = Math.max(0, Math.round((oreNette - oreOrdinarieMax) * 4) / 4);
+    const oreStraordinarie = Math.max(0, Math.round((oreNette - oreOrdinarieMax) * 100) / 100);
     const oreOrdinarie = Math.min(oreNette, oreOrdinarieMax);
 
     return {
-      ore_ordinarie: Math.round(oreOrdinarie * 4) / 4,
-      ore_straordinarie: Math.round(oreStraordinarie * 4) / 4,
+      ore_ordinarie: Math.round(oreOrdinarie * 100) / 100,
+      ore_straordinarie: oreStraordinarie,
       ore_eccedenti: 0,
     };
   } catch (e) {
@@ -49,7 +49,7 @@ function mockGetOrePrevistePerGiorno(anno, mese, giorno) {
 
 describe('Calcolo ore da timbrature QR Code', () => {
   describe('Scenario: 08:00-18:00 con 1 ora di pausa', () => {
-    it('Dovrebbe calcolare 8 ore ordinarie e 1 straordinaria con orario 8 ore previsto', () => {
+    it('Dovrebbe calcolare 7.8 ore ordinarie e 1.2 straordinarie con orario 7.8 ore previsto', () => {
       const riga = {
         ora_ingresso: '08:00:00',
         ora_uscita: '18:00:00',
@@ -59,11 +59,11 @@ describe('Calcolo ore da timbrature QR Code', () => {
       };
 
       const dataStr = '2026-07-21'; // Lunedì
-      const result = calcolaOreDaTimbrature(riga, dataStr, mockGetOrePrevistePerGiorno);
+      const result = calcolaOreDaTimbrature(riga, dataStr, () => 7.8);
 
       expect(result).not.toBeNull();
-      expect(result.ore_ordinarie).toBe(8);
-      expect(result.ore_straordinarie).toBe(1);
+      expect(result.ore_ordinarie).toBe(7.8);
+      expect(result.ore_straordinarie).toBe(1.2);
       expect(result.ore_eccedenti).toBe(0);
     });
 

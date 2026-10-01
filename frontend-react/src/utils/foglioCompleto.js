@@ -17,6 +17,20 @@ function isRiposoData(dipendente, dataStr) {
   const jsDay = dataObj.getDay() // 0-6 (0=Dom, 1=Lun... 6=Sab)
   const giornoSettimanaNum = jsDay === 0 ? 7 : jsDay // 1-7 (1=Lun... 7=Dom)
 
+  if (Number(dipendente?.percentuale_part_time ?? 100) < 100) {
+    const orariSettimanali = dipendente?.orari_settimanali
+    const orario = Array.isArray(orariSettimanali)
+      ? orariSettimanali.find(o => Number(o.giorno_settimana) === jsDay)
+      : orariSettimanali?.[jsDay]
+
+    if (orario !== undefined) {
+      const orePreviste = typeof orario === 'object'
+        ? orario.ore_giornaliere_previste
+        : orario
+      return Number(orePreviste) <= 0
+    }
+  }
+
   const condizioneGiorno = dipendente?.condizioni_contrattuali?.find(c => {
     const inizio = c.data_inizio
     const fine = c.data_fine || '9999-12-31'
@@ -123,12 +137,8 @@ export function isFoglioCompleto(dipendente, anno, mese, giorni, righe) {
   }
 
   // CHECK 2: consecutività (warning soft)
-  // Per un FT 5/7, il fine settimana è un "reset naturale": anche se l'utente
-  // compila i feriali senza soluzione di continuità per più settimane, il
-  // contatore si azzera al sabato e alla domenica. Per gli altri (6/7, PT)
-  // il contatore continua attraverso tutti i giorni significativi consecutivi.
-  // Iteriamo TUTTI i giorni del mese (non solo obbligatori) in modo che il
-  // fine settimana, anche se non obbligatorio, faccia da reset.
+  // Iteriamo tutti i giorni del mese per interrompere la sequenza sui riposi,
+  // inclusi quelli definiti dalla distribuzione settimanale dei part-time.
   const maxConsecutivi = dipendente.giorni_lavorativi_settimanali
   if (maxConsecutivi && maxConsecutivi > 0) {
     let consecutivi = 0
@@ -141,9 +151,8 @@ export function isFoglioCompleto(dipendente, anno, mese, giorni, righe) {
       if (ds < `${anno}-${String(mese).padStart(2, '0')}-01` || ds > `${anno}-${String(mese).padStart(2, '0')}-${String(new Date(anno, mese, 0).getDate()).padStart(2, '0')}`) continue
       const dow = new Date(ds).getDay() // 0=Dom, 6=Sab
       const isWeekend = dow === 0 || dow === 6
-      if (èFT5 && isWeekend) {
-        // Per FT 5/7: il weekend resetta sempre il contatore,
-        // anche se l'utente ha compilato tutto il mese senza interruzioni.
+      const isRiposo = isRiposoData(dipendente, ds)
+      if (isRiposo || (èFT5 && isWeekend)) {
         consecutivi = 0
       } else if (haDatiSignificativi(righe[ds])) {
         consecutivi++

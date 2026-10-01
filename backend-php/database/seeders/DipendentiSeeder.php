@@ -49,7 +49,7 @@ class DipendentiSeeder extends Seeder
         }
         
         // Imposta default per I100 e H011 se non hanno ore_settimanali_teoriche
-        $oreI100 = $contrattoI100->ore_settimanali_teoriche ?: 39.00;
+        $oreI100 = $contrattoI100->ore_settimanali_teoriche ?: 40.00;
         $oreH011 = $contrattoH011->ore_settimanali_teoriche ?: 40.00;
 
         // Trova o crea Mario Rossi (esiste già dal RolesAndUsersSeeder)
@@ -146,7 +146,7 @@ class DipendentiSeeder extends Seeder
         );
 
         // ====================================================================
-        // NUOVI DIPENDENTI CON CONTRATTO I100 (Commesso vendita al pubblico, livello 4, 6 giorni)
+        // NUOVI DIPENDENTI CON CONTRATTO I100 (Logistica, livello 4, 6 giorni)
         // ====================================================================
 
         // Crea user per dipendente I100 tempo pieno
@@ -162,7 +162,7 @@ class DipendentiSeeder extends Seeder
             $userI100FullTime->assignRole('dipendente');
         }
 
-        // Luca Neri: I100, tempo pieno (100%), commesso vendita al pubblico, livello 4, 6 giorni
+        // Luca Neri: I100, tempo pieno (100%), livello 4, 6 giorni
         $dipendenteI100Full = Dipendente::updateOrCreate(
             ['user_id' => $userI100FullTime->id],
             [
@@ -197,9 +197,9 @@ class DipendentiSeeder extends Seeder
             $userI100PartTime->assignRole('dipendente');
         }
 
-        // Marco Gialli: I100, part-time 75%, commesso vendita al pubblico, livello 4, 6 giorni
+        // Marco Gialli: I100, part-time 75%, livello 4, 6 giorni
         // Calcolo ore settimanali: 75% di 39 ore = 29.25 ore
-        $oreSettimanaliI100PartTime = $contrattoI100->ore_settimanali_teoriche ? ($contrattoI100->ore_settimanali_teoriche * 0.75) : 29.25;
+        $oreSettimanaliI100PartTime = $contrattoI100->ore_settimanali_teoriche ? ($contrattoI100->ore_settimanali_teoriche * 0.75) : 30.00;
         
         $dipendenteI100Part = Dipendente::updateOrCreate(
             ['user_id' => $userI100PartTime->id],

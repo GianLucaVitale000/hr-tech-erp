@@ -46,11 +46,11 @@ class CnelContractsSeeder extends Seeder
         $essentials = [
             ['codice_cnel' => 'C011', 'nome_contratto' => 'Contratto Metalmeccanica Industria', 'ore_settimanali_teoriche' => 40.00],
             ['codice_cnel' => 'H011', 'nome_contratto' => 'Contratto Distributori Carburante', 'ore_settimanali_teoriche' => 40.00],
-            ['codice_cnel' => 'I100', 'nome_contratto' => 'Contratto Commercio Terziario', 'ore_settimanali_teoriche' => 39.00],
+            ['codice_cnel' => 'I100', 'nome_contratto' => 'CCNL logistica, trasporto merci e spedizione (personale non dirigente)', 'ore_settimanali_teoriche' => 40.00],
         ];
 
         foreach ($essentials as $item) {
-            Contratto::firstOrCreate(
+            Contratto::updateOrCreate(
                 ['codice_cnel' => $item['codice_cnel']],
                 [
                     'nome_contratto' => $item['nome_contratto'],

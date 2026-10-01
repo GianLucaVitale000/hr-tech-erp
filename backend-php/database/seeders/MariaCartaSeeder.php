@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Dipendente;
 use App\Models\Contratto;
+use App\Models\RegolaCalcoloContratto;
 use Faker\Factory as Faker;
 
 class MariaCartaSeeder extends Seeder
@@ -40,7 +41,7 @@ class MariaCartaSeeder extends Seeder
         $dipendente = Dipendente::where('user_id', $user->id)->first();
 
         if (!$dipendente) {
-            Dipendente::create([
+            $dipendente = Dipendente::create([
                 'user_id' => $user->id,
                 'contratto_id' => $contrattoH011->id,
                 'tipo_contratto' => 'indeterminato', // Assumiamo indeterminato
@@ -51,7 +52,7 @@ class MariaCartaSeeder extends Seeder
                 'mansione' => 'Impiegata Amministrativa',
                 'data_assunzione' => '2020-01-15', // Assunta da qualche anno
                 'percentuale_part_time' => 100, // Tempo pieno
-                'ore_settimanali' => 40, // 40 ore settimanali (tempo pieno)
+                'ore_settimanali' => 39, // 39 ore settimanali (tempo pieno)
                 'giorni_lavorativi_settimanali' => 5, // 5 giorni
             ]);
         } else {
@@ -61,10 +62,17 @@ class MariaCartaSeeder extends Seeder
                 'contratto_id' => $contrattoH011->id,
                 'tipo_contratto' => 'indeterminato',
                 'percentuale_part_time' => 100,
-                'ore_settimanali' => 40,
+                'ore_settimanali' => 39,
                 'giorni_lavorativi_settimanali' => 5,
             ]);
         }
+
+        $regolaH011 = RegolaCalcoloContratto::firstOrCreate([
+            'contratto_id' => $contrattoH011->id,
+            'ore_settimanali_teoriche' => 39.00,
+        ]);
+        $dipendente->refresh();
+        $dipendente->regoleCalcolo()->sync([$regolaH011->id]);
 
         $this->command->info('✅ Dipendente Maria Carta creato/aggiornato con successo!');
     }

@@ -53,6 +53,37 @@ function getDataStr(anno, mese, giorno) {
   return `${anno}-${String(mese).padStart(2, '0')}-${String(giorno).padStart(2, '0')}`
 }
 
+function CampoOre({ value, onChange, disabled, className, title, max }) {
+  const [draft, setDraft] = useState(Number(value || 0).toFixed(2))
+
+  const confermaValore = () => {
+    const parsed = parseFloat(String(draft).replace(',', '.'))
+    const normalized = Number.isFinite(parsed) ? parsed : 0
+    setDraft(normalized.toFixed(2))
+    onChange(normalized)
+  }
+
+  return (
+    <input
+      type="number"
+      min="0"
+      max={max}
+      step="0.25"
+      inputMode="decimal"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={confermaValore}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+      }}
+      onFocus={(e) => e.currentTarget.select()}
+      disabled={disabled}
+      className={className}
+      title={title}
+    />
+  )
+}
+
 function RigaGiorno({
   giorno, nomeGiorno, riga, onChange, onSalva, onElimina, salvando,
   onApriModaleMalattia, onApriModaleCassaIntegrazione, onUploadTrasferta, onUploadInfortunio, 
@@ -130,12 +161,10 @@ function RigaGiorno({
       </td>
 
       <td className="rg-cell">
-        <input
-          type="number"
-          min="0"
-          step="0.25"
-          value={Number(riga.ore_ordinarie || 0).toFixed(2)}
-          onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+        <CampoOre
+          key={`ordinarie-${riga.ore_ordinarie}`}
+          value={riga.ore_ordinarie}
+          onChange={(value) => onChange({ ...riga, ore_ordinarie: value })}
           disabled={disabled || isOreDisabled}
           className="rg-input-narrow"
           title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : ''}
@@ -144,12 +173,10 @@ function RigaGiorno({
 
       {!isFullTime && (
         <td className="rg-cell">
-          <input
-            type="number"
-            min="0"
-            step="0.25"
-            value={Number(riga.ore_eccedenti || 0).toFixed(2)}
-            onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          <CampoOre
+            key={`eccedenti-${riga.ore_eccedenti}`}
+            value={riga.ore_eccedenti}
+            onChange={(value) => onChange({ ...riga, ore_eccedenti: value })}
             disabled={disabled || isOreDisabled}
             className="rg-input-narrow"
             title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : 'Ore eccedenti (oltre il limite ordinario del giorno)'}
@@ -159,12 +186,10 @@ function RigaGiorno({
 
       {isFullTime && (
         <td className="rg-cell">
-          <input
-            type="number"
-            min="0"
-            step="0.25"
-            value={Number(riga.ore_straordinarie || 0).toFixed(2)}
-            onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          <CampoOre
+            key={`straordinarie-${riga.ore_straordinarie}`}
+            value={riga.ore_straordinarie}
+            onChange={(value) => onChange({ ...riga, ore_straordinarie: value })}
             disabled={disabled || isOreDisabled}
             className="rg-input-narrow"
             title={isOreDisabled ? 'Ore calcolate automaticamente dalle timbrature QR. Salva per aggiornare.' : ''}
@@ -656,12 +681,10 @@ function CardGiorno({
       {/* Campo Ore Ordinarie */}
       <div className="card-field">
         <label className="card-label">Ore Ordinarie</label>
-        <input
-          type="number"
-          min="0"
-          step="0.25"
-          value={Number(riga.ore_ordinarie || 0).toFixed(2)}
-          onChange={(e) => onChange({ ...riga, ore_ordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+        <CampoOre
+          key={`mobile-ordinarie-${riga.ore_ordinarie}`}
+          value={riga.ore_ordinarie}
+          onChange={(value) => onChange({ ...riga, ore_ordinarie: value })}
           disabled={disabled || isOreDisabled}
           className="card-input"
         />
@@ -671,12 +694,10 @@ function CardGiorno({
       {!isFullTime && (
         <div className="card-field">
           <label className="card-label">Ore Eccedenti</label>
-          <input
-            type="number"
-            min="0"
-            step="0.25"
-            value={Number(riga.ore_eccedenti || 0).toFixed(2)}
-            onChange={(e) => onChange({ ...riga, ore_eccedenti: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          <CampoOre
+            key={`mobile-eccedenti-${riga.ore_eccedenti}`}
+            value={riga.ore_eccedenti}
+            onChange={(value) => onChange({ ...riga, ore_eccedenti: value })}
             disabled={disabled || isOreDisabled}
             className="card-input"
           />
@@ -686,12 +707,10 @@ function CardGiorno({
       {isFullTime && (
         <div className="card-field">
           <label className="card-label">Ore Straordinarie</label>
-          <input
-            type="number"
-            min="0"
-            step="0.25"
-            value={Number(riga.ore_straordinarie || 0).toFixed(2)}
-            onChange={(e) => onChange({ ...riga, ore_straordinarie: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
+          <CampoOre
+            key={`mobile-straordinarie-${riga.ore_straordinarie}`}
+            value={riga.ore_straordinarie}
+            onChange={(value) => onChange({ ...riga, ore_straordinarie: value })}
             disabled={disabled || isOreDisabled}
             className="card-input"
           />
@@ -910,12 +929,12 @@ function Timesheet() {
       // Calcola ore ordinarie e straordinarie in base al contratto
       const [y, m, d] = dataStr.split('-')
       const oreOrdinarieMax = getOrePrevistePerGiorno(parseInt(y), parseInt(m), parseInt(d))
-      const oreStraordinarie = Math.max(0, Math.round((oreNette - oreOrdinarieMax) * 4) / 4)
+      const oreStraordinarie = Math.max(0, Math.round((oreNette - oreOrdinarieMax) * 100) / 100)
       const oreOrdinarie = Math.min(oreNette, oreOrdinarieMax)
       
       return {
-        ore_ordinarie: Math.round(oreOrdinarie * 4) / 4,
-        ore_straordinarie: Math.round(oreStraordinarie * 4) / 4,
+        ore_ordinarie: Math.round(oreOrdinarie * 100) / 100,
+        ore_straordinarie: oreStraordinarie,
         ore_eccedenti: 0
       }
     } catch (e) {
@@ -1068,11 +1087,11 @@ useEffect(() => {
       const causale = nuovaRiga.causale || 'lavoro'
       
       if (causale === 'lavoro' && oreOrdinarieMax > 0 && oreOrdinarie > oreOrdinarieMax) {
-        const oreEccedenti = Math.round((oreOrdinarie - oreOrdinarieMax) * 4) / 4
+        const oreEccedenti = Math.round((oreOrdinarie - oreOrdinarieMax) * 100) / 100
         nuovaRiga.ore_ordinarie = oreOrdinarieMax
         nuovaRiga.ore_causale = 0
         if (isFullTime) {
-          nuovaRiga.ore_straordinarie = (nuovaRiga.ore_straordinarie || 0) + oreEccedenti
+          nuovaRiga.ore_straordinarie = oreEccedenti
         } else {
           nuovaRiga.ore_eccedenti = (nuovaRiga.ore_eccedenti || 0) + oreEccedenti
         }
@@ -1452,7 +1471,9 @@ useEffect(() => {
   const getOrePrevistePerGiorno = (anno, mese, giorno) => {
     const isFullTime = Number(dipendente?.percentuale_part_time ?? 100) >= 100;
     if (isFullTime) {
-      const oreSettimanali = parseFloat(dipendente?.ore_settimanali) || parseFloat(dipendente?.contratto?.ore_settimanali_teoriche);
+      const oreSettimanali = parseFloat(dipendente?.regola_calcolo?.ore_settimanali_teoriche) ||
+        parseFloat(dipendente?.contratto?.ore_settimanali_teoriche) ||
+        parseFloat(dipendente?.ore_settimanali);
       const giorniLavorativi = parseInt(dipendente?.giorni_lavorativi_settimanali) || 5;
       if (oreSettimanali && oreSettimanali > 0) {
         return oreSettimanali / giorniLavorativi;
@@ -1464,13 +1485,17 @@ useEffect(() => {
     return orariSettimanali[giornoSettimana] || 0
   }
 
-  // 🔹 Funzione per determinare se un giorno è di riposo (R1 o R2) in base alle condizioni contrattuali attive o fallback
+  // Per i part-time configurati, la distribuzione settimanale determina i riposi.
   const getIsRiposo = (dataStr) => {
     if (!dipendente) return false
     const [y, m, d] = dataStr.split('-')
     const dataObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
     const jsDay = dataObj.getDay() // 0-6 (0=Dom, 1=Lun... 6=Sab)
     const giornoSettimanaNum = jsDay === 0 ? 7 : jsDay // 1-7 (1=Lun... 7=Dom)
+
+    if (Number(dipendente.percentuale_part_time ?? 100) < 100 && Object.prototype.hasOwnProperty.call(orariSettimanali, jsDay)) {
+      return Number(orariSettimanali[jsDay]) <= 0
+    }
 
     const condizioneGiorno = dipendente?.condizioni_contrattuali?.find(c => {
       const inizio = c.data_inizio

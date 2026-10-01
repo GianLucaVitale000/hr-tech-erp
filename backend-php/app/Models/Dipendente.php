@@ -102,8 +102,8 @@ class Dipendente extends Model
             return $this->regoleCalcolo->first();
         }
         
-        // 2. Fallback: prima regola del contratto
-        if ($this->contratto && $this->contratto->regoleCalcolo->isNotEmpty()) {
+        // 2. Fallback: usa la regola del contratto solo se non ci sono profili multipli
+        if ($this->contratto && $this->contratto->regoleCalcolo->count() === 1) {
             return $this->contratto->regoleCalcolo->first();
         }
         
@@ -154,12 +154,10 @@ class Dipendente extends Model
     {
         // Per full-time, usa il calcolo standard
         if ((float)($this->percentuale_part_time ?? 100) >= 100) {
-            $oreSettimanali = (float)($this->ore_settimanali ?? 0);
+            $regola = $this->regolaCalcolo;
+            $oreSettimanali = (float)($regola->ore_settimanali_teoriche ?? 0);
             if ($oreSettimanali <= 0) {
-                $regola = $this->regolaCalcolo;
-                if ($regola && $regola->ore_settimanali_teoriche > 0) {
-                    $oreSettimanali = (float)$regola->ore_settimanali_teoriche;
-                }
+                $oreSettimanali = (float)($this->ore_settimanali ?? 0);
             }
             $giorniLavorativi = (int)($this->giorni_lavorativi_settimanali ?? 5);
             if ($oreSettimanali > 0 && $giorniLavorativi > 0) {
