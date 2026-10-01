@@ -68,7 +68,7 @@ L'amministratore del sistema è responsabile di eseguire regolarmente questo com
 - **Filtraggio e Pulizia Automatica**:
   Durante la sincronizzazione (gestita dal comando Artisan [`SyncCnelContracts.php`](backend-php/app/Console/Commands/SyncCnelContracts.php) e dal seeder [`CnelContractsSeeder.php`](backend-php/database/seeders/CnelContractsSeeder.php)), il sistema esegue:
   - **Scarto del Pubblico Impiego**: Esclusione automatica di tutti i contratti intestati all'ARAN o contenenti parole chiave relative a ministeri, enti locali, sanità pubblica, scuola e forze armate.
-   - **Fallback di Sicurezza**: In caso di mancata connettività con le API esterne del CNEL durante il deployment, il sistema assicura la presenza di contratti essenziali di fallback (`C011` Metalmeccanica, `H011` Terziario/Commercio, `I100` Logistica) per non compromettere la continuità operativa dell'ERP.
+  - **Fallback di Sicurezza**: In caso di mancata connettività con le API esterne del CNEL  durante il deployment, il sistema assicura la presenza di contratti essenziali di fallback (`C011` Metalmeccanica, `H011` Terziario/Commercio, `I100` Logistica) per non compromettere la continuità operativa dell'ERP.
 
 ---
 
