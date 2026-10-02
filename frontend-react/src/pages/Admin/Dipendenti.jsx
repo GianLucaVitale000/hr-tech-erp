@@ -2,6 +2,22 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDipendenti } from '../../services/dipendentiService'
 
+function getOreSettimanaliVisualizzate(dipendente) {
+  const isPartTime = Number(dipendente.percentuale_part_time ?? 100) < 100
+  const oreDistribuzione = (dipendente.orari_settimanali || [])
+    .reduce((totale, giorno) => totale + Number(giorno.ore_giornaliere_previste || 0), 0)
+
+  if (isPartTime && oreDistribuzione > 0) {
+    return oreDistribuzione
+  }
+
+  const orePersonalizzate = Number(dipendente.ore_settimanali)
+  if (orePersonalizzate > 0) return orePersonalizzate
+
+  const oreContrattuali = Number(dipendente.contratto?.ore_settimanali_teoriche)
+  return oreContrattuali > 0 ? oreContrattuali : 40
+}
+
 function Dipendenti() {
   const [dipendenti, setDipendenti] = useState([])
   const [loading, setLoading] = useState(true)
@@ -59,12 +75,8 @@ function Dipendenti() {
         <p className="dipendenti-empty">Nessun dipendente trovato.</p>
       ) : isMobile ? (
         <div className="dipendenti-mobile-list">
-          {dipendenti.map((d) => {
-            const oreSettimanali = d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0
-              ? d.ore_settimanali
-              : d.contratto?.ore_settimanali_teoriche !== null && parseFloat(d.contratto.ore_settimanali_teoriche) !== 0
-              ? d.contratto.ore_settimanali_teoriche
-              : '40'
+        {dipendenti.map((d) => {
+          const oreSettimanali = getOreSettimanaliVisualizzate(d)
             return (
               <div key={d.id} className="dipendenti-card">
                 <div className="dipendenti-card-fields">
@@ -146,13 +158,7 @@ function Dipendenti() {
                     {d.mansione || '-'}
                   </td>
                   <td>
-                    {d.ore_settimanali !== null && d.ore_settimanali !== undefined && parseFloat(d.ore_settimanali) !== 0 ? (
-                      d.ore_settimanali
-                    ) : d.contratto?.ore_settimanali_teoriche !== null && parseFloat(d.contratto.ore_settimanali_teoriche) !== 0 ? (
-                      d.contratto.ore_settimanali_teoriche
-                    ) : (
-                      '40'
-                    )}
+                    {getOreSettimanaliVisualizzate(d)}
                   </td>
                   <td>{d.livello || '-'}</td>
                   <td>{d.contratto?.codice_cnel || '-'}</td>

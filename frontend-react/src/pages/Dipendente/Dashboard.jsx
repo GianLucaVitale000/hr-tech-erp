@@ -21,12 +21,6 @@ const GIORNI_SETTIMANA_MAP = {
   7: 'domenica'
 }
 
-const formatRiposo = (val) => {
-  if (val === null || val === undefined || val === '') return null
-  const num = Number(val)
-  return GIORNI_SETTIMANA_MAP[num] || val
-}
-
 function DonutCard({ titolo, valore, totale, colore }) {
   
   return (
@@ -145,6 +139,48 @@ function DipendenteDashboard() {
   }
 
   const giorniTeoriciLavorabili = calcolaTeoriciAnnoCorrente(profilo)
+  const percentualePartTime = Number(profilo?.percentuale_part_time ?? 100)
+  const isPartTime = percentualePartTime < 100
+  const oreDistribuiteSettimanali = (profilo?.orari_settimanali || [])
+    .reduce((totale, giorno) => totale + Number(giorno.ore_giornaliere_previste || 0), 0)
+  const oreSettimanaliBase = (() => {
+    if (isPartTime && oreDistribuiteSettimanali > 0 && percentualePartTime > 0) {
+      return oreDistribuiteSettimanali * 100 / percentualePartTime
+    }
+
+    const oreRegola = Number(profilo?.regola_calcolo?.ore_settimanali_teoriche)
+    if (oreRegola > 0) return oreRegola
+
+    const orePersonalizzate = Number(profilo?.ore_settimanali)
+    if (orePersonalizzate > 0) return orePersonalizzate
+
+    const oreContrattuali = Number(profilo?.contratto?.ore_settimanali_teoriche)
+    if (oreContrattuali > 0) return oreContrattuali
+
+    return 40
+  })()
+  const oreSettimanaliTempoPieno = oreSettimanaliBase
+  const oreSettimanali = (() => {
+    const orePersonalizzate = Number(profilo?.ore_settimanali)
+    if (orePersonalizzate > 0) return orePersonalizzate
+
+    const orePartTime = Number(profilo?.ore_settimanali_part_time)
+    if (orePartTime > 0) return orePartTime
+
+    const oreRegola = Number(profilo?.regola_calcolo?.ore_settimanali_teoriche)
+    if (oreRegola > 0) return oreRegola
+
+    const oreContrattuali = Number(profilo?.contratto?.ore_settimanali_teoriche)
+    return oreContrattuali > 0 ? oreContrattuali : null
+  })()
+  const oreSettimanaliPartTime = oreSettimanaliBase * percentualePartTime / 100
+  const ordineSettimanaLunedi = [1, 2, 3, 4, 5, 6, 0]
+  const orariSettimanali = [...(profilo?.orari_settimanali || [])]
+    .sort((a, b) => (
+      ordineSettimanaLunedi.indexOf(Number(a.giorno_settimana)) -
+      ordineSettimanaLunedi.indexOf(Number(b.giorno_settimana))
+    ))
+  const formatOrario = (orario) => orario ? String(orario).slice(0, 5) : '--:--'
 
   const oggiStr = oggi.toISOString().split('T')[0]
   const inizioAnnoStr = `${annoCorrente}-01-01`
@@ -187,73 +223,99 @@ function DipendenteDashboard() {
         <p className="text-primary">Caricamento dati in corso...</p>
       ) : profilo ? (
         <div className="dashboard-page-wrapper">
-          {/* Riepilogo anagrafica originario in testa */}
-          <div className="profile-card">
-            {user?.name && (
+          <div className="dashboard-profile-row">
+            {/* Riepilogo anagrafica originario in testa */}
+            <div className="profile-card">
+              {user?.name && (
+                <div>
+                  <strong>Nome:</strong> {user.name}
+                </div>
+              )}
+              {profilo.codice_fiscale && (
+                <div>
+                  <strong>Codice Fiscale:</strong> {profilo.codice_fiscale}
+                </div>
+              )}
+              {profilo.tipo_contratto && (
+                <div>
+                  <strong>Tipo Contratto:</strong>{' '}
+                  {profilo.tipo_contratto === 'indeterminato'
+                    ? 'Indeterminato'
+                    : 'Determinato'}
+                </div>
+              )}
               <div>
-                <strong>Nome:</strong> {user.name}
+                <strong>CCNL applicato:</strong> {profilo.contratto?.codice_cnel || '-'}
               </div>
-            )}
-            {profilo.codice_fiscale && (
-              <div>
-                <strong>Codice Fiscale:</strong> {profilo.codice_fiscale}
-              </div>
-            )}
-            {profilo.tipo_contratto && (
-              <div>
-                <strong>Tipo Contratto:</strong>{' '}
-                {profilo.tipo_contratto === 'indeterminato'
-                  ? 'Indeterminato'
-                  : 'Determinato'}
-              </div>
-            )}
-            {formatDate(profilo.data_scadenza_contratto) && (
-              <div>
-                <strong>Scadenza Contratto:</strong> {formatDate(profilo.data_scadenza_contratto)}
-              </div>
-            )}
-            {profilo.percentuale_part_time !== undefined && profilo.percentuale_part_time !== null && (
-              <div>
-                <strong>Regime Orario:</strong> {Number(profilo.percentuale_part_time) === 100 ? 'Tempo Pieno' : `${profilo.percentuale_part_time}%`}
-              </div>
-            )}
-            {profilo.giorni_lavorativi_settimanali !== undefined && profilo.giorni_lavorativi_settimanali !== null && (
-              <div>
-                <strong>GG. Lav. Settimanali:</strong> {profilo.giorni_lavorativi_settimanali}
-              </div>
-            )}
-            {(() => {
-              const isFullTime = Number(profilo.percentuale_part_time ?? 100) >= 100;
-              const giorniSettimanali = Number(profilo.giorni_lavorativi_settimanali) || 5;
-              
-              if (isFullTime) {
-                const r1 = formatRiposo(profilo.R1) || (giorniSettimanali === 6 ? 'domenica' : 'sabato');
-                const r2 = giorniSettimanali === 5 ? (formatRiposo(profilo.R2) || 'domenica') : null;
-                return (
-                  <div>
-                    <strong>Riposi:</strong> {r1} (R1){r2 ? `, ${r2} (R2)` : ''}
+              {formatDate(profilo.data_scadenza_contratto) && (
+                <div>
+                  <strong>Scadenza Contratto:</strong> {formatDate(profilo.data_scadenza_contratto)}
+                </div>
+              )}
+              {isPartTime && (
+                <div>
+                  <strong>Ore Settimanali (full-time):</strong> {oreSettimanaliTempoPieno.toFixed(2)} h
+                </div>
+              )}
+              {profilo.percentuale_part_time !== undefined && profilo.percentuale_part_time !== null && (
+                <div>
+                  <strong>Regime Orario:</strong> {Number(profilo.percentuale_part_time) === 100 ? 'Tempo Pieno' : `${profilo.percentuale_part_time}%`}
+                </div>
+              )}
+              {isPartTime && (
+                <div>
+                  <strong>Ore Settimanali:</strong> {oreSettimanaliPartTime.toFixed(2)} h
+                </div>
+              )}
+              {profilo.giorni_lavorativi_settimanali !== undefined && profilo.giorni_lavorativi_settimanali !== null && (
+                <div>
+                  <strong>GG. Lav. Settimanali:</strong> {profilo.giorni_lavorativi_settimanali}
+                </div>
+              )}
+            </div>
+
+            {isPartTime ? (
+              <div className="weekly-hours-card weekly-schedule-card">
+                <div className="weekly-hours-card-title">Calendario settimanale</div>
+                {orariSettimanali.length > 0 ? (
+                  <div className="weekly-schedule-list">
+                    {orariSettimanali.map((orario) => {
+                      const giorno = GIORNI_SETTIMANA_MAP[
+                        Number(orario.giorno_settimana) === 0 ? 7 : Number(orario.giorno_settimana)
+                      ]
+                      const ore = Number(orario.ore_giornaliere_previste || 0)
+                      const indiceRiposo = orariSettimanali
+                        .filter((giornoOrario) => Number(giornoOrario.ore_giornaliere_previste || 0) === 0)
+                        .findIndex((giornoOrario) => (
+                          Number(giornoOrario.giorno_settimana) === Number(orario.giorno_settimana)
+                        ))
+                      const riposoLabel = indiceRiposo >= 0 && indiceRiposo < 2
+                        ? `Riposo (R${indiceRiposo + 1})`
+                        : 'Riposo'
+                      return (
+                        <div className="weekly-schedule-row" key={orario.giorno_settimana}>
+                          <span className="weekly-schedule-day">{giorno}</span>
+                          <span className="weekly-schedule-hours">{ore.toFixed(2)} h</span>
+                          <span className="weekly-schedule-shifts">
+                            {ore > 0
+                              ? `${formatOrario(orario.turno1_dalle)}-${formatOrario(orario.turno1_alle)}${orario.turno2_dalle || orario.turno2_alle ? ` / ${formatOrario(orario.turno2_dalle)}-${formatOrario(orario.turno2_alle)}` : ''}`
+                              : riposoLabel}
+                          </span>
+                        </div>
+                      )
+                    })}
                   </div>
-                );
-              } else {
-                const orari = profilo.orari_settimanali || [];
-                const giorniRiposoTrovati = [];
-                for (let i = 0; i <= 6; i++) {
-                  const orarioGiorno = orari.find(o => Number(o.giorno_settimana) === i);
-                  const isRiposo = !orarioGiorno || parseFloat(orarioGiorno.ore_giornaliere_previste || 0) === 0;
-                  if (isRiposo) {
-                    giorniRiposoTrovati.push(GIORNI_SETTIMANA_MAP[i === 0 ? 7 : i]);
-                  }
-                }
-                if (giorniRiposoTrovati.length > 0) {
-                  return (
-                    <div>
-                      <strong>Riposi:</strong> {giorniRiposoTrovati.map((g, idx) => `${g} (R${idx + 1})`).join(', ')}
-                    </div>
-                  );
-                }
-              }
-              return null;
-            })()}
+                ) : (
+                  <div className="weekly-schedule-empty">Distribuzione oraria non configurata</div>
+                )}
+              </div>
+            ) : oreSettimanali !== null ? (
+              <div className="weekly-hours-card">
+                <div className="weekly-hours-card-title">Orario di lavoro</div>
+                <div className="weekly-hours-card-value">{oreSettimanali.toFixed(2)} h</div>
+                <div className="weekly-hours-card-subtitle">Settimanali</div>
+              </div>
+            ) : null}
           </div>
 
           {/* Contenitore a due colonne */}
@@ -327,4 +389,3 @@ function DipendenteDashboard() {
 }
 
 export default DipendenteDashboard
-

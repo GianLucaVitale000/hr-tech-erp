@@ -438,6 +438,104 @@ input:checked + .slider .fa-sun {
   line-height: 1.2;
 }
 
+.dashboard-profile-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+}
+
+.weekly-hours-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 110px;
+  padding: 0.75rem;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  color: var(--card-text);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.weekly-hours-card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--card-muted-text);
+}
+
+.weekly-hours-card-value {
+  margin-top: 0.35rem;
+  font-size: 1.6rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.weekly-hours-card-subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--card-muted-text);
+}
+
+.weekly-schedule-card {
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.weekly-schedule-card .weekly-hours-card-title {
+  text-align: center;
+}
+
+.weekly-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.5rem;
+}
+
+.weekly-schedule-row {
+  display: grid;
+  grid-template-columns: minmax(76px, 1fr) auto minmax(130px, 1.5fr);
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.75rem;
+}
+
+.weekly-schedule-row:last-child {
+  border-bottom: 0;
+}
+
+.weekly-schedule-day {
+  color: var(--card-text);
+  font-weight: 600;
+}
+
+.weekly-schedule-hours {
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.weekly-schedule-shifts {
+  color: var(--card-muted-text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.weekly-schedule-empty {
+  margin-top: 1rem;
+  color: var(--card-muted-text);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 /* Container delle due card */
 .dashboard-cards-container {
   margin-top: 2rem;
@@ -469,4 +567,28 @@ input:checked + .slider .fa-sun {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
   align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .dashboard-profile-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .weekly-hours-card {
+    min-height: 100px;
+  }
+
+  .weekly-schedule-card {
+    min-height: 0;
+  }
+
+  .weekly-schedule-row {
+    grid-template-columns: minmax(76px, 1fr) auto;
+  }
+
+  .weekly-schedule-shifts {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
 }

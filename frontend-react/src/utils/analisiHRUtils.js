@@ -73,10 +73,14 @@ export const calcolaSupplementariEStraordinarieMensili = (presenzeMese, isFullTi
     // Fallback: usa direttamente i valori dal DB
     const totaleOrdinarie = presenzeMese.reduce((sum, p) => sum + parseFloat(p.ore_ordinarie || 0), 0)
     if (isFullTime) {
-      const totaleStraordinarie = presenzeMese.reduce((sum, p) => sum + parseFloat(p.ore_straordinarie || 0), 0)
+      const totaleStraordinarie = presenzeMese.reduce((sum, p) => (
+        sum + parseFloat(p.ore_straordinarie || 0) + parseFloat(p.ore_eccedenti || 0)
+      ), 0)
       return { ordinarie: totaleOrdinarie, supplementari: 0, straordinarie: totaleStraordinarie }
     } else {
-      const totaleEccedenti = presenzeMese.reduce((sum, p) => sum + parseFloat(p.ore_eccedenti || 0), 0)
+      const totaleEccedenti = presenzeMese.reduce((sum, p) => (
+        sum + parseFloat(p.ore_eccedenti || 0) + parseFloat(p.ore_straordinarie || 0)
+      ), 0)
       return { ordinarie: totaleOrdinarie, supplementari: totaleEccedenti, straordinarie: 0 }
     }
   }
@@ -103,8 +107,10 @@ export const calcolaSupplementariEStraordinarieMensili = (presenzeMese, isFullTi
   presenzeOrdinate.forEach(p => {
     const oreContrattualiGiornaliere = isFullTime ? oreContrattualiGiornaliereFT : oreContrattualiGiornalierePT
     
-    const oreLavorate = (p.causale === 'lavoro' || p.causale === 'assemblea' || p.causale === 'sciopero') 
-      ? parseFloat(p.ore_ordinarie || 0)
+    const oreLavorate = (p.causale === 'lavoro' || p.causale === 'assemblea' || p.causale === 'sciopero')
+      ? parseFloat(p.ore_ordinarie || 0) +
+        parseFloat(p.ore_eccedenti || 0) +
+        parseFloat(p.ore_straordinarie || 0)
       : 0
     
     totaleOrdinarieLavorate += oreLavorate

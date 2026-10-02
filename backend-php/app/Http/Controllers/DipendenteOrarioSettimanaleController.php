@@ -90,14 +90,13 @@ class DipendenteOrarioSettimanaleController extends Controller
 
         $oreSettimanaliPartTime = $dipendente->ore_settimanali_part_time;
 
-        // Normalizza ogni giornata a 2 decimali prima del calcolo del totale.
-        // Questo allinea il controllo backend con il valore mostrato nel frontend.
-        $orariNormalizzati = array_map(function (array $orario) {
-            $orario['ore_giornaliere_previste'] = round((float) ($orario['ore_giornaliere_previste'] ?? 0), 2);
-            return $orario;
-        }, $validated['orari']);
-
-        $totaleOre = round(array_sum(array_column($orariNormalizzati, 'ore_giornaliere_previste')), 2);
+        // Calcola il totale sulla precisione originale e arrotonda solo l'ultimo
+        // giorno con ore, così la somma salvata coincide con il limite settimanale.
+        $orariNormalizzati = $validated['orari'];
+        $totaleOre = round(array_sum(array_map(
+            fn (array $orario) => (float) ($orario['ore_giornaliere_previste'] ?? 0),
+            $orariNormalizzati
+        )), 2);
         $oreSettimanaliPartTime = round((float) $oreSettimanaliPartTime, 2);
 
         // Confronto in minuti per evitare problemi residui di floating point
@@ -120,6 +119,31 @@ class DipendenteOrarioSettimanaleController extends Controller
                 'orari' => $orariNormalizzati,
             ], 422);
         }
+
+        $indiciGiorniLavorativi = array_keys(array_filter(
+            $orariNormalizzati,
+            fn (array $orario) => (float) ($orario['ore_giornaliere_previste'] ?? 0) > 0
+        ));
+        $ultimoIndiceLavorativo = end($indiciGiorniLavorativi);
+        $oreArrotondatePrecedenti = 0.0;
+
+        foreach ($orariNormalizzati as $indice => &$orario) {
+            $ore = (float) ($orario['ore_giornaliere_previste'] ?? 0);
+            if ($ore <= 0) {
+                $orario['ore_giornaliere_previste'] = 0.00;
+                continue;
+            }
+
+            if ($indice === $ultimoIndiceLavorativo) {
+                $orario['ore_giornaliere_previste'] = round($oreSettimanaliPartTime - $oreArrotondatePrecedenti, 2);
+            } else {
+                $orario['ore_giornaliere_previste'] = round($ore, 2);
+                $oreArrotondatePrecedenti += $orario['ore_giornaliere_previste'];
+            }
+        }
+        unset($orario);
+
+        $totaleOre = round(array_sum(array_column($orariNormalizzati, 'ore_giornaliere_previste')), 2);
 
         // Usa transazione per aggiornare tutti i record
         DB::beginTransaction();

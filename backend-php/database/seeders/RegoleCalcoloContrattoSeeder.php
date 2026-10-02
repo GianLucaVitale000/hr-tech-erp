@@ -43,16 +43,16 @@ class RegoleCalcoloContrattoSeeder extends Seeder
         }
 
         // Logistica, trasporto merci e spedizione (I100)
-        // 40 ore settimanali: al 75% corrispondono a 30 ore.
+        // 39 ore settimanali: al 75% corrispondono a 29.25 ore.
         $contrattiLogistica = Contratto::where('codice_cnel', 'I100')->get();
         foreach ($contrattiLogistica as $contrattoLogistica) {
             $regola = RegolaCalcoloContratto::firstOrCreate(
                 ['contratto_id' => $contrattoLogistica->id],
-                ['ore_settimanali_teoriche' => 40.00]
+                ['ore_settimanali_teoriche' => 39.00]
             );
 
             if ($regola->ore_settimanali_teoriche === null || (float) $regola->ore_settimanali_teoriche <= 0) {
-                $regola->update(['ore_settimanali_teoriche' => 40.00]);
+                $regola->update(['ore_settimanali_teoriche' => 39.00]);
             }
         }
 

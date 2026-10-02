@@ -49,7 +49,7 @@ class DipendentiSeeder extends Seeder
         }
         
         // Imposta default per I100 e H011 se non hanno ore_settimanali_teoriche
-        $oreI100 = $contrattoI100->ore_settimanali_teoriche ?: 40.00;
+        $oreI100 = $contrattoI100->ore_settimanali_teoriche ?: 39.00;
         $oreH011 = $contrattoH011->ore_settimanali_teoriche ?: 40.00;
 
         // Trova o crea Mario Rossi (esiste già dal RolesAndUsersSeeder)
@@ -199,7 +199,7 @@ class DipendentiSeeder extends Seeder
 
         // Marco Gialli: I100, part-time 75%, livello 4, 6 giorni
         // Calcolo ore settimanali: 75% di 39 ore = 29.25 ore
-        $oreSettimanaliI100PartTime = $contrattoI100->ore_settimanali_teoriche ? ($contrattoI100->ore_settimanali_teoriche * 0.75) : 30.00;
+        $oreSettimanaliI100PartTime = $contrattoI100->ore_settimanali_teoriche ? ($contrattoI100->ore_settimanali_teoriche * 0.75) : 29.25;
         
         $dipendenteI100Part = Dipendente::updateOrCreate(
             ['user_id' => $userI100PartTime->id],
@@ -220,7 +220,7 @@ class DipendentiSeeder extends Seeder
         );
 
         // Crea orari settimanali per Marco Gialli (part-time 75%, 6 giorni, 29.25 ore)
-        // Distribuzione: 29.25 / 6 = 4.875 ore al giorno (arrotondato a 4.88)
+        // Distribuzione: 29.25 / 6 = 4.875 ore al giorno
         $this->createOrariSettimanali($dipendenteI100Part->id, 6, $oreSettimanaliI100PartTime);
 
         // ====================================================================
@@ -357,8 +357,11 @@ class DipendentiSeeder extends Seeder
      */
     protected function createOrariSettimanali(int $dipendenteId, int $giorniLavorativi, ?float $oreSettimanali = null): void
     {
-        // Calcola ore giornaliere
-        $oreGiornaliere = $oreSettimanali ? ($oreSettimanali / $giorniLavorativi) : 8;
+        // Arrotonda mantenendo il totale settimanale entro la precisione del database.
+        $oreGiornaliere = $oreSettimanali ? round($oreSettimanali / $giorniLavorativi, 2) : 8;
+        $oreGiornaliereUltimoGiorno = $oreSettimanali
+            ? round($oreSettimanali - ($oreGiornaliere * ($giorniLavorativi - 1)), 2)
+            : $oreGiornaliere;
         
         // Definisci i giorni della settimana (1=Lunedì, 6=Sabato)
         $giorni = [];
@@ -378,7 +381,9 @@ class DipendentiSeeder extends Seeder
                 [
                     'dipendente_id' => $dipendenteId,
                     'giorno_settimana' => $giorno,
-                    'ore_giornaliere_previste' => $oreGiornaliere,
+                    'ore_giornaliere_previste' => count($giorni) === $giorniLavorativi && $giorno === $giorni[count($giorni) - 1]
+                        ? $oreGiornaliereUltimoGiorno
+                        : $oreGiornaliere,
                     'turno1_dalle' => $giorniLavorativi >= 6 ? '08:00:00' : '08:30:00',
                     'turno1_alle' => $giorniLavorativi >= 6 ? '13:00:00' : null,
                     // Per 6 giorni: turno pomeridiano per sabato

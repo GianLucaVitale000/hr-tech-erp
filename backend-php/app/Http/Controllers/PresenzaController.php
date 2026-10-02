@@ -14,7 +14,13 @@ class PresenzaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Presenza::with('dipendente.user');
+        $query = Presenza::with([
+            'dipendente.user',
+            'dipendente.contratto',
+            'dipendente.contratto.regoleCalcolo',
+            'dipendente.orariSettimanali',
+            'dipendente.condizioniContrattuali',
+        ]);
 
         if ($request->has('dipendente_id')) {
             $query->where('dipendente_id', $request->dipendente_id);
