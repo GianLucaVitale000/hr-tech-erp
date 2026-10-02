@@ -403,7 +403,7 @@ class PresenzaController extends Controller
             'dipendente_id' => $dipendente->id,
             'presenza_id' => $presenza->id,
             'data' => \Carbon\Carbon::parse($presenza->data)->toDateString(),
-            'exp' => Carbon::now()->addSeconds(30)->timestamp,  // Scade dopo 30 secondi
+            'exp' => Carbon::now()->addSeconds(config('app.qr_token_ttl_seconds'))->timestamp,
         ];
 
         // Controlla che config app.key esista
@@ -438,7 +438,10 @@ class PresenzaController extends Controller
             $dipendente = $presenza->dipendente;
 
             // Verifica che il token corrisponda alla presenza
-            if ($payload->dipendente_id !== $dipendente->id || $payload->data !== $presenza->data) {
+            $tokenDipendenteId = (int) $payload->dipendente_id;
+            $presenzaData = Carbon::parse($presenza->data)->toDateString();
+
+            if ($tokenDipendenteId !== (int) $dipendente->id || $payload->data !== $presenzaData) {
                 throw new \Exception('Token non valido per questa presenza');
             }
 

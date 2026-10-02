@@ -2,7 +2,7 @@
 
 Questo documento presenta le caratteristiche tecniche, architetturali e funzionali del modulo di **Login e Autenticazione** implementato nell'applicazione **HR-Tech ERP**.
 
-Il sistema adotta un'architettura **Full-Stack Separata** basata su un backend **Laravel 11** con API REST e autenticazione tramite **Laravel Sanctum**, e un frontend **React 18** (Vite) con gestione dello stato globale tramite Context API e routing protetto.
+Il sistema adotta un'architettura **Full-Stack Separata** basata su un backend **Laravel 13** con API REST e autenticazione tramite **Laravel Sanctum**, e un frontend **React 19** (Vite) con gestione dello stato globale tramite Context API e routing protetto.
 
 ---
 

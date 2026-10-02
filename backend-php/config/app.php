@@ -115,6 +115,7 @@ return [
     */
 
     'kiosk_token' => env('KIOSK_TOKEN', ''),
+    'qr_token_ttl_seconds' => (int) env('QR_TOKEN_TTL_SECONDS', 30),
 
     /*
     |--------------------------------------------------------------------------

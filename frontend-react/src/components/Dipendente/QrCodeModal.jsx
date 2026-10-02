@@ -2,6 +2,21 @@ import { useEffect, useRef } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import '../../styles/QrCodeModal.css'
 
+function getTokenExpiration(token) {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const json = atob(base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '='))
+    const expiration = JSON.parse(json).exp
+
+    return typeof expiration === 'number' ? expiration : null
+  } catch {
+    return null
+  }
+}
+
 /**
  * Modale per visualizzare il QR Code dinamico
  * 
@@ -12,37 +27,50 @@ import '../../styles/QrCodeModal.css'
  */
 function QrCodeModal({ qrToken, presence, onClose }) {
   const countdownRef = useRef(null)
-  
-  // Avvia il countdown di 30 secondi
+  const onCloseRef = useRef(onClose)
+
   useEffect(() => {
-    let seconds = 30
-    
-    const timer = setInterval(() => {
-      seconds--
-      if (countdownRef.current) {
-        countdownRef.current.textContent = seconds
-      }
-      
-      if (seconds <= 0) {
-        clearInterval(timer)
-        onClose()
-      }
-    }, 1000)
-    
-    return () => clearInterval(timer)
+    onCloseRef.current = onClose
   }, [onClose])
+
+  // Il countdown riparte quando viene generato un nuovo token.
+  useEffect(() => {
+    const expiration = getTokenExpiration(qrToken)
+    if (!expiration) {
+      if (countdownRef.current) {
+        countdownRef.current.textContent = '0'
+      }
+      onCloseRef.current()
+      return undefined
+    }
+
+    const updateCountdown = () => {
+      const seconds = Math.max(0, expiration - Math.floor(Date.now() / 1000))
+      if (countdownRef.current) {
+        countdownRef.current.textContent = String(seconds)
+      }
+      if (seconds === 0) {
+        onCloseRef.current()
+      }
+    }
+
+    updateCountdown()
+    const timer = setInterval(updateCountdown, 250)
+
+    return () => clearInterval(timer)
+  }, [qrToken])
 
   // Gestisci la chiusura con ESC
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
       }
     }
     
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
-  }, [onClose])
+  }, [])
 
   // Formatta la data per il titolo
   const formatDate = (dateString) => {
@@ -77,7 +105,7 @@ function QrCodeModal({ qrToken, presence, onClose }) {
             level="H"
             includeMargin={true}
             imageSettings={{
-              src: '/vite.svg',
+              src: '/favicon-light.png',
               height: 24,
               width: 24,
               excavate: true,
@@ -96,12 +124,13 @@ function QrCodeModal({ qrToken, presence, onClose }) {
             />
             <button
               onClick={() => {
-                navigator.clipboard.writeText(qrToken || '')
+                const tokenToCopy = (qrToken || '').replace(/[\u200B-\u200D\uFEFF]/g, '').trim()
+                navigator.clipboard.writeText(tokenToCopy)
                   .then(() => alert('Token copiato negli appunti!'))
                   .catch(() => {
                     // Fallback per browser vecchi
                     const textarea = document.createElement('textarea')
-                    textarea.value = qrToken || ''
+                    textarea.value = tokenToCopy
                     document.body.appendChild(textarea)
                     textarea.select()
                     document.execCommand('copy')
@@ -123,7 +152,7 @@ function QrCodeModal({ qrToken, presence, onClose }) {
 
         <p className="qrCodeModal-description">
           Mostra questo codice al tablet all'ingresso.<br />
-          Il codice si aggiorna automaticamente ogni 25 secondi.
+          Il codice resta valido per alcuni minuti.
         </p>
 
         <button

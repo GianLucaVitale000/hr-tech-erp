@@ -137,7 +137,7 @@ function Kiosk() {
 
       <div className="kiosk-instructions">
         Mostra il QR Code dal tuo smartphone con l'applicazione HR-Tech all'ingresso.<br />
-        Il codice è valido per 30 secondi.
+        Il codice è valido per alcuni secondi.
       </div>
     </div>
   )

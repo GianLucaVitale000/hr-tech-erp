@@ -62,13 +62,17 @@ export const generateQrToken = async (presenzaId) => {
 
 // 🔹 Funzione per inviare la scansione QR dal tablet
 export const scanQrCode = async (qrToken, kioskToken) => {
+  const normalizedQrToken = qrToken
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .trim()
+
   const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/presenze/scan-qr`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Kiosk-Token': kioskToken,
     },
-    body: JSON.stringify({ qr_token: qrToken }),
+    body: JSON.stringify({ qr_token: normalizedQrToken }),
   })
   
   if (!response.ok) {

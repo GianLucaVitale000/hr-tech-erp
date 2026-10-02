@@ -19,8 +19,8 @@ function KioskTest() {
     setResult(null)
 
     try {
-      // Usa il token Kiosk da variabile d'ambiente o default per sviluppo
-      const kioskToken = import.meta.env.VITE_KIOSK_TOKEN || 'test-kiosk-token'
+      // Deve coincidere con il token configurato nel backend e nel kiosk reale.
+      const kioskToken = import.meta.env.VITE_KIOSK_TOKEN || 'tablet_kiosk_secret_token_12345'
       
       const response = await scanQrCode(qrToken, kioskToken)
       setResult({
@@ -40,7 +40,7 @@ function KioskTest() {
 
   const handlePasteQrToken = () => {
     navigator.clipboard.readText()
-      .then(text => setQrToken(text))
+      .then(text => setQrToken(text.replace(/[\u200B-\u200D\uFEFF]/g, '').trim()))
       .catch(() => alert('Non posso accedere agli appunti. Incollare manualmente.'))
   }
 
@@ -183,12 +183,12 @@ function KioskTest() {
       <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
         <h3 style={{ marginTop: 0, marginBottom: '0.5rem', fontSize: '0.9rem' }}>Istruzioni:</h3>
         <ol style={{ textAlign: 'left', marginBottom: 0, paddingLeft: '1.5rem', fontSize: '0.85rem' }}>
-          <li>Nel foglio presenze del dipendente, attiva "QR Code" per un giorno</li>
-          <li>Clicca sul pulsante "Kiosk" per generare il token</li>
-          <li>Copia il token QR dalla modale che si apre</li>
-          <li>Incolla il token in questa pagina</li>
+          <li>Nel foglio presenze, in un determinato giorno di lavoro in sede di cui registrare la presenza, attiva la checkbox "QR Code"</li>
+          <li>Clicca sul pulsante "Scansiona il QR code" per generare il QR Code</li>
+          <li>Copia il token QR con il pulsante "Copia Token"</li>
+          <li>Incolla il token nel campo con il pulsante "Incolla Token"</li>
           <li>Clicca "INGRESSO" o "USCITA" per simulare la timbratura</li>
-          <li>Torna al foglio presenze e aggiorna per vedere le ore calcolate</li>
+          <li>Torna al foglio presenze e verifica la timbratura</li>
         </ol>
       </div>
     </div>

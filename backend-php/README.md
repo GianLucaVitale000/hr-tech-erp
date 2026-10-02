@@ -7,7 +7,32 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Backend API
+
+Questo servizio contiene esclusivamente il backend API Laravel dell'applicazione
+HR-Tech ERP. Il frontend è mantenuto separatamente in
+[`../frontend-react`](../frontend-react).
+
+## Sviluppo
+
+Installare le dipendenze PHP e avviare l'API:
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan serve --port=8000
+```
+
+Le migrazioni vengono eseguite con:
+
+```bash
+php artisan migrate
+```
+
+Il backend non contiene più una pipeline frontend Laravel/Vite: non sono necessari `npm install`, `vite.config.js` o `resources/js`/`resources/css`.
+
+## Funzionalità Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 

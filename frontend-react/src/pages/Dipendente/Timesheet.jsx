@@ -591,7 +591,7 @@ function ModaleQrSettings({
               className="btn btn-primary"
               title="Ricarica i dati dal server per vedere gli aggiornamenti delle timbrature"
             >
-              Verifica scansione
+              Verifica timbratura
             </button>
           )}
         </div>
@@ -1362,37 +1362,6 @@ useEffect(() => {
       setQrToken(token)
       setSelectedPresence(getRiga(dataStr))
       setShowQrModal(true)
-      
-      // Auto-refresh ogni 25 secondi (il token scade dopo 30s)
-      const interval = setInterval(async () => {
-        try {
-          // Controlla se la presenza è completata (entrata e uscita registrate)
-          const currentRiga = getRiga(dataStr)
-          if (currentRiga.ora_ingresso && currentRiga.ora_uscita) {
-            // Presenza completata, ferma il refresh automatico
-            clearInterval(interval)
-            setShowQrModal(false)
-            return
-          }
-          
-          const newToken = await generateQrToken(presenzaId)
-          setQrToken(newToken)
-        } catch (error) {
-          // Se l'errore è 400 (presenza completata), chiudi senza alert
-          if (error.response?.status === 400) {
-            clearInterval(interval)
-            setShowQrModal(false)
-          } else {
-            clearInterval(interval)
-            setShowQrModal(false)
-            alert('Errore nel generare il nuovo QR Code: ' + error.message)
-          }
-        }
-      }, 25000)
-      
-      // Salva l'intervallo per pulirlo alla chiusura
-      return () => clearInterval(interval)
-      
     } catch (error) {
       const errorMessage = error.response?.data?.error || error.message || 'Errore nella generazione del QR Code'
       alert(errorMessage)

@@ -70,7 +70,7 @@ Per poter attivare e utilizzare la timbratura con QR Code su una riga del foglio
    - Spunta la casella **QR Code**: si apre la modale di configurazione (`ModaleQrSettings`) per impostare o verificare la durata della pausa (`pausa_ore`).
 2. **Generazione del Token:**
    - Cliccando su **"Scansiona il QR code"**, l'applicazione richiede un token JWT al backend (`GET /presenze/{id}/generate-qr`). Se la riga non è ancora salvata, viene salvata automaticamente prima di procedere.
-   - Il token viene mostrato all'interno di una modale con QR code SVG (`QrCodeModal.jsx`), la quale aggiorna automaticamente il token ogni 25 secondi (scadenza impostata a 30 secondi).
+   - Il token viene mostrato all'interno di una modale con QR code SVG (`QrCodeModal.jsx`) e resta invariato per la durata configurata, così può essere copiato nel kiosk senza cambiare durante il trasferimento.
 3. **Scansione al Kiosk:**
    - Il tablet aziendale in modalità Kiosk (`Kiosk.jsx`) o l'emulatore di test (`KioskTest.jsx`) inquadra e legge la stringa del QR code.
    - Il kiosk invia il token al backend tramite richiesta POST all'endpoint `POST /api/presenze/scan-qr` includendo l'header di sicurezza `X-Kiosk-Token`.
@@ -85,7 +85,7 @@ Per poter attivare e utilizzare la timbratura con QR Code su una riga del foglio
 
 | Metodo | Endpoint | Autenticazione | Descrizione |
 | :--- | :--- | :--- | :--- |
-| **GET** | `/presenze/{presenza}/generate-qr` | Bearer Token (Sanctum) | Genera un token JWT QR valido per 30 secondi per la presenza specificata. |
+| **GET** | `/presenze/{presenza}/generate-qr` | Bearer Token (Sanctum) | Genera un token JWT QR valido per la durata configurata in `QR_TOKEN_TTL_SECONDS`. |
 | **POST** | `/api/presenze/scan-qr` | Header `X-Kiosk-Token` | Elabora la scansione del QR code e registra l'ingresso o l'uscita. |
 
 ### Esempi di Richiesta e Risposta
@@ -185,6 +185,6 @@ QR_TOKEN_EXPIRY=30
 
 ## Considerazioni sulla Sicurezza
 
-- **Scadenza Ridotta:** I token QR scadono dopo soli 30 secondi per prevenire attacchi di tipo *replay* o usi non autorizzati se inquadrati da terzi.
+- **Scadenza Configurabile:** I token QR scadono dopo la durata configurata in `QR_TOKEN_TTL_SECONDS` (30 secondi di default).
 - **Autenticazione dei Kiosk:** I terminali tablet comunicano tramite token dedicati (`X-Kiosk-Token`) isolati dai token di sessione utente.
 - **Validazione Rigida:** Controlli lato server ferrei impediscono la generazione e la scansione di QR code per dipendenti part-time o modalità lavorative non conformi.

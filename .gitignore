@@ -1,4 +1,10 @@
 # ========================
+# Composer (root-level artifacts are not used; Laravel dependencies live in backend-php/)
+# ========================
+/vendor/
+/composer.lock
+
+# ========================
 # Laravel (backend-php)
 # ========================
 backend-php/vendor/
