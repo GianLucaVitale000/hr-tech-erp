@@ -394,6 +394,31 @@ CREATE TABLE `presenze` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `presenza_comunicazioni`
+--
+
+DROP TABLE IF EXISTS `presenza_comunicazioni`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `presenza_comunicazioni` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `dipendente_id` bigint unsigned NOT NULL,
+  `admin_id` bigint unsigned NOT NULL,
+  `mese` tinyint unsigned NOT NULL,
+  `anno` smallint unsigned NOT NULL,
+  `messaggio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `letto_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `presenza_comunicazioni_dipendente_id_anno_mese_index` (`dipendente_id`,`anno`,`mese`),
+  KEY `presenza_comunicazioni_admin_id_foreign` (`admin_id`),
+  CONSTRAINT `presenza_comunicazioni_admin_id_foreign` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
+  CONSTRAINT `presenza_comunicazioni_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `regole_calcolo_contratto`
 --
 
