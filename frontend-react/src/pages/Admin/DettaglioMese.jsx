@@ -152,7 +152,7 @@ function DettaglioMese() {
                   <span className="dettaglio-mese-card-value">{CAUSALI_LABEL[p.causale] || p.causale}</span>
                 </div>
                 <div className="dettaglio-mese-card-field">
-                  <span className="dettaglio-mese-card-label">Altro:</span>
+                  <span className="dettaglio-mese-card-label">Ore Causale:</span>
                   <span className="dettaglio-mese-card-value">{Number(p.ore_causale || 0).toFixed(2)}</span>
                 </div>
               </div>
@@ -169,7 +169,7 @@ function DettaglioMese() {
               {!isFullTime && <th>Ore Eccedenti</th>}
               {isFullTime && <th>Ore Straordinarie</th>}
               <th>Causale</th>
-              <th>Altro</th>
+              <th>Ore Causale</th>
             </tr>
           </thead>
           <tbody>
