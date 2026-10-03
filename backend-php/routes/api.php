@@ -8,6 +8,7 @@ use App\Http\Controllers\DipendenteController;
 use App\Http\Controllers\DipendenteOrarioSettimanaleController;
 use App\Http\Controllers\PresenzaController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PresenzaComunicazioneController;
 
 Route::get('/ping', function () {
     return response()->json(['message' => 'Laravel API attiva!']);
@@ -42,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/presenze/in-attesa', [PresenzaController::class, 'inAttesa']);
     Route::get('/presenze/mesi-approvati', [PresenzaController::class, 'mesiApprovati']);
     Route::post('/presenze/aggiorna-stato-mese', [PresenzaController::class, 'aggiornaStatoMese']);
+    Route::get('/presenza-comunicazioni', [PresenzaComunicazioneController::class, 'index']);
+    Route::post('/presenza-comunicazioni', [PresenzaComunicazioneController::class, 'store']);
+    Route::post('/presenza-comunicazioni/{comunicazione}/letta', [PresenzaComunicazioneController::class, 'markAsRead']);
     Route::post('/presenze/registra-malattia', [PresenzaController::class, 'registraMalattia']);
     Route::post('/presenze/registra-cassa-integrazione', [PresenzaController::class, 'registraCassaIntegrazione']);
     Route::post('/presenze/{presenza}/giustificativo-trasferta', [PresenzaController::class, 'uploadGiustificativoTrasferta']);
