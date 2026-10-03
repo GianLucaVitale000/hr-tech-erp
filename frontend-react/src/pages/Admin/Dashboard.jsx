@@ -73,10 +73,9 @@ function DonutCard({ titolo, valore, totale, colore }) {
           transform: 'translate(-50%, -50%)',
           textAlign: 'center',
           color: 'var(--text-color)',
-          fontSize: '0.7rem', fontWeight: '700'
+          fontSize: '0.8rem', fontWeight: '700'
         }}>
-          <div>{valore} gg</div>
-          <div style={{ fontSize: '0.6rem', opacity: 0.8 }}>{percent.toFixed(0)}%</div>
+          {percent.toFixed(0)}%
         </div>
       </div>
     </div>

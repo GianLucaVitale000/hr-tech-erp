@@ -22,6 +22,15 @@ export const aggiornaStatoMese = (dipendenteId, mese, anno, stato) =>
     stato
   })
 
+export const getComunicazioniPresenza = (params = {}) =>
+  api.get('/presenza-comunicazioni', { params })
+
+export const creaComunicazionePresenza = (data) =>
+  api.post('/presenza-comunicazioni', data)
+
+export const segnaComunicazioneComeLetta = (id) =>
+  api.post(`/presenza-comunicazioni/${id}/letta`)
+
 export const registraMalattia = (dipendenteId, dataInizio, dataFine, protocollo) =>
   api.post('/presenze/registra-malattia', {
     dipendente_id: dipendenteId,

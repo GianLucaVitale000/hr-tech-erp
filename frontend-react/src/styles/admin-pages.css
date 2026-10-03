@@ -1336,70 +1336,6 @@
   background-color: #dcfce7;
 }
 
-/* Layout Mobile - Card */
-.dettaglio-mese-mobile-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.dettaglio-mese-card {
-  background-color: var(--card-bg);
-  border-radius: 8px;
-  padding: 1rem;
-  border: 1px solid var(--card-border);
-}
-
-.dettaglio-mese-card-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.dettaglio-mese-card-field {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.dettaglio-mese-card-field:last-child {
-  border-bottom: none;
-}
-
-.dettaglio-mese-card-label {
-  color: var(--text-color);
-  font-size: 0.875rem;
-}
-
-.dettaglio-mese-card-value {
-  color: var(--text);
-}
-
-/* Layout Desktop - Tabella */
-.dettaglio-mese-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.dettaglio-mese-table-header {
-  background-color: var(--header-bg);
-  text-align: center;
-}
-
-.dettaglio-mese-table-header th {
-  padding: 0.5rem;
-}
-
-.dettaglio-mese-table-row {
-  border-bottom: 1px solid var(--border);
-}
-
-.dettaglio-mese-table-row td {
-  padding: 0.5rem;
-  font-size: 0.875rem;
-}
-
 /* Azioni */
 .dettaglio-mese-actions {
   margin-top: 1.5rem;
@@ -2434,3 +2370,229 @@
   }
 }
 
+.dettaglio-mese-calendar-section {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+
+.dettaglio-mese-calendar-section h2 {
+  margin: 0 0 1rem;
+}
+
+.dettaglio-mese-calendar-section .fc {
+  --fc-border-color: var(--card-border);
+  --fc-page-bg-color: var(--card-bg);
+  --fc-neutral-bg-color: var(--card-bg);
+  --fc-today-bg-color: rgba(59, 130, 246, 0.12);
+  color: var(--card-text);
+}
+
+.dettaglio-mese-calendar-section .fc .fc-daygrid-day-number,
+.dettaglio-mese-calendar-section .fc .fc-col-header-cell-cushion {
+  color: var(--card-text);
+}
+
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-work-event {
+  margin: 0.15rem 0.2rem;
+  padding: 0.15rem 0.25rem;
+  overflow: hidden;
+  color: #2563eb !important;
+  background: transparent;
+  border: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-work-event .fc-event-title {
+  color: #2563eb !important;
+}
+
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-work-event .fc-event-main {
+  color: #2563eb !important;
+}
+
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-mode-smart_working,
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-mode-smart_working .fc-event-main,
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-mode-smart_working .fc-event-title {
+  color: #800020 !important;
+}
+
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-mode-trasferta,
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-mode-trasferta .fc-event-main,
+.dettaglio-mese-calendar-section .dettaglio-mese-calendar-mode-trasferta .fc-event-title {
+  color: #8b5cf6 !important;
+}
+
+.dettaglio-mese-calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.calendar-color {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-right: 0.3rem;
+  vertical-align: -0.08rem;
+  border-radius: 2px;
+}
+
+.calendar-color.lavoro { background: #b7e4c7; }
+.calendar-color.riposo { background: #d1d5db; }
+.calendar-color.ferie { background: #93c5fd; }
+.calendar-color.malattia { background: #fca5a5; }
+.calendar-color.cassa { background: #fdba74; }
+.calendar-color.smart-working { background: #800020; }
+.calendar-color.trasferta { background: #8b5cf6; }
+
+@media (max-width: 767px) {
+  .dettaglio-mese-calendar-section {
+    margin-top: 1.5rem;
+    padding: 0.5rem;
+  }
+
+  .dettaglio-mese-modal {
+    margin: auto;
+  }
+
+  .dettaglio-mese-calendar-section h2 {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .dettaglio-mese-calendar-section .fc {
+    font-size: 0.75rem;
+  }
+
+  .dettaglio-mese-calendar-section .fc .fc-daygrid-day-number {
+    padding: 0.25rem;
+  }
+
+  .dettaglio-mese-calendar-section .fc .fc-col-header-cell-cushion {
+    padding: 0.35rem 0.1rem;
+  }
+
+  .dettaglio-mese-calendar-section .dettaglio-mese-calendar-work-event {
+    display: none;
+  }
+
+  .dettaglio-mese-calendar-legend {
+    gap: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+.dettaglio-mese-modal-overlay,
+.comunicazioni-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.dettaglio-mese-modal,
+.comunicazioni-modal {
+  width: min(100%, 34rem);
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: var(--card-bg);
+  color: var(--card-text);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+
+.dettaglio-mese-modal-header,
+.comunicazioni-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dettaglio-mese-modal-header button,
+.comunicazioni-modal-header button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.dettaglio-mese-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.75rem 0;
+  padding: 0.65rem;
+  color: var(--input-text);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.dettaglio-mese-modal-error,
+.comunicazioni-modal-error {
+  color: #dc2626;
+}
+
+.comunicazioni-modal-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.comunicazione-item {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.75rem;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.comunicazione-item.is-unread {
+  border-left: 4px solid #2563eb;
+}
+
+.comunicazione-item-date,
+.comunicazione-item-period {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.dipendente-notifications-button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dipendente-notifications-badge {
+  display: inline-grid;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  margin-left: 0.3rem;
+  padding: 0 0.2rem;
+  place-items: center;
+  color: #fff;
+  background: #dc2626;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}

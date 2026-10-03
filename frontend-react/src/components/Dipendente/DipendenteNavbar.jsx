@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import Logo from '../Admin/Logo'
 import QrCodeInfoModal from './QrCodeInfoModal'
+import ComunicazioniModal from './ComunicazioniModal'
+import { getComunicazioniPresenza } from '../../services/presenzeService'
 
 /**
  * DipendenteNavbar - Navbar desktop fissa per l'area dipendente
@@ -13,6 +15,16 @@ function DipendenteNavbar({ isDarkMode, onToggleChange }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [showQrInfoModal, setShowQrInfoModal] = useState(false)
+  const [showComunicazioniModal, setShowComunicazioniModal] = useState(false)
+  const [comunicazioniNonLette, setComunicazioniNonLette] = useState(0)
+
+  useEffect(() => {
+    getComunicazioniPresenza()
+      .then((response) => {
+        setComunicazioniNonLette(response.data.filter((item) => !item.letto_at).length)
+      })
+      .catch(() => setComunicazioniNonLette(0))
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -49,6 +61,18 @@ function DipendenteNavbar({ isDarkMode, onToggleChange }) {
               </Link>
             </li>
           )}
+          <li>
+            <button
+              type="button"
+              className="dipendente-notifications-button"
+              onClick={() => setShowComunicazioniModal(true)}
+            >
+              Comunicazioni
+              {comunicazioniNonLette > 0 && (
+                <span className="dipendente-notifications-badge">{comunicazioniNonLette}</span>
+              )}
+            </button>
+          </li>
           <li>
             <Link to="/dipendente/timesheet" className={isActive('/dipendente/timesheet') ? 'active' : ''}>
               Foglio Presenze
@@ -110,6 +134,14 @@ function DipendenteNavbar({ isDarkMode, onToggleChange }) {
       {showQrInfoModal && (
         <QrCodeInfoModal
           onClose={() => setShowQrInfoModal(false)}
+        />
+      )}
+      {showComunicazioniModal && (
+        <ComunicazioniModal
+          onClose={() => {
+            setShowComunicazioniModal(false)
+            setComunicazioniNonLette(0)
+          }}
         />
       )}
     </>

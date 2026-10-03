@@ -1,6 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getPresenze, aggiornaStatoMese } from '../../services/presenzeService'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import {
+  creaComunicazionePresenza,
+  getComunicazioniPresenza,
+  getPresenze,
+  aggiornaStatoMese,
+} from '../../services/presenzeService'
 
 const CAUSALI_LABEL = {
   lavoro: '-- Nessuna --',
@@ -24,44 +32,202 @@ function formattaData(dataIso) {
   return `${giorno}-${mese}-${anno}`
 }
 
+const COLORS = {
+  lavoro: '#b7e4c7',
+  riposo: '#d1d5db',
+  ferie: '#93c5fd',
+  permesso_rol: '#93c5fd',
+  permesso_retribuito: '#93c5fd',
+  permesso_non_retribuito: '#93c5fd',
+  malattia: '#fca5a5',
+  infortunio: '#fca5a5',
+  maternita: '#fca5a5',
+  cassa_integrazione: '#fdba74',
+}
+
+const CAUSALI_BLU = ['ferie', 'permesso_rol', 'permesso_retribuito', 'permesso_non_retribuito']
+const CAUSALI_ROSSO = ['malattia', 'infortunio', 'maternita']
+const GIORNI_SETTIMANA = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
+const MODALITA_LABEL = {
+  in_sede: 'In sede',
+  smart_working: 'SW',
+  trasferta: 'Trasf.',
+}
+
+function toDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function normalizeDateKey(value) {
+  if (!value) return ''
+  if (value instanceof Date) return toDateKey(value)
+  return String(value).slice(0, 10)
+}
+
 function DettaglioMese() {
   const { dipendenteId, mese, anno } = useParams()
   const navigate = useNavigate()
   const [presenze, setPresenze] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isMobile, setIsMobile] = useState(false)
+  const [loadError, setLoadError] = useState('')
+  const [comunicazioni, setComunicazioni] = useState([])
+  const [selectedPresenza, setSelectedPresenza] = useState(null)
+  const [showRifiutoModal, setShowRifiutoModal] = useState(false)
+  const [messaggioRifiuto, setMessaggioRifiuto] = useState('')
+  const [savingCommunication, setSavingCommunication] = useState(false)
+  const [communicationError, setCommunicationError] = useState('')
 
-  // Rileva se è mobile
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+    let active = true
+
+    const loadData = async () => {
+      setLoading(true)
+      setLoadError('')
+
+      try {
+        const presenzeResponse = await getPresenze(dipendenteId, mese, anno)
+        if (active) setPresenze(presenzeResponse.data)
+      } catch (error) {
+        if (active) {
+          setLoadError(error.response?.data?.message || 'Impossibile caricare le presenze.')
+        }
+      } finally {
+        if (active) setLoading(false)
+      }
+
+      try {
+        const comunicazioniResponse = await getComunicazioniPresenza({
+          dipendente_id: dipendenteId,
+          mese,
+          anno,
+        })
+        if (active) setComunicazioni(comunicazioniResponse.data)
+      } catch (error) {
+        // Le comunicazioni sono opzionali: non devono impedire la visualizzazione delle presenze.
+        console.error('Impossibile caricare le comunicazioni del foglio ore:', error)
+      }
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
 
-  useEffect(() => {
-    getPresenze(dipendenteId, mese, anno)
-      .then((res) => setPresenze(res.data))
-      .finally(() => setLoading(false))
+    loadData()
+    return () => {
+      active = false
+    }
   }, [dipendenteId, mese, anno])
 
   const handleAzione = async (stato) => {
+    if (stato === 'rifiutato') {
+      setCommunicationError('')
+      setShowRifiutoModal(true)
+      return
+    }
     await aggiornaStatoMese(parseInt(dipendenteId), parseInt(mese), parseInt(anno), stato)
     navigate('/admin/approvazioni')
   }
 
-  if (loading) return <p className="dettaglio-mese-loading">Caricamento...</p>
+  const confermaRifiuto = async () => {
+    if (!messaggioRifiuto.trim()) {
+      setCommunicationError('Inserisci la motivazione del rifiuto.')
+      return
+    }
+
+    setSavingCommunication(true)
+    setCommunicationError('')
+    try {
+      const response = await creaComunicazionePresenza({
+        dipendente_id: parseInt(dipendenteId),
+        mese: parseInt(mese),
+        anno: parseInt(anno),
+        messaggio: messaggioRifiuto.trim(),
+      })
+      setComunicazioni((current) => [response.data, ...current])
+      await aggiornaStatoMese(parseInt(dipendenteId), parseInt(mese), parseInt(anno), 'rifiutato')
+      navigate('/admin/approvazioni')
+    } catch (error) {
+      setCommunicationError(error.response?.data?.message || 'Impossibile salvare la comunicazione.')
+    } finally {
+      setSavingCommunication(false)
+    }
+  }
 
   const nomeDipendente = presenze[0]?.dipendente?.user?.name || ''
   const percentualePartTime = presenze[0]?.dipendente?.percentuale_part_time || 0
   const isFullTime = Number(percentualePartTime) === 100
+  const oreExtraLabel = isFullTime ? 'Ore Straordinarie' : 'Ore Eccedenti'
 
   const totaleOrdinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_ordinarie || 0), 0)
   const totaleEccedenti = presenze.reduce((acc, p) => acc + parseFloat(p.ore_eccedenti || 0), 0)
   const totaleStraordinarie = presenze.reduce((acc, p) => acc + parseFloat(p.ore_straordinarie || 0), 0)
   const stato = presenze[0]?.stato || ''
+
+  const presenzaPerData = useMemo(
+    () => Object.fromEntries(
+      presenze.map((presenza) => [normalizeDateKey(presenza.data), presenza]),
+    ),
+    [presenze],
+  )
+
+  const orariSettimanali = useMemo(
+    () => presenze[0]?.dipendente?.orari_settimanali || [],
+    [presenze],
+  )
+  const orePerGiorno = useMemo(
+    () => Object.fromEntries(
+      orariSettimanali.map((orario) => [
+        orario.giorno_settimana,
+        Number(orario.ore_giornaliere_previste || 0),
+      ]),
+    ),
+    [orariSettimanali],
+  )
+
+  const getDayCategory = useCallback((date) => {
+    const presenza = presenzaPerData[toDateKey(date)]
+    const orePreviste = orePerGiorno[date.getDay()] ?? (date.getDay() === 0 || date.getDay() === 6 ? 0 : 8)
+    if (!presenza) return orePreviste > 0 ? 'lavoro' : 'riposo'
+
+    const oreLavorate = Number(presenza.ore_ordinarie || 0)
+    const oreCausale = Number(presenza.ore_causale || 0)
+    if (oreLavorate > 0 && oreLavorate >= oreCausale) return 'lavoro'
+    if (CAUSALI_ROSSO.includes(presenza.causale)) return presenza.causale
+    if (presenza.causale === 'cassa_integrazione') return 'cassa_integrazione'
+    if (CAUSALI_BLU.includes(presenza.causale)) return presenza.causale
+    return presenza.causale || 'lavoro'
+  }, [orePerGiorno, presenzaPerData])
+
+  const calendarEvents = useMemo(() => {
+    const lastDay = new Date(Number(anno), Number(mese), 0)
+    const events = []
+    for (let day = 1; day <= lastDay.getDate(); day += 1) {
+      const date = new Date(Number(anno), Number(mese) - 1, day)
+      const presenza = presenzaPerData[toDateKey(date)]
+      const oreExtra = isFullTime ? presenza?.ore_straordinarie : presenza?.ore_eccedenti
+      const oreTotali = Number(presenza?.ore_ordinarie || 0) + Number(oreExtra || 0)
+      if (presenza && oreTotali > 0) {
+        events.push({
+          date: toDateKey(date),
+          allDay: true,
+          title: `${MODALITA_LABEL[presenza.modalita_lavoro] || 'Modalità non indicata'} · ${oreTotali.toFixed(2)} h`,
+          className: `dettaglio-mese-calendar-work-event dettaglio-mese-calendar-mode-${presenza.modalita_lavoro || 'non-indicata'}`,
+        })
+      }
+    }
+    return events
+  }, [anno, mese, isFullTime, presenzaPerData])
+
+  const handleDayCellMount = useCallback(({ date, el }) => {
+    const isCurrentMonth = date.getFullYear() === Number(anno)
+      && date.getMonth() === Number(mese) - 1
+    if (!isCurrentMonth) {
+      el.style.removeProperty('background-color')
+      return
+    }
+
+    const category = getDayCategory(date)
+    el.style.setProperty('background-color', COLORS[category] || COLORS.lavoro, 'important')
+  }, [anno, getDayCategory, mese])
+
+  if (loading) return <p className="dettaglio-mese-loading">Caricamento...</p>
+  if (loadError) return <p className="dettaglio-mese-loading">{loadError}</p>
 
   const getStatoLabel = () => {
     switch(stato) {
@@ -121,71 +287,30 @@ function DettaglioMese() {
         </div>
       </div>
 
-      {isMobile ? (
-        // Versione mobile: card
-        <div className="dettaglio-mese-mobile-list">
-          {presenze.map((p) => (
-            <div key={p.id} className="dettaglio-mese-card">
-              <div className="dettaglio-mese-card-fields">
-                <div className="dettaglio-mese-card-field">
-                  <span className="dettaglio-mese-card-label">Data:</span>
-                  <span className="dettaglio-mese-card-value">{formattaData(p.data)}</span>
-                </div>
-                <div className="dettaglio-mese-card-field">
-                  <span className="dettaglio-mese-card-label">Ore Ordinarie:</span>
-                  <span className="dettaglio-mese-card-value">{Number(p.ore_ordinarie || 0).toFixed(2)}</span>
-                </div>
-                {!isFullTime && (
-                  <div className="dettaglio-mese-card-field">
-                    <span className="dettaglio-mese-card-label">Ore Eccedenti:</span>
-                    <span className="dettaglio-mese-card-value">{Number(p.ore_eccedenti || 0).toFixed(2)}</span>
-                  </div>
-                )}
-                {isFullTime && (
-                  <div className="dettaglio-mese-card-field">
-                    <span className="dettaglio-mese-card-label">Ore Straordinarie:</span>
-                    <span className="dettaglio-mese-card-value">{Number(p.ore_straordinarie || 0).toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="dettaglio-mese-card-field">
-                  <span className="dettaglio-mese-card-label">Causale:</span>
-                  <span className="dettaglio-mese-card-value">{CAUSALI_LABEL[p.causale] || p.causale}</span>
-                </div>
-                <div className="dettaglio-mese-card-field">
-                  <span className="dettaglio-mese-card-label">Ore Causale:</span>
-                  <span className="dettaglio-mese-card-value">{Number(p.ore_causale || 0).toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+      <section className="dettaglio-mese-calendar-section">
+        <h2>Presenze del mese</h2>
+        <p>Click/Tap sul giorno per i dettagli</p>
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          initialDate={`${anno}-${String(mese).padStart(2, '0')}-01`}
+          headerToolbar={false}
+          firstDay={1}
+          fixedWeekCount={false}
+          height="auto"
+          dayHeaderContent={({ date }) => GIORNI_SETTIMANA[date.getDay()]}
+          dayCellDidMount={handleDayCellMount}
+          events={calendarEvents}
+          dateClick={({ date }) => setSelectedPresenza(presenzaPerData[toDateKey(date)] || { data: toDateKey(date) })}
+        />
+        <div className="dettaglio-mese-calendar-legend">
+          <span><i className="calendar-color lavoro" /> Lavorativo</span>
+          <span><i className="calendar-color riposo" /> Riposo</span>
+          <span><i className="calendar-color ferie" /> Ferie/permessi</span>
+          <span><i className="calendar-color malattia" /> Malattia/infortunio/maternità</span>
+          <span><i className="calendar-color cassa" /> Cassa integrazione</span>
         </div>
-      ) : (
-        // Versione desktop: tabella
-        <table className="dettaglio-mese-table">
-          <thead>
-            <tr className="dettaglio-mese-table-header">
-              <th>Data</th>
-              <th>Ore Ordinarie</th>
-              {!isFullTime && <th>Ore Eccedenti</th>}
-              {isFullTime && <th>Ore Straordinarie</th>}
-              <th>Causale</th>
-              <th>Ore Causale</th>
-            </tr>
-          </thead>
-          <tbody>
-            {presenze.map((p) => (
-              <tr key={p.id} className="dettaglio-mese-table-row">
-                <td>{formattaData(p.data)}</td>
-                <td>{Number(p.ore_ordinarie || 0).toFixed(2)}</td>
-                {!isFullTime && <td>{Number(p.ore_eccedenti || 0).toFixed(2)}</td>}
-                {isFullTime && <td>{Number(p.ore_straordinarie || 0).toFixed(2)}</td>}
-                <td>{CAUSALI_LABEL[p.causale] || p.causale}</td>
-                <td>{Number(p.ore_causale || 0).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      </section>
 
       {(stato === 'inviato' || stato === 'rifiutato' || stato === 'reinviato') && (
         <div className="dettaglio-mese-actions">
@@ -201,6 +326,56 @@ function DettaglioMese() {
           >
             ✕ Rifiuta Mese
           </button>
+        </div>
+      )}
+
+      {selectedPresenza && (
+        <div className="dettaglio-mese-modal-overlay" onClick={() => setSelectedPresenza(null)}>
+          <div className="dettaglio-mese-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="dettaglio-mese-modal-header">
+              <h2>Dettaglio {formattaData(selectedPresenza.data)}</h2>
+              <button type="button" onClick={() => setSelectedPresenza(null)} aria-label="Chiudi">×</button>
+            </div>
+            {selectedPresenza.id ? (
+              <>
+                <p><strong>Causale:</strong> {CAUSALI_LABEL[selectedPresenza.causale] || selectedPresenza.causale}</p>
+                <p><strong>Ore ordinarie:</strong> {Number(selectedPresenza.ore_ordinarie || 0).toFixed(2)}</p>
+                <p><strong>Ore causale:</strong> {Number(selectedPresenza.ore_causale || 0).toFixed(2)}</p>
+                <p>
+                  <strong>{oreExtraLabel}:</strong>{' '}
+                  {Number(selectedPresenza[isFullTime ? 'ore_straordinarie' : 'ore_eccedenti'] || 0).toFixed(2)}
+                </p>
+              </>
+            ) : (
+              <p>Nessuna presenza registrata per questa giornata.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showRifiutoModal && (
+        <div className="dettaglio-mese-modal-overlay">
+          <div className="dettaglio-mese-modal">
+            <div className="dettaglio-mese-modal-header">
+              <h2>Motivazione del rifiuto</h2>
+              <button type="button" onClick={() => setShowRifiutoModal(false)} aria-label="Chiudi">×</button>
+            </div>
+            <p>La comunicazione sarà visibile sulla dashboard del dipendente.</p>
+            {comunicazioni.length > 0 && (
+              <p>Questo mese contiene già {comunicazioni.length} comunicazione/i precedenti.</p>
+            )}
+            <textarea
+              value={messaggioRifiuto}
+              onChange={(event) => setMessaggioRifiuto(event.target.value)}
+              rows={5}
+              maxLength={5000}
+              placeholder="Inserisci la motivazione..."
+            />
+            {communicationError && <p className="dettaglio-mese-modal-error">{communicationError}</p>}
+            <button type="button" onClick={confermaRifiuto} disabled={savingCommunication}>
+              {savingCommunication ? 'Salvataggio...' : 'Invia comunicazione e rifiuta'}
+            </button>
+          </div>
         </div>
       )}
     </div>
