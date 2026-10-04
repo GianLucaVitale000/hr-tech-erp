@@ -304,11 +304,11 @@ function DettaglioMese() {
           dateClick={({ date }) => setSelectedPresenza(presenzaPerData[toDateKey(date)] || { data: toDateKey(date) })}
         />
         <div className="dettaglio-mese-calendar-legend">
-          <span><i className="calendar-color lavoro" /> Lavorativo</span>
+          <span><i className="calendar-color lavoro" /> Lavoro</span>
           <span><i className="calendar-color riposo" /> Riposo</span>
-          <span><i className="calendar-color ferie" /> Ferie/permessi</span>
-          <span><i className="calendar-color malattia" /> Malattia/infortunio/maternità</span>
-          <span><i className="calendar-color cassa" /> Cassa integrazione</span>
+          <span><i className="calendar-color ferie" /> Ferie/Permessi</span>
+          <span><i className="calendar-color malattia" /> INPS/INAIL</span>
+          <span><i className="calendar-color cassa" />CIG</span>
         </div>
       </section>
 

@@ -562,25 +562,25 @@ function AdminDashboard() {
                   </h2>
                   <div className="dashboard-donut-container">
                     <DonutCard
-                      titolo="Tempo pieno - 5 gg."
+                      titolo="Tempo pieno (5 gg.)"
                       valore={media5ft}
                       totale={maxTeorici5ft}
                       colore="#10b981"
                     />
                     <DonutCard
-                      titolo="Tempo pieno - 6 gg."
+                      titolo="Tempo pieno (6 gg.)"
                       valore={media6ft}
                       totale={maxTeorici6ft}
                       colore="#3b82f6"
                     />
                     <DonutCard
-                      titolo="Part-time - 5 gg."
+                      titolo="Part-time (5 gg.)"
                       valore={media5pt}
                       totale={maxTeorici5pt}
                       colore="#f59e0b"
                     />
                     <DonutCard
-                      titolo="Part-time - 6 gg."
+                      titolo="Part-time (6 gg.)"
                       valore={media6pt}
                       totale={maxTeorici6pt}
                       colore="#ef4444"

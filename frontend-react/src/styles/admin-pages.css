@@ -2390,9 +2390,12 @@
   color: var(--card-text);
 }
 
-.dettaglio-mese-calendar-section .fc .fc-daygrid-day-number,
 .dettaglio-mese-calendar-section .fc .fc-col-header-cell-cushion {
   color: var(--card-text);
+}
+
+.dettaglio-mese-calendar-section .fc .fc-daygrid-day-number {
+  color: #1B365D !important;
 }
 
 .dettaglio-mese-calendar-section .dettaglio-mese-calendar-work-event {
