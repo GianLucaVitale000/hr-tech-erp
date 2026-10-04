@@ -42,6 +42,7 @@ class PresenzeTableSeeder extends Seeder
             $inMalattia = false;
             $inInfortunio = false;
             $inMaternita = false;
+            $inizioMaternita = null;
             $inFerie = false;
             $inSciopero = false;
             $dataFineMalattia = null;
@@ -80,7 +81,6 @@ class PresenzeTableSeeder extends Seeder
                         );
                         $inizioMaternita = Carbon::parse($inizioMaternita);
                         $dataFineMaternita = $inizioMaternita->copy()->addDays(150);
-                        $inMaternita = true;
                         $maternitaMariaCartaAssegnata = true;
                     }
                 } else {
@@ -89,7 +89,6 @@ class PresenzeTableSeeder extends Seeder
                         $inizioMaternita = $faker->dateTimeBetween($dataInizio, $dataFine);
                         $inizioMaternita = Carbon::parse($inizioMaternita);
                         $dataFineMaternita = $inizioMaternita->copy()->addDays(150);
-                        $inMaternita = true;
                     }
                 }
             }
@@ -104,6 +103,16 @@ class PresenzeTableSeeder extends Seeder
                 
                 if ($this->isWeekend($date, $dipendente->giorni_lavorativi_settimanali)) {
                     continue;
+                }
+
+                if (
+                    !$inMaternita &&
+                    $inizioMaternita &&
+                    $dataFineMaternita &&
+                    $date->gte($inizioMaternita) &&
+                    $date->lt($dataFineMaternita)
+                ) {
+                    $inMaternita = true;
                 }
 
                 // --- 4b. Gestione ferie estate (giugno-luglio-agosto) ---
