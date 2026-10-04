@@ -1,11 +1,10 @@
 # HR-Tech ERP
 
 HR-Tech ERP è un'applicazione web per la gestione dei processi HR aziendali:
-anagrafica dei dipendenti, gestione contratti collettivi e inserimento di specifiche regole di calcolo tratte dal testo del CCNL applicato, rilevazione delle presenze, timesheet, approvazione dei fogli ore, analisi HR ed esportazione dei dati per le paghe.
+anagrafica dei dipendenti, gestione dei contratti collettivi, con inserimento di specifici parametri tratti dal CCNL applicato per attivare filtri e regole di business, rilevazione delle presenze e delle assenze con articolazione di un sistema di causali, monitoraggio/approvazione dei fogli ore, analisi HR interna sui dati registrati ed esportazione degli stessi per l'elaborazione esterna delle paghe.
 
-Questo è il README generale del progetto. La documentazione funzionale e
-tecnica di dettaglio dei singoli moduli è raccolta nei README dedicati elencati
-in [Documentazione dei moduli](#documentazione-dei-moduli).
+Questo è il README generale del progetto.
+Una documentazione di dettaglio dei singoli moduli è raccolta nei README dedicati elencati in [Documentazione dei moduli](#documentazione-dei-moduli).
 
 ## Indice
 
@@ -17,6 +16,7 @@ in [Documentazione dei moduli](#documentazione-dei-moduli).
   - [Installazione](#installazione)
   - [Configurazione del database](#configurazione-del-database)
     - [1. Creare il database MySQL](#1-creare-il-database-mysql)
+    - [2. Popolamento e struttura del database](#2-popolamento-e-struttura-del-database)
     - [2. Configurare Laravel](#2-configurare-laravel)
     - [3. Configurare il microservizio Python](#3-configurare-il-microservizio-python)
     - [4. Eseguire migrazioni e seed](#4-eseguire-migrazioni-e-seed)
@@ -54,7 +54,7 @@ Browser
 - **Backend Laravel**: API REST, autenticazione con Laravel Sanctum, controllo
   dei ruoli, logica di dominio, persistenza tramite Eloquent e migrazioni.
 - **Microservizio Python**: servizio separato per la generazione dello
-  spreadsheet mensile destinato alle paghe.
+  spreadsheet mensile destinato all'export per l'elaborazione esternalizzata delle paghe.
 - **MySQL**: database condiviso dal backend Laravel e dal microservizio Python.
 
 ## Tecnologie
@@ -62,7 +62,7 @@ Browser
 | Area | Tecnologie principali |
 | --- | --- |
 | Frontend | React 19, Vite 8, React Router 7, Axios |
-| UI e grafici | Material UI, Tailwind CSS, Emotion, Recharts |
+| UI e grafici | Recharts |
 | Presenze | FullCalendar, `html5-qrcode`, `qrcode.react` |
 | Backend | PHP 8.3, Laravel 13, Laravel Sanctum, Eloquent |
 | Autorizzazioni | `spatie/laravel-permission` |
@@ -98,7 +98,7 @@ mysql --version
 Clonare il repository e installare le dipendenze dei tre componenti:
 
 ```bash
-git clone <URL_DEL_REPOSITORY>
+git clone https://github.com/GianLucaVitale000/hr-tech-erp.git
 cd hr-tech-erp
 
 cd backend-php
@@ -124,23 +124,35 @@ dell'ambiente e, in produzione, possono contenere credenziali.
 Eseguire con un utente MySQL autorizzato alla creazione dei database:
 
 ```sql
-CREATE DATABASE hr_tech_erp
+CREATE DATABASE IF NOT EXISTS hr_tech_erp
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 ```
 
-Se il database esiste già, non è necessario ricrearlo. Creare eventualmente un
-utente applicativo dedicato invece di usare `root`:
+*Nota*: Se il database esiste già, l'istruzione `IF NOT EXISTS` evita errori e preserva eventuali dati presenti. È inoltre consigliabile creare un utente applicativo dedicato anziché utilizzare `root`:
 
 ```sql
-CREATE USER 'hr_tech_erp_user'@'localhost' IDENTIFIED BY '<PASSWORD>';
+CREATE USER IF NOT EXISTS 'hr_tech_erp_user'@'localhost' IDENTIFIED BY '<PASSWORD>';
 GRANT ALL PRIVILEGES ON hr_tech_erp.* TO 'hr_tech_erp_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
+### 2. Popolamento e struttura del database
+
+Il progetto offre due modalità alternative per popolare la struttura delle tabelle nel database `hr_tech_erp`:
+
+- **Opzione A (Consigliata per lo sviluppo con Laravel)**: Utilizzare le migrazioni e i seeder nativi di Laravel. Dopo aver configurato le credenziali nel file `.env`, l'esecuzione di `php artisan migrate` creerà tutte le tabelle partendo da zero, e `php artisan db:seed` popolerà i dati iniziali.
+- **Opzione B (Importazione tramite dump SQL)**: Se si preferisce importare direttamente lo schema pre-configurato presente nel repository (`backend-php/database/database.sql`), è possibile caricarlo direttamente nel database con il comando:
+
+  ```bash
+  mysql -u hr_tech_erp_user -p hr_tech_erp < backend-php/database/database.sql
+  ```
+  
+  *(Il file `database.sql` include già i comandi di reset delle tabelle e la struttura completa).*
+
 ### 2. Configurare Laravel
 
-Modificare `backend-php/.env` con i dati del database:
+Modificare il file [`backend-php/.env`](backend-php/.env) configurando i parametri di connessione al database MySQL:
 
 ```dotenv
 DB_CONNECTION=mysql
@@ -151,8 +163,12 @@ DB_USERNAME=hr_tech_erp_user
 DB_PASSWORD=<PASSWORD>
 ```
 
-Impostare inoltre `APP_URL`, `APP_ENV` e `APP_DEBUG` in base all'ambiente.
-Il token usato dalla modalità kiosk deve essere valorizzato in `KIOSK_TOKEN`.
+Inoltre, configurare le variabili di ambiente principali secondo le necessità locali o di produzione:
+
+- `APP_URL`: l'URL di base dell'applicazione backend (es. `http://localhost:8000`).
+- `APP_ENV`: impostare su `local` per lo sviluppo o `production` per l'ambiente di rilascio.
+- `APP_DEBUG`: impostare su `true` in sviluppo per visualizzare i messaggi di errore dettagliati, o su `false` in produzione.
+- `KIOSK_TOKEN`: stringa segreta (es. una password o un token personalizzato) utilizzata per autorizzare le chiamate API del tablet aziendale in modalità kiosk. Questa stringa non è predefinita nel sistema ma va inventata e configurata manualmente nel file `.env` del backend (e inserita nel client/tablet che effettua le chiamate inserendola nell'header HTTP `X-Kiosk-Token`).
 
 ### 3. Configurare il microservizio Python
 
@@ -188,6 +204,10 @@ php artisan migrate:fresh --seed
 
 Il comando distrugge e ricrea le tabelle: usarlo esclusivamente in sviluppo o
 su un database di test.
+
+> **Nota importante sui ratei e saldi di Ferie, Permessi ed Ex-festività**:
+> I seeder standard inizializzano la struttura e dati dimostrativi di base, ma **non popolano in modo esaustivo** i parametri contrattuali avanzati come i ratei mensili (`rateo_mensile_ferie`, `rateo_mensile_permessi_rol`, `rateo_mensile_ex_festivita`) e i residui precedenti (`residuo_precedente_ferie`, `residuo_precedente_permessi`).
+> Poiché questi valori variano frequentemente in base all'anzianità di servizio, ai livelli di inquadramento e alle specifiche clausole della contrattazione collettiva, **è necessario l'inserimento o la configurazione puntuale di tali dati da parte dell'Admin** (tramite l'apposita sezione anagrafica dei dipendenti). Senza questa configurazione, gli algoritmi di calcolo e le relative sezioni di monitoraggio (come la card dedicata in *Analisi HR*) potrebbero non disporre dei dati necessari per il corretto conteggio. Sebbene sia possibile predisporre seeder personalizzati per specifiche esigenze di test, la gestione e l'aggiornamento dei ratei restano affidati all'amministratore.
 
 ## Avvio dell'applicazione
 
@@ -245,25 +265,42 @@ le rotte non riconosciute fanno lo stesso.
 
 ```text
 .
-├── backend-php/
+├── backend-php/                # Backend API REST (Laravel 13)
 │   ├── app/                    # Controller, modelli, servizi, middleware
-│   ├── database/               # Migrazioni, factory e seed
+│   ├── bootstrap/              # Bootstrap dell'applicazione
+│   ├── config/                 # File di configurazione (database, auth, services, ecc.)
+│   ├── database/               # Migrazioni, factory, seed e dump SQL (database.sql)
+│   ├── public/                 # Punto d'ingresso pubblico e file asset
+│   ├── resources/              # Viste blade e risorse
 │   ├── routes/                 # API, web e comandi schedulati
-│   └── artisan                 # CLI Laravel
-├── frontend-react/
-│   ├── src/components/         # Layout, navbar, footer e componenti riusabili
-│   ├── src/context/            # Stato globale dell'autenticazione
-│   ├── src/pages/              # Pagine per ruolo e pagine pubbliche
-│   ├── src/services/           # Client API e servizi di dominio
-│   ├── src/styles/             # Stili per aree e moduli
-│   └── src/App.jsx             # Routing principale della SPA
-├── microservice-python/
-│   ├── main.py                 # Applicazione FastAPI ed endpoint export
-│   ├── services/               # Generazione del report Excel
-│   └── database.py             # Connessione al database
-├── start.sh                    # Avvio dei tre servizi
-├── stop.sh                     # Arresto dei servizi
-└── README-*.md                 # Documentazione dei moduli
+│   ├── storage/                # Log, cache e file PDF generati
+│   ├── tests/                  # Test unitari e di feature (Pest/PHPUnit)
+│   └── artisan                 # CLI di Laravel
+├── frontend-react/             # Frontend SPA (React 19 + Vite)
+│   ├── public/                 # Immagini e favicon pubbliche
+│   ├── src/
+│   │   ├── components/         # Layout, navbar, footer e componenti riusabili (Admin/Dipendente)
+│   │   ├── context/            # Stato globale dell'autenticazione
+│   │   ├── hooks/              # Custom hook (es. Analisi HR)
+│   │   ├── pages/              # Pagine suddivise per ruolo (Admin/Dipendente) e pubbliche (Login/Kiosk)
+│   │   ├── services/           # Client API (Axios) e servizi di dominio
+│   │   ├── styles/             # Fogli di stile CSS per moduli e aree
+│   │   ├── tools/              # Tool di test e utility (es. KioskTest)
+│   │   ├── utils/              # Funzioni di supporto e formattazione
+│   │   └── App.jsx             # Routing principale della SPA
+│   ├── index.html              # HTML principale di Vite
+│   ├── package.json            # Dipendenze e script npm
+│   └── vite.config.js          # Configurazione di Vite
+├── microservice-python/        # Microservizio di export Excel (FastAPI)
+│   ├── services/               # Generazione del report Excel (Pandas / OpenPyXL)
+│   ├── main.py                 # Applicazione FastAPI ed endpoint export paghe
+│   ├── database.py             # Connessione al database MySQL
+│   ├── requirements.txt        # Dipendenze Python (pip)
+│   └── test_export.sh          # Script di test per l'export
+├── start.sh                    # Script di avvio centralizzato dei tre servizi
+├── stop.sh                     # Script di arresto dei servizi
+├── QR-CODE-PRESENZE-DOCUMENTAZIONE.md # Documentazione specifica QR Code e Kiosk
+└── README-*.md                 # Documentazione di dettaglio dei singoli moduli
 ```
 
 ## Articolazione dell'applicazione e navigazione UX/UI
@@ -288,17 +325,17 @@ principale consente di raggiungere:
 
 | Modulo | Rotta | Obiettivo UX/UI |
 | --- | --- | --- |
-| Dashboard | `/admin` | Sintesi e accesso rapido alle attività HR |
+| Dashboard | `/admin` | Sintesi globali e accesso rapido alle attività HR |
 | Utenti | `/admin/utenti` | Gestione degli account e dei ruoli |
 | Dipendenti | `/admin/dipendenti` | Ricerca, inserimento e modifica dell'anagrafica |
-| Contratti | `/admin/contratti` | Consultazione e gestione dei CCNL e delle regole |
+| Contratti | `/admin/contratti` | Consultazione e gestione dei CCNL e delle regole contrattuali |
 | Approvazioni | `/admin/approvazioni` | Coda dei mesi inviati dai dipendenti |
 | Dettaglio mese | `/admin/approvazioni/:dipendenteId/:mese/:anno` | Verifica e approvazione puntuale del foglio ore |
-| Analisi HR | `/admin/analisi-hr` | Indicatori, anomalie e analisi delle ore |
+| Analisi HR | `/admin/analisi-hr` | Indicatori HR, e analisi delle presenze |
 
 Le pagine di creazione e modifica sono raggiunte dal contesto del modulo, ad
-esempio `/admin/dipendenti/nuovo` e
-`/admin/dipendenti/:id/edit`. Questo mantiene il percorso utente leggibile:
+esempio `/admin/dipendenti/nuovo` e `/admin/dipendenti/:id/edit`.
+Questo mantiene il percorso utente leggibile:
 lista → dettaglio/form → salvataggio → ritorno alla lista o alla dashboard.
 
 ### Area Dipendente
@@ -388,14 +425,12 @@ php artisan dipendenti:aggiorna-residui-annui
 php artisan test
 ```
 
-Nel codice Laravel le due attività sono predisposte per l'esecuzione automatica, ma **nell'ambiente attuale non sono automatiche**, perché `start.sh` non avvia `php artisan schedule:work` e non risulta configurato un cron di sistema per eseguire `php artisan schedule:run`. Di conseguenza:
+Nel codice Laravel le due attività di sincronizzazione dei contratti dal CNEL e calcolo e di riporto dei residui annuali di ferie e permessi sono predisposte per l'esecuzione automatica, ma **nell'ambiente attuale non sono automatiche**, perché `start.sh` non avvia `php artisan schedule:work` e non risulta configurato un cron di sistema per eseguire `php artisan schedule:run`. Di conseguenza:
 
 | Attività | Schedulazione prevista nel codice | Modalità effettiva attuale | Comando manuale |
 | --- | --- | --- | --- |
 | Sincronizzazione CNEL | Il primo giorno di ogni mese alle 03:00 | Manuale | `php artisan cnel:sync` |
 | Calcolo e riporto dei residui annuali di ferie e permessi | Il 31 dicembre alle 23:59 | Manuale | `php artisan dipendenti:aggiorna-residui-annui <ANNO_DA_CHIUDERE>` |
-
-Pertanto, allo stato attuale, **anche il calcolo dei residui annuali non parte automaticamente il 31 dicembre**: deve essere eseguito manualmente, a meno che non venga mantenuto attivo uno scheduler Laravel o configurato un cron di sistema.
 
 Al 31 dicembre è necessario indicare esplicitamente l'anno che si vuole chiudere. Per esempio, il 31 dicembre 2026:
 
@@ -423,8 +458,8 @@ In produzione è normalmente preferibile configurare il cron di sistema seguente
 * * * * * cd /home/gianluca/hr-tech-erp/backend-php && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Il cron deve essere configurato con l'utente e i percorsi corretti
-dell'ambiente di installazione. Solo dopo questa configurazione le due attività verranno eseguite automaticamente secondo gli orari indicati nella tabella.
+Il cron deve essere configurato con l'utente e i percorsi corretti dell'ambiente di installazione.
+Solo dopo questa configurazione le due attività verranno eseguite automaticamente secondo gli orari indicati nella tabella.
 
 ## Test e qualità del codice
 
@@ -444,9 +479,8 @@ cd backend-php
 composer test
 ```
 
-Prima di una release verificare anche i tre health check, il login con
-entrambi i ruoli, il flusso di inserimento e approvazione del timesheet e
-l'export Excel.
+Prima di una release verificare anche i tre health check, il login con entrambi i ruoli,
+il flusso di inserimento e approvazione del timesheet e l'export Excel.
 
 ## Documentazione dei moduli
 
@@ -460,5 +494,4 @@ l'export Excel.
 - [QR Code per le presenze](QR-CODE-PRESENZE-DOCUMENTAZIONE.md)
 
 I README dei moduli descrivono implementazione e regole specifiche; questo
-documento deve rimanere il punto di ingresso per setup, architettura e
-navigazione complessiva.
+documento deve rimanere il punto di ingresso per setup, architettura e navigazione complessiva.
