@@ -124,35 +124,40 @@ function AdminDashboard() {
     fetchDipendenti()
   }, [meseSelezionato, annoSelezionato])
 
-  // CALCOLO GIORNI TEORICI LAVORABILI DEPURATI DALLE FESTIVITÀ INFRASETTIMANALI
-  const calcolaGiorniTeoriciMese = (mese, anno, giorniSettimanali) => {
+  // CALCOLO GIORNI TEORICI LAVORABILI PER DIPENDENTE (TENENDO CONTO DI R1, R2 E FESTIVITÀ)
+  const calcolaGiorniTeoriciDipendente = (mese, anno, dipendente) => {
     const giorniNelMese = new Date(anno, mese, 0).getDate()
     const pasquetta = getPasquetta(anno)
     let lavorabili = 0
 
+    // R1 e R2 in anagrafica: 1 = Lunedì, ..., 7 = Domenica (oppure 0 = Domenica a seconda dello standard, gestiamo entrambi)
+    // Di solito in Italia: 1=Lunedì, 2=Martedì, 3=Mercoledì, 4=Giovedì, 5=Venerdì, 6=Sabato, 7=Domenica (o 0)
+    const r1 = dipendente.R1 ? Number(dipendente.R1) : 7 // default Domenica
+    const r2 = dipendente.R2 ? Number(dipendente.R2) : null
+
     for (let giorno = 1; giorno <= giorniNelMese; giorno++) {
       const dataCorrente = new Date(anno, mese - 1, giorno)
-      const dayOfWeek = dataCorrente.getDay() // 0 = Dom, 6 = Sab
+      let dayOfWeek = dataCorrente.getDay() // 0 = Domenica, 1 = Lunedì, ..., 6 = Sabato
+      // Convertiamo dayOfWeek da 0-6 (Dom-Sab) a 1-7 (Lun-Dom) per allinearlo a R1/R2
+      const giornoISO = dayOfWeek === 0 ? 7 : dayOfWeek
 
-      // 1. Verifica se è un giorno lavorativo in base alla settimana di 5 o 6 gg
-      const isGiornoLavorativo = giorniSettimanali === 5
-        ? (dayOfWeek !== 0 && dayOfWeek !== 6)
-        : (dayOfWeek !== 0)
+      // Se il giorno corrisponde a R1 o R2, è un giorno di riposo
+      const isRiposo = (giornoISO === r1) || (r2 && giornoISO === r2)
 
-      if (isGiornoLavorativo) {
-        // 2. Controllo festività fissa
+      if (!isRiposo) {
+        // Controllo festività fissa
         const mm = String(mese).padStart(2, '0')
         const dd = String(giorno).padStart(2, '0')
         const isFestaFissa = FESTIVITA_FISSE.includes(`${mm}-${dd}`)
 
-        // 3. Controllo Pasquetta
+        // Controllo Pasquetta
         const isPasquetta = (
           dataCorrente.getFullYear() === pasquetta.getFullYear() &&
           dataCorrente.getMonth() === pasquetta.getMonth() &&
           dataCorrente.getDate() === pasquetta.getDate()
         )
 
-        // Incrementa solo se è lavorativo e NON è un giorno festivo
+        // Incrementa se NON è festivo e NON è Pasquetta
         if (!isFestaFissa && !isPasquetta) {
           lavorabili++
         }
@@ -161,9 +166,6 @@ function AdminDashboard() {
 
     return lavorabili
   }
-
-  const maxTeorici5gg = calcolaGiorniTeoriciMese(meseSelezionato, annoSelezionato, 5)
-  const maxTeorici6gg = calcolaGiorniTeoriciMese(meseSelezionato, annoSelezionato, 6)
 
   const getAnnoMinimoAssunzione = () => {
     if (dipendenti.length === 0) return new Date().getFullYear()
@@ -197,16 +199,17 @@ function AdminDashboard() {
   const dipendentiAttivi = dipendenti.filter(d => dipendenteAttivoInPeriodo(d, meseSelezionato, annoSelezionato))
 
   const datiGruppi = {
-    ft5: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici5gg },
-    ft6: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici6gg },
-    pt5: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici5gg },
-    pt6: { sommaGiorni: 0, conteggio: 0, maxTeorici: maxTeorici6gg }
+    ft5: { sommaGiorni: 0, conteggio: 0, sommaTeorici: 0 },
+    ft6: { sommaGiorni: 0, conteggio: 0, sommaTeorici: 0 },
+    pt5: { sommaGiorni: 0, conteggio: 0, sommaTeorici: 0 },
+    pt6: { sommaGiorni: 0, conteggio: 0, sommaTeorici: 0 }
   }
 
   dipendentiAttivi.forEach(d => {
     const ggSett = d.giorni_lavorativi_settimanali || 5
     const isFT = (d.percentuale_part_time ?? 100) >= 100
     const giorniLavorati = Number(d.giorni_lavorati ?? d.giorniLavorati ?? 0)
+    const giorniTeoriciIndividuo = calcolaGiorniTeoriciDipendente(meseSelezionato, annoSelezionato, d)
 
     let gruppoKey = ''
     if (ggSett === 5) {
@@ -217,14 +220,22 @@ function AdminDashboard() {
 
     if (gruppoKey) {
       datiGruppi[gruppoKey].sommaGiorni += giorniLavorati
+      datiGruppi[gruppoKey].sommaTeorici += giorniTeoriciIndividuo
       datiGruppi[gruppoKey].conteggio += 1
     }
   })
 
   const media5ft = datiGruppi.ft5.conteggio > 0 ? Number((datiGruppi.ft5.sommaGiorni / datiGruppi.ft5.conteggio).toFixed(1)) : 0
+  const maxTeorici5ft = datiGruppi.ft5.conteggio > 0 ? Math.round(datiGruppi.ft5.sommaTeorici / datiGruppi.ft5.conteggio) : 0
+
   const media6ft = datiGruppi.ft6.conteggio > 0 ? Number((datiGruppi.ft6.sommaGiorni / datiGruppi.ft6.conteggio).toFixed(1)) : 0
+  const maxTeorici6ft = datiGruppi.ft6.conteggio > 0 ? Math.round(datiGruppi.ft6.sommaTeorici / datiGruppi.ft6.conteggio) : 0
+
   const media5pt = datiGruppi.pt5.conteggio > 0 ? Number((datiGruppi.pt5.sommaGiorni / datiGruppi.pt5.conteggio).toFixed(1)) : 0
+  const maxTeorici5pt = datiGruppi.pt5.conteggio > 0 ? Math.round(datiGruppi.pt5.sommaTeorici / datiGruppi.pt5.conteggio) : 0
+
   const media6pt = datiGruppi.pt6.conteggio > 0 ? Number((datiGruppi.pt6.sommaGiorni / datiGruppi.pt6.conteggio).toFixed(1)) : 0
+  const maxTeorici6pt = datiGruppi.pt6.conteggio > 0 ? Math.round(datiGruppi.pt6.sommaTeorici / datiGruppi.pt6.conteggio) : 0
 
   const aggregaPerCCNL = () => {
     const risultato = {}
@@ -553,25 +564,25 @@ function AdminDashboard() {
                     <DonutCard
                       titolo="Tempo pieno - 5 gg."
                       valore={media5ft}
-                      totale={datiGruppi.ft5.maxTeorici}
+                      totale={maxTeorici5ft}
                       colore="#10b981"
                     />
                     <DonutCard
                       titolo="Tempo pieno - 6 gg."
                       valore={media6ft}
-                      totale={datiGruppi.ft6.maxTeorici}
+                      totale={maxTeorici6ft}
                       colore="#3b82f6"
                     />
                     <DonutCard
                       titolo="Part-time - 5 gg."
                       valore={media5pt}
-                      totale={datiGruppi.pt5.maxTeorici}
+                      totale={maxTeorici5pt}
                       colore="#f59e0b"
                     />
                     <DonutCard
                       titolo="Part-time - 6 gg."
                       valore={media6pt}
-                      totale={datiGruppi.pt6.maxTeorici}
+                      totale={maxTeorici6pt}
                       colore="#ef4444"
                     />
                   </div>
