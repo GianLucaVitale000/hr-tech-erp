@@ -1,6 +1,4 @@
-# COOKIE & STORAGE POLICY
-
-## Informativa sull'uso dei cookie e delle tecnologie di archiviazione locale (Web Storage)
+# Informativa sull'uso dei cookie e delle tecnologie di archiviazione locale (Web Storage)
 
 **Versione:** [INSERIRE VERSIONE DEL DOCUMENTO]  
 **Data di aggiornamento:** [INSERIRE DATA]  

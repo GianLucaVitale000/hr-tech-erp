@@ -6,6 +6,8 @@ export const getUser = (id) => api.get(`/users/${id}`)
 export const createUser = (data) => api.post('/users', data)
 export const updateUser = (id, data) => api.put(`/users/${id}`, data)
 export const deleteUser = (id) => api.delete(`/users/${id}`)
+export const getPrivacyAcknowledgments = (dipendenteId) => api.get(`/dipendenti/${dipendenteId}/privacy-acknowledgments`)
+export const createPrivacyAcknowledgment = (dipendenteId, data) => api.post(`/dipendenti/${dipendenteId}/privacy-acknowledgments`, data)
 
 // === DIPENDENTI ===
 export const getDipendenti = () => api.get('/dipendenti')

@@ -109,6 +109,12 @@
   color: white;
 }
 
+.utenti-card-button-privacy,
+.utenti-table-button-privacy {
+  background-color: #7c3aed;
+  color: white;
+}
+
 /* Desktop Layout */
 .utenti-table-container {
   overflow-x: auto;
@@ -1778,6 +1784,179 @@
 
 .contratti-legend-tag-biennio {
   background-color: #ef4444;
+}
+
+.utenti-table-button-privacy {
+  margin-left: 0.5rem;
+}
+
+.privacy-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.privacy-modal {
+  width: min(680px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  color: var(--text);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+}
+
+.privacy-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.privacy-modal-header h2 {
+  margin: 0;
+}
+
+.privacy-modal-close {
+  border: 0;
+  color: var(--text);
+  background: transparent;
+  font-size: 1.75rem;
+  cursor: pointer;
+}
+
+.privacy-modal-user {
+  color: var(--text-h);
+}
+
+
+.privacy-modal-error {
+  color: #b91c1c;
+}
+
+.privacy-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.privacy-modal-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: var(--text-h);
+  font-size: 0.9rem;
+}
+
+.privacy-modal-form input,
+.privacy-modal-form select,
+.privacy-modal-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.privacy-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.privacy-modal-confirmation {
+  flex-direction: row !important;
+  align-items: flex-start;
+}
+
+.privacy-modal-confirmation input {
+  width: auto;
+  margin-top: 0.2rem;
+}
+
+.privacy-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.privacy-modal-button {
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.privacy-modal-button.primary {
+  background: #2563eb;
+}
+
+.privacy-modal-button.secondary {
+  color: var(--text);
+  background: var(--border);
+}
+
+.privacy-modal-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.privacy-modal-history {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.privacy-modal-history h3 {
+  margin-top: 0;
+}
+
+.privacy-modal-history ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.privacy-modal-history li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: 5px;
+  font-size: 0.85rem;
+}
+
+.privacy-modal-history span {
+  color: var(--text-h);
+}
+
+@media (max-width: 768px) {
+  .privacy-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .privacy-modal-button {
+    width: 100%;
+  }
 }
 
 /* Tipologia Color Indicator */

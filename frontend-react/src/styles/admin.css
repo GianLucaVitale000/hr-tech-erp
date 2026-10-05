@@ -162,6 +162,16 @@
   color: var(--text-h);
 }
 
+.admin-footer .footer-links {
+  display: inline-flex;
+  gap: 0.75rem;
+}
+
+.admin-footer .footer-links a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .admin-footer .footer-logo {
   height: 24px;
   width: auto;
@@ -179,6 +189,10 @@
     display: block;  /* Mostra anche su mobile */
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
+  }
+
+  .admin-footer > div {
+    flex-wrap: wrap;
   }
 }
 

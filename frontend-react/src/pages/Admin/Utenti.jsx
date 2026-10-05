@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUsers, deleteUser } from '../../services/dipendentiService'
+import PrivacyAcknowledgmentModal from '../../components/Admin/PrivacyAcknowledgmentModal'
 
 function Utenti() {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isMobile, setIsMobile] = useState(false)
+  const [privacyUser, setPrivacyUser] = useState(null)
   const navigate = useNavigate()
 
   // Rileva se è mobile
@@ -83,12 +85,12 @@ function Utenti() {
                   <span className="utenti-card-label">Ruolo:</span>
                   <span className="utenti-card-value">{getRoleName(u)}</span>
                 </div>
-                <div className="utenti-card-field">
-                  <span className="utenti-card-label">Dipendente:</span>
-                  <span className="utenti-card-value">
-                    {u.dipendente?.id ? '✅ Sì' : '❌ No'}
-                  </span>
-                </div>
+                {u.dipendente?.id && (
+                  <div className="utenti-card-field">
+                    <span className="utenti-card-label">Privacy:</span>
+                    <span className="utenti-card-value">{u.dipendente.latest_privacy_acknowledgment ? '✅ Acquisita' : '⚠️ Da acquisire'}</span>
+                  </div>
+                )}
               </div>
               <div className="utenti-card-actions">
                 <button
@@ -103,6 +105,14 @@ function Utenti() {
                 >
                   Elimina
                 </button>
+                {u.dipendente?.id && (
+                  <button
+                    onClick={() => setPrivacyUser(u)}
+                    className="utenti-card-button utenti-card-button-privacy"
+                  >
+                    Privacy
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -116,7 +126,7 @@ function Utenti() {
                 <th>Nome e Cognome</th>
                 <th>Email</th>
                 <th>Ruolo</th>
-                <th>Dipendente</th>
+                <th>Privacy</th>
                 <th>Azioni</th>
               </tr>
             </thead>
@@ -127,7 +137,9 @@ function Utenti() {
                   <td>{u.email}</td>
                   <td>{getRoleName(u)}</td>
                   <td>
-                    {u.dipendente?.id ? '✅ Sì' : '❌ No'}
+                    {u.dipendente?.id
+                      ? (u.dipendente.latest_privacy_acknowledgment ? '✅ Acquisita' : '⚠️ Da acquisire')
+                      : '—'}
                   </td>
                   <td>
                     <button
@@ -142,12 +154,27 @@ function Utenti() {
                     >
                       Elimina
                     </button>
+                    {u.dipendente?.id && (
+                      <button
+                        onClick={() => setPrivacyUser(u)}
+                        className="utenti-table-button utenti-table-button-privacy"
+                      >
+                        Privacy
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+      {privacyUser && (
+        <PrivacyAcknowledgmentModal
+          user={privacyUser}
+          onClose={() => setPrivacyUser(null)}
+          onSaved={fetchUsers}
+        />
       )}
     </div>
   )

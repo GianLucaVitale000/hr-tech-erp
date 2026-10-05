@@ -36,6 +36,49 @@ I form di creazione e modifica del dipendente (`NuovoDipendente.jsx` e `EditDipe
    - Ore settimanali teoriche.
 4. **Giorni di Riposo (R1 / R2)**: Definizione dei giorni di riposo settimanale (es. sabato e domenica per la settimana corta a 5 giorni).
 
+### C. Informativa privacy e Cookie Policy
+
+I documenti informativi sono disponibili come PDF pubblici, collegati nel footer sia dell'area Admin sia dell'area Dipendente:
+
+- [Informativa privacy dipendenti](frontend-react/public/INFORMATIVA-PRIVACY-DIPENDENTI.pdf);
+- [Informativa sull'uso dei cookie e delle tecnologie di archiviazione locale](frontend-react/public/COOKIE-STORAGE-POLICY.pdf).
+
+La disponibilità dei documenti nel footer garantisce l'accesso permanente all'informazione durante l'utilizzo dell'applicativo. La Cookie Policy ha esclusivamente funzione informativa: non viene sottoscritta dal dipendente e non viene registrata nella procedura descritta di seguito.
+
+#### Registrazione della presa visione dell'informativa privacy
+
+La sottoscrizione della dichiarazione di consegna e presa visione dell'informativa privacy avviene esternamente all'applicativo. L'Admin, dopo aver ricevuto e archiviato il documento firmato, registra l'evento dalla pagina **Gestione Utenti**:
+
+1. individua l'utente collegato a un'anagrafica dipendente;
+2. seleziona l'azione **Privacy**;
+3. compila la modale con:
+   - versione dell'informativa;
+   - data del documento;
+   - data della sottoscrizione;
+   - riferimento dell'archivio esterno, ad esempio il codice del fascicolo;
+   - eventuali note;
+4. conferma di aver acquisito e archiviato la dichiarazione firmata;
+5. seleziona **Registra presa visione**.
+
+La registrazione è un'attestazione amministrativa dell'avvenuta acquisizione del documento firmato; non costituisce un nuovo consenso al trattamento dei dati personali e non sostituisce l'archiviazione del documento originale.
+
+Per ogni registrazione vengono conservati:
+
+- dipendente a cui si riferisce l'informativa;
+- versione e data del documento;
+- data della sottoscrizione;
+- modalità e riferimento dell'archiviazione esterna;
+- eventuali note;
+- Admin che ha registrato l'evento e data della registrazione.
+
+Lo storico è mantenuto per consentire la ricostruzione delle versioni consegnate nel tempo. La colonna **Privacy** nella tabella di Gestione Utenti indica se esiste almeno una registrazione per l'anagrafica dipendente:
+
+- **Acquisita**: è presente una registrazione;
+- **Da acquisire**: non è ancora presente alcuna registrazione;
+- **—**: l'utente non è associato a un'anagrafica dipendente.
+
+La funzione è disponibile soltanto agli utenti con ruolo Admin. Per renderla operativa è necessario applicare la migrazione Laravel che crea la tabella `privacy_acknowledgments`; il file `backend-php/database/database.sql` contiene la relativa definizione per gli aggiornamenti manuali dello schema.
+
 ---
 
 ## 3. Impatto delle Scelte di Form sulle Dinamiche HR e sul Timesheet
