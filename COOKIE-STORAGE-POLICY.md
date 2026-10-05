@@ -5,14 +5,14 @@
 **Applicativo:** HR-Tech ERP  
 **Titolare del trattamento:** [NOME AZIENDA / TITOLARE DEL TRATTAMENTO]
 
-### 1. Cosa sono i cookie e il Web Storage
+## 1. Cosa sono i cookie e il Web Storage
 
 I cookie e gli strumenti di Web Storage, come il `localStorage`, sono
 informazioni di piccole dimensioni che i siti e le applicazioni web possono
 memorizzare nel browser dell'utente e utilizzare nelle successive richieste o
 sessioni di lavoro.
 
-### 2. Strumenti utilizzati da questo applicativo
+## 2. Strumenti utilizzati da questo applicativo
 
 L'applicativo di gestione presenze **HR-Tech ERP** utilizza
 esclusivamente strumenti tecnici di prima parte, necessari per:
@@ -29,9 +29,9 @@ L'applicativo, nella configurazione attuale, **non utilizza**:
 - strumenti di analytics di terze parti;
 - tecnologie di tracciamento comportamentale.
 
-### 3. Dettaglio delle tecnologie impiegate
+## 3. Dettaglio delle tecnologie impiegate
 
-#### A. Cookie tecnico di autenticazione
+### A. Cookie tecnico di autenticazione
 
 - **Denominazione:** `auth_token`
 - **Natura:** cookie tecnico di prima parte.
@@ -50,7 +50,7 @@ Il frontend non legge direttamente il valore del cookie. Il browser lo invia
 automaticamente alle richieste autorizzate e il backend lo utilizza per
 validare l'utente tramite Sanctum.
 
-##### Durata e scadenza
+#### 3.1. Durata e scadenza
 
 - **Accesso standard:** cookie di sessione, senza una scadenza persistente;
   viene normalmente eliminato alla chiusura del browser.
@@ -60,7 +60,7 @@ validare l'utente tramite Sanctum.
 - **Scadenza del token persistente:** il token Sanctum associato alla modalità
   “Ricordami” ha una scadenza di 30 giorni.
 
-#### B. Archiviazione locale (LocalStorage)
+### B. Archiviazione locale (LocalStorage)
 
 - **Chiave:** `theme`
 - **Natura:** elemento di Web Storage locale di prima parte.
@@ -78,7 +78,7 @@ L'applicativo non salva nel `localStorage` le chiavi `auth_token`, `user` o
 Le informazioni dell'utente autenticato vengono mantenute solo nella memoria
 volatile dell'applicazione frontend e recuperate dal backend tramite l'endpoint autenticato `/api/me` quando l'applicazione viene caricata o ricaricata.
 
-### 4. Base giuridica ed eventuale esenzione dal consenso
+## 4. Base giuridica ed eventuale esenzione dal consenso
 
 La configurazione attuale utilizza esclusivamente strumenti tecnici necessari
 all'autenticazione, alla sicurezza e all'erogazione delle funzionalità
@@ -94,7 +94,7 @@ La valutazione giuridica definitiva deve essere verificata dal Titolare del
 trattamento in relazione al contesto organizzativo, alle modalità effettive di
 utilizzo e a eventuali integrazioni future.
 
-### 5. Gestione tramite le impostazioni del browser
+## 5. Gestione tramite le impostazioni del browser
 
 L'utente può verificare, eliminare o disabilitare cookie e dati di
 `localStorage` tramite le impostazioni del proprio browser.
@@ -110,7 +110,7 @@ Per maggiori informazioni sulla gestione di cookie e Web Storage:
 - [Microsoft Edge](https://support.microsoft.com/it-it/microsoft-edge/eliminare-i-cookie-in-microsoft-edge-6394120f-500e-44f0-b459-05f0e072e2db)
 - [Apple Safari](https://support.apple.com/it-it/guide/safari/sfri11471/mac)
 
-### 6. Contatti
+## 6. Contatti
 
 Per qualsiasi chiarimento relativo alla presente policy, è possibile
 contattare il Titolare del trattamento:
@@ -119,7 +119,7 @@ contattare il Titolare del trattamento:
 - **Email privacy:** [EMAIL DEDICATA PRIVACY]
 - **Indirizzo:** [INDIRIZZO DEL TITOLARE, SE NECESSARIO]
 
-### 7. Modifiche alla policy
+## 7. Modifiche alla policy
 
 La presente informativa potrà essere aggiornata in caso di modifiche
 all'architettura dell'applicativo, all'uso dei cookie o delle tecnologie di
