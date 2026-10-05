@@ -11,7 +11,10 @@ class UserController extends Controller
 {
     public function index()
     {
-        return User::with(['roles', 'dipendente'])->select('id', 'name', 'email')->orderBy('name')->get();
+        return User::with(['roles', 'dipendente.latestPrivacyAcknowledgment.recorder:id,name'])
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
     }
 
     public function store(Request $request)

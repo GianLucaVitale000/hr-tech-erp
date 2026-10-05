@@ -419,6 +419,34 @@ CREATE TABLE `presenza_comunicazioni` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `privacy_acknowledgments`
+--
+
+DROP TABLE IF EXISTS `privacy_acknowledgments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `privacy_acknowledgments` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `dipendente_id` bigint unsigned NOT NULL,
+  `recorded_by` bigint unsigned NOT NULL,
+  `document_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `document_version` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `document_date` date NOT NULL,
+  `acknowledged_at` date NOT NULL,
+  `archive_method` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `archive_reference` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `privacy_acknowledgments_dipendente_id_document_type_index` (`dipendente_id`,`document_type`),
+  KEY `privacy_acknowledgments_recorded_by_foreign` (`recorded_by`),
+  CONSTRAINT `privacy_acknowledgments_dipendente_id_foreign` FOREIGN KEY (`dipendente_id`) REFERENCES `dipendenti` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `privacy_acknowledgments_recorded_by_foreign` FOREIGN KEY (`recorded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `regole_calcolo_contratto`
 --
 

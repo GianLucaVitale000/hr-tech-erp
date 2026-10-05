@@ -9,6 +9,7 @@ use App\Http\Controllers\DipendenteOrarioSettimanaleController;
 use App\Http\Controllers\PresenzaController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PresenzaComunicazioneController;
+use App\Http\Controllers\PrivacyAcknowledgmentController;
 
 Route::get('/ping', function () {
     return response()->json(['message' => 'Laravel API attiva!']);
@@ -37,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dipendenti/{dipendente}/orari-settimanali', [DipendenteOrarioSettimanaleController::class, 'index']);
     Route::post('/dipendenti/{dipendente}/orari-settimanali', [DipendenteOrarioSettimanaleController::class, 'storeOrUpdate']);
     Route::get('/dipendenti/{dipendente}/orari-settimanali/per-data', [DipendenteOrarioSettimanaleController::class, 'getForDate']);
+    Route::get('/dipendenti/{dipendente}/privacy-acknowledgments', [PrivacyAcknowledgmentController::class, 'index']);
+    Route::post('/dipendenti/{dipendente}/privacy-acknowledgments', [PrivacyAcknowledgmentController::class, 'store']);
 
     // Rotte specifiche PRIMA di apiResource
     Route::post('/presenze/invia-mese', [PresenzaController::class, 'inviaMese']);

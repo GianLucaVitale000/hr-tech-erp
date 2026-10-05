@@ -56,6 +56,16 @@ class Dipendente extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function privacyAcknowledgments()
+    {
+        return $this->hasMany(PrivacyAcknowledgment::class);
+    }
+
+    public function latestPrivacyAcknowledgment()
+    {
+        return $this->hasOne(PrivacyAcknowledgment::class)->latestOfMany();
+    }
+
     public function contratto()
     {
         return $this->belongsTo(Contratto::class);
