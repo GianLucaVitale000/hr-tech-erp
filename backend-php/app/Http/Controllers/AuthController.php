@@ -13,38 +13,60 @@ class AuthController extends Controller
 {
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
+            'remember_me' => 'sometimes|boolean',
         ]);
+        $rememberMe = (bool) ($validated['remember_me'] ?? false);
+        $credentials = [
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ];
 
-        if (!Auth::attempt($credentials)) {
+        $guard = Auth::guard('web');
+        if (! $guard->once($credentials)) {
             return response()->json([
                 'message' => 'Credenziali non valide'
             ], 401);
         }
 
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = $guard->user();
+        $token = $user->createToken(
+            'auth_token',
+            ['*'],
+            $rememberMe ? now()->addDays(30) : null,
+        )->plainTextToken;
+
+        $cookie = cookie(
+            'auth_token',
+            $token,
+            $rememberMe ? 30 * 24 * 60 : 0,
+            '/',
+            null,
+            (bool) config('session.secure'),
+            true,
+            false,
+            'strict',
+        );
 
         return response()->json([
-            'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->getRoleNames()->first(),
             ]
-        ]);
+        ])->withCookie($cookie);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()?->delete();
 
         return response()->json([
             'message' => 'Logout effettuato con successo'
-        ]);
+        ])->withCookie(cookie()->forget('auth_token', '/'));
     }
 
     public function me(Request $request)

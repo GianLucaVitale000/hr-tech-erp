@@ -26,8 +26,8 @@ function DipendenteNavbar({ isDarkMode, onToggleChange }) {
       .catch(() => setComunicazioniNonLette(0))
   }, [])
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     navigate('/login')
   }
 

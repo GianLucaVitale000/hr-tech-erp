@@ -307,7 +307,10 @@ le rotte non riconosciute fanno lo stesso.
 
 ### Accesso e aree dell'applicazione
 
-Il login (`/login`) identifica il ruolo dell'utente. Le aree protette sono
+Il login (`/login`) identifica il ruolo dell'utente. Il token Sanctum viene
+trasmesso dal backend esclusivamente tramite cookie `HttpOnly`, `Secure` in
+produzione e `SameSite=Strict`; il frontend conserva in memoria solo il profilo
+restituito da `/api/me`. Le aree protette sono
 racchiuse in layout distinti:
 
 - `AdminLayout` per il ruolo `admin`;
@@ -315,8 +318,8 @@ racchiuse in layout distinti:
 
 `ProtectedRoute` impedisce l'accesso diretto a una sezione non autorizzata.
 Navbar, sidebar mobile e footer mantengono una struttura coerente all'interno
-di ciascuna area. Il logout riporta al login e rimuove la sessione secondo
-l'opzione “ricordami”.
+di ciascuna area. Il logout revoca il token sul backend, cancella il cookie e pulisce lo stato
+in memoria. L'opzione “ricordami” controlla solo la durata del cookie.
 
 ### Area Admin
 
@@ -380,8 +383,10 @@ di admin o dipendente.
 ## Flusso dei dati
 
 1. L'utente accede dal frontend React.
-2. Laravel autentica le credenziali e restituisce un token Sanctum.
-3. Il frontend usa il token nelle richieste API protette.
+2. Laravel autentica le credenziali e invia il token Sanctum nel cookie
+   `HttpOnly` `auth_token` tramite `Set-Cookie`.
+3. Il browser invia automaticamente il cookie nelle richieste API; al
+   caricamento il frontend recupera il profilo con `/api/me`.
 4. Laravel applica autorizzazioni, regole HR e persistenza su MySQL.
 5. Per l'export mensile, Laravel espone i dati necessari e il frontend chiama
    FastAPI su `/export/paghe?mese=M&anno=A`.

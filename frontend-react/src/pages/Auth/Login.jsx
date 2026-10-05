@@ -6,28 +6,14 @@ import Logo from '../../components/Admin/Logo'
 import '../../styles/login.css'
 
 function Login() {
-  const [email, setEmail] = useState(() => {
-    // Ripristina email se "Ricordami" era selezionato
-    const saved = localStorage.getItem('remember_me') === 'true'
-    if (saved) {
-      try {
-        const userData = JSON.parse(localStorage.getItem('user') || '{}')
-        return userData.email || ''
-      } catch {
-        return ''
-      }
-    }
-    return ''
-  })
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showLoginForm, setShowLoginForm] = useState(false)
   const [isFading, setIsFading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(() => {
-    return localStorage.getItem('remember_me') === 'true'
-  })
+  const [rememberMe, setRememberMe] = useState(false)
 
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -53,8 +39,12 @@ function Login() {
     setError('')
 
     try {
-      const res = await api.post('/login', { email, password })
-      login(res.data.user, res.data.token, rememberMe)
+      const res = await api.post('/login', {
+        email,
+        password,
+        remember_me: rememberMe,
+      })
+      login(res.data.user)
 
       // Reindirizza in base al ruolo
       if (res.data.user.role === 'admin') {

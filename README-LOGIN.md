@@ -8,21 +8,21 @@ Il sistema adotta un'architettura **Full-Stack Separata** basata su un backend *
 
 ## 1. Architettura del Backend (Laravel)
 
-Il backend gestisce l'autenticazione tramite lo [`AuthController.php`](backend-php/app/Http/Controllers/AuthController.php) e l'ecosistema Laravel Sanctum per l'emissione e la convalida dei token d'accesso (Bearer Token).
+Il backend gestisce l'autenticazione tramite lo [`AuthController.php`](backend-php/app/Http/Controllers/AuthController.php) e l'ecosistema Laravel Sanctum per l'emissione e la convalida dei token d'accesso.
 
 ### 1.1 Endpoint API Principali (`routes/api.php`)
 
-* **`POST /api/login`**: Effettua il login dell'utente validando le credenziali (`email` e `password`). In caso di successo, restituisce un token Sanctum (`auth_token`) e le informazioni del profilo utente (incluso il ruolo).
-* **`POST /api/logout`**: Revoca il token corrente associato alla richiesta autenticata.
+* **`POST /api/login`**: Effettua il login dell'utente validando le credenziali (`email`, `password` e `remember_me`). In caso di successo, il backend invia il token Sanctum esclusivamente nell'header `Set-Cookie` come cookie `auth_token` `HttpOnly`, `SameSite=Strict` e con durata di sessione o 30 giorni.
+* **`POST /api/logout`**: Revoca il token corrente associato alla richiesta autenticata e distrugge il cookie `auth_token`.
 * **`GET /api/me`**: Restituisce le informazioni dettagliate dell'utente autenticato (ID, nome, email, ruolo).
 * **`GET /api/users`**: Elenco degli utenti di sistema (protetto da ruoli/permessi).
 
 ### 1.2 Implementazione del Controller (`AuthController.php`)
 
-Il controller esegue la validazione dei dati in ingresso e sfrutta la facade `Auth::attempt()` di Laravel:
+Il controller esegue la validazione dei dati in ingresso e usa la guardia web di Laravel senza persistere una sessione server:
 
 * **Credenziali non valide**: Restituisce una risposta HTTP `401 Unauthorized` con il messaggio `"Credenziali non valide"`.
-* **Credenziali valide**: Crea un token Sanctum (`plainTextToken`) e restituisce i metadati dell'utente e il ruolo associato (tramite il pacchetto di permessi e ruoli `spatie/laravel-permission`).
+* **Credenziali valide**: Crea un token Sanctum (`plainTextToken`), lo invia nel cookie `HttpOnly` e restituisce solo i metadati dell'utente e il ruolo associato (tramite il pacchetto di permessi e ruoli `spatie/laravel-permission`).
 
 ---
 
@@ -33,14 +33,14 @@ Il frontend gestisce l'interfaccia utente, l'esperienza di autenticazione e la p
 ### 2.1 Caratteristiche della User Experience (UX) e della User Interface (UI)
 
 * **Animazione Splash Screen Iniziale**: Durante il caricamento iniziale della pagina di login, viene mostrata una schermata di benvenuto con logo animato (`login-splash`) che scompare gradualmente tramite transizione CSS prima di rivelare il form di autenticazione vero e proprio.
-* **Funzionalità "Ricordami" (`Remember Me`)**: Consente di memorizzare l'indirizzo email dell'utente nel `localStorage` e di ripristinarlo automaticamente ai successivi accessi.
+* **Funzionalità "Ricordami" (`Remember Me`)**: Determina esclusivamente la durata del cookie `HttpOnly`; non viene memorizzata nel browser dal frontend.
 * **Visualizzazione Password Interattiva**: Un pulsante integrato nel campo password permette di alternare la visibilità del testo in chiaro o mascherato.
 * **Pulizia Rapida dell'Email**: Pulsante a scomparsa rapida per svuotare il campo di input dell'email.
 * **Gestione degli Errori**: Messaggi di errore reattivi in caso di credenziali errate o problemi di connessione.
 
 ### 2.2 Gestione dello Stato e Rotte Protette
 
-* **`AuthContext` (`frontend-react/src/context/AuthContext.jsx`)**: Gestisce lo stato globale dell'utente autenticato, il token persistente salvato in memoria/sessione, e fornisce funzioni di login e logout.
+* **`AuthContext` (`frontend-react/src/context/AuthContext.jsx`)**: Gestisce in memoria lo stato globale dell'utente autenticato. Al caricamento interroga `/api/me`; il token non è accessibile a JavaScript e non viene salvato in `localStorage`.
 * **`ProtectedRoute` (`frontend-react/src/components/ProtectedRoute.jsx`)**: Intercetta i tentativi di navigazione verso le aree protette (`/admin` o `/dipendente`) verificando l'autenticazione e il ruolo utente, effettuando il reindirizzamento automatico (`navigate`) in base al profilo (`admin` o `dipendente`).
 
 ---
