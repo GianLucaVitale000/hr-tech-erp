@@ -1,4 +1,4 @@
-# README-DASHBOARD: Documentazione delle Dashboard Dipendente e Admin
+# Dashboard: Documentazione delle Dashboard Dipendente e Admin
 
 Questo documento descrive in dettaglio l'architettura, le caratteristiche, i contenuti delle pagine principali e il **routing (connessioni con gli altri moduli)** delle due dashboard del sistema ERP HR: la **Dashboard Dipendente** e la **Dashboard di Amministrazione (Admin)**.
 

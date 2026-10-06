@@ -299,8 +299,7 @@ le rotte non riconosciute fanno lo stesso.
 │   └── test_export.sh          # Script di test per l'export
 ├── start.sh                    # Script di avvio centralizzato dei tre servizi
 ├── stop.sh                     # Script di arresto dei servizi
-├── QR-CODE-PRESENZE-DOCUMENTAZIONE.md # Documentazione specifica QR Code e Kiosk
-└── README-*.md                 # Documentazione di dettaglio dei singoli moduli
+├── README.md                   # Documentazione generale del progetto
 ```
 
 ## Articolazione dell'applicazione e navigazione UX/UI
@@ -492,11 +491,10 @@ il flusso di inserimento e approvazione del timesheet e l'export Excel.
 - [Login e autenticazione](README-LOGIN.md)
 - [Dashboard admin e dipendente](README-DASHBOARD.md)
 - [Gestione utenti e dipendenti](README-UTENTI-DIPENDENTI.md)
-- [Timesheet e registrazione presenze](README-TIMESHEET.md)
+- [Timesheet e registrazione presenze | QR Code](TIMESHEET.md)
 - [Approvazione fogli ore ed export paghe](README-ApprovazioneFogliOre.md)
 - [Analisi HR](README-AnalisiHR.md)
 - [Gestione CCNL](README-GESTIONE-CCNL.md)
-- [QR Code per le presenze](QR-CODE-PRESENZE-DOCUMENTAZIONE.md)
 
 I README dei moduli descrivono implementazione e regole specifiche; questo
 documento deve rimanere il punto di ingresso per setup, architettura e navigazione complessiva.
