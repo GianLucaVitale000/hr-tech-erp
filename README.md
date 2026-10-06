@@ -488,13 +488,10 @@ il flusso di inserimento e approvazione del timesheet e l'export Excel.
 
 ## Documentazione dei moduli
 
-- [Login e autenticazione](README-LOGIN.md)
-- [Dashboard admin e dipendente](README-DASHBOARD.md)
-- [Gestione utenti e dipendenti](README-UTENTI-DIPENDENTI.md)
-- [Timesheet e registrazione presenze | QR Code](TIMESHEET.md)
-- [Approvazione fogli ore ed export paghe](README-ApprovazioneFogliOre.md)
-- [Analisi HR](README-AnalisiHR.md)
-- [Gestione CCNL](README-GESTIONE-CCNL.md)
+- [Login e autenticazione](Login.md)
+- [Dashboard admin e dipendente](Dashboard.md)
+- [Gestione utenti e dipendenti | Gestione CCNL | Approvazione Fogli Ore ed export paghe | Analisi HR](Admin.md)
+- [Timesheet e registrazione presenze | QR Code](Timesheet.md)
 
 I README dei moduli descrivono implementazione e regole specifiche; questo
 documento deve rimanere il punto di ingresso per setup, architettura e navigazione complessiva.
