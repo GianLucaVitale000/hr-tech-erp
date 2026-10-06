@@ -493,5 +493,5 @@ il flusso di inserimento e approvazione del timesheet e l'export Excel.
 - [Gestione utenti e dipendenti | Gestione CCNL | Approvazione Fogli Ore (+ export paghe) | Analisi HR](Admin.md)
 - [Timesheet e registrazione presenze | QR Code](Timesheet.md)
 
-I README dei moduli descrivono implementazione e regole specifiche; questo
+La documentazione dei moduli descrive implementazioni e regole specifiche; questo
 documento deve rimanere il punto di ingresso per setup, architettura e navigazione complessiva.
