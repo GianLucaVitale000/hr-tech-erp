@@ -146,17 +146,18 @@
 }
 
 .badge {
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.75rem;
 }
 
-.badge-blue { background-color: #eff6ff; }
-.badge-amber { background-color: #fef3c7; }
-.badge-green { background-color: #d1fae5; }
-.badge-yellow { background-color: #fde68a; }
-.badge-red { background-color: #fca5a5; }
-.badge-indigo { background-color: #e0e7ff; }
+.badge-blue { color: var(--text-color); }
+.badge-amber { color: var(--text-color); }
+.badge-green { color: var(--text-color); }
+.badge-yellow { color: var(--text-color); }
+.badge-red { color: var(--text-color); }
+.badge-indigo { color: var(--text-color); }
 
 /* ---------- Invio mese ---------- */
 .invia-wrap {

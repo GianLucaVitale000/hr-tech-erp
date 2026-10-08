@@ -1591,7 +1591,7 @@ useEffect(() => {
   {/* Secondo gruppo */}
   <div className="totals-group">
     <div className="badge badge-green">
-      <strong>Ferie/Permessi:</strong> {Number(totaleFeriePermessi).toFixed(2)}
+      <strong>Ferie/Perm.:</strong> {Number(totaleFeriePermessi).toFixed(2)}
     </div>
 
     <div className="badge badge-green">
