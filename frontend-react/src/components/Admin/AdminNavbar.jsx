@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import Logo from './Logo'
+import Avatar from '../Avatar'
 
 /**
  * AdminNavbar - Navbar desktop fissa per l'area admin
@@ -80,9 +81,7 @@ function AdminNavbar({ isDarkMode, onToggleChange }) {
       <div className="navbar-right">
         <div className="user-info">
           <span className="user-name">Benvenuto, {user?.name || 'Utente'}</span>
-          <div className="avatar" title={user?.name || 'Utente'}>
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
-          </div>
+          <Avatar name={user?.name} url={user?.avatar_url} className="avatar" />
           {/* 🔹 TOGGLE SWITCH DESKTOP */}
           <label className="theme-switch" htmlFor="checkbox-navbar">
             <input

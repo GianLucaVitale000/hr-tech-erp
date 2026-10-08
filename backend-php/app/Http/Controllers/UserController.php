@@ -2,19 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Dipendente;
+use App\Models\DipendenteCondizioneContrattuale;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return User::with(['roles', 'dipendente.latestPrivacyAcknowledgment.recorder:id,name'])
-            ->select('id', 'name', 'email')
+            ->select('id', 'name', 'email', 'avatar_path')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(fn (User $user) => $this->withAvatarUrl($user, $request));
     }
 
     public function store(Request $request)
@@ -24,6 +29,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email|max:255',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string|in:admin,dipendente',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'create_dipendente' => 'boolean',
             'contratto_id' => 'nullable|exists:contratti,id',
             'codice_fiscale' => 'nullable|string|unique:dipendenti,codice_fiscale',
@@ -48,8 +54,13 @@ class UserController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => \Illuminate\Support\Facades\Hash::make($validated['password'])
+            'password' => Hash::make($validated['password']),
         ]);
+
+        if ($request->hasFile('avatar')) {
+            $user->avatar_path = $request->file('avatar')->store('avatars', 'public');
+            $user->save();
+        }
 
         $role = Role::where('name', $validated['role'])->first();
         $user->assignRole($role);
@@ -78,40 +89,41 @@ class UserController extends Controller
                 'residuo_precedente_permessi' => $validated['residuo_precedente_permessi'] ?? 0,
             ]);
 
-            \App\Models\DipendenteCondizioneContrattuale::create([
+            DipendenteCondizioneContrattuale::create([
                 'dipendente_id' => $dipendente->id,
                 'contratto_id' => $dipendente->contratto_id,
                 'percentuale_part_time' => $dipendente->percentuale_part_time ?? 100,
                 'R1' => $dipendente->R1,
                 'R2' => $dipendente->R2,
-                'data_inizio' => $dipendente->data_assunzione ?? \Carbon\Carbon::today(),
+                'data_inizio' => $dipendente->data_assunzione ?? Carbon::today(),
             ]);
 
             return response()->json([
                 'message' => 'Utente e dipendente creati con successo',
-                'user' => $user->load('roles'),
-                'dipendente' => $dipendente->load('contratto')
+                'user' => $this->withAvatarUrl($user->load('roles'), $request),
+                'dipendente' => $dipendente->load('contratto'),
             ], 201);
         }
 
         return response()->json([
             'message' => 'Utente creato con successo',
-            'user' => $user->load('roles')
+            'user' => $this->withAvatarUrl($user->load('roles'), $request),
         ], 201);
     }
 
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
-        return $user->load('roles', 'dipendente.contratto');
+        return $this->withAvatarUrl($user->load('roles', 'dipendente.contratto'), $request);
     }
 
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $user->id . '|max:255',
+            'email' => 'sometimes|email|unique:users,email,'.$user->id.'|max:255',
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'sometimes|string|in:admin,dipendente'
+            'role' => 'sometimes|string|in:admin,dipendente',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         if (isset($validated['name'])) {
@@ -121,7 +133,13 @@ class UserController extends Controller
             $user->email = $validated['email'];
         }
         if (isset($validated['password'])) {
-            $user->password = \Illuminate\Support\Facades\Hash::make($validated['password']);
+            $user->password = Hash::make($validated['password']);
+        }
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar_path) {
+                Storage::disk('public')->delete($user->avatar_path);
+            }
+            $user->avatar_path = $request->file('avatar')->store('avatars', 'public');
         }
         $user->save();
 
@@ -132,13 +150,45 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Utente aggiornato',
-            'user' => $user->load('roles')
+            'user' => $this->withAvatarUrl($user->load('roles'), $request),
+        ]);
+    }
+
+    public function uploadAvatar(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
+        $user->avatar_path = $validated['avatar']->store('avatars', 'public');
+        $user->save();
+
+        return response()->json([
+            'message' => 'Foto profilo aggiornata',
+            'user' => $this->withAvatarUrl($user->load('roles'), $request),
         ]);
     }
 
     public function destroy(User $user)
     {
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
         $user->delete();
+
         return response()->json(['message' => 'Utente eliminato']);
+    }
+
+    private function withAvatarUrl(User $user, Request $request): User
+    {
+        $user->avatar_url = $user->avatar_path
+            ? $request->getSchemeAndHttpHost().'/storage/'.ltrim($user->avatar_path, '/')
+            : null;
+
+        return $user;
     }
 }

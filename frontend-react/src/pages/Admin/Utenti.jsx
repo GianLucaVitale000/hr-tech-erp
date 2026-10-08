@@ -127,6 +127,7 @@ function Utenti() {
                 <th>Email</th>
                 <th>Ruolo</th>
                 <th>Privacy</th>
+                <th>Foto</th>
                 <th>Azioni</th>
               </tr>
             </thead>
@@ -138,8 +139,11 @@ function Utenti() {
                   <td>{getRoleName(u)}</td>
                   <td>
                     {u.dipendente?.id
-                      ? (u.dipendente.latest_privacy_acknowledgment ? '✅ Acquisita' : '⚠️ Da acquisire')
+                      ? (u.dipendente.latest_privacy_acknowledgment ? '✅ OK' : '⚠️ No')
                       : '—'}
+                  </td>
+                  <td>
+                    {u.avatar_url ? '✅ OK' : '❌ No'}
                   </td>
                   <td>
                     <button

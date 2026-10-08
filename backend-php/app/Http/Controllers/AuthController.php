@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 /**
  * @method \Laravel\Sanctum\PersonalAccessToken createToken(string $name)
@@ -27,7 +27,7 @@ class AuthController extends Controller
         $guard = Auth::guard('web');
         if (! $guard->once($credentials)) {
             return response()->json([
-                'message' => 'Credenziali non valide'
+                'message' => 'Credenziali non valide',
             ], 401);
         }
 
@@ -56,7 +56,10 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->getRoleNames()->first(),
-            ]
+                'avatar_url' => $user->avatar_path
+                    ? $request->getSchemeAndHttpHost().'/storage/'.ltrim($user->avatar_path, '/')
+                    : null,
+            ],
         ])->withCookie($cookie);
     }
 
@@ -65,7 +68,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json([
-            'message' => 'Logout effettuato con successo'
+            'message' => 'Logout effettuato con successo',
         ])->withCookie(cookie()->forget('auth_token', '/'));
     }
 
@@ -78,11 +81,23 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->getRoleNames()->first(),
+            'avatar_url' => $user->avatar_path
+                ? $request->getSchemeAndHttpHost().'/storage/'.ltrim($user->avatar_path, '/')
+                : null,
         ]);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return User::select('id', 'name', 'email')->orderBy('name')->get();
+        return User::select('id', 'name', 'email', 'avatar_path')
+            ->orderBy('name')
+            ->get()
+            ->map(function (User $user) {
+                $user->avatar_url = $user->avatar_path
+                    ? $request->getSchemeAndHttpHost().'/storage/'.ltrim($user->avatar_path, '/')
+                    : null;
+
+                return $user;
+            });
     }
 }

@@ -2778,3 +2778,25 @@
   border-radius: 999px;
   font-size: 0.7rem;
 }
+.utente-avatar-preview-frame {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--border);
+  border: 2px solid var(--border);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.utente-avatar-preview-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

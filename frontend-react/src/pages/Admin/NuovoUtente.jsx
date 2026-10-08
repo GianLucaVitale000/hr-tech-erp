@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createUser, getContratti } from '../../services/dipendentiService'
+import Avatar from '../../components/Avatar'
 
 function NuovoUtente() {
   const [contratti, setContratti] = useState([])
@@ -11,6 +12,7 @@ function NuovoUtente() {
     password: '',
     password_confirmation: '',
     role: 'dipendente',
+    avatar: null,
     create_dipendente: false,
     contratto_id: '',
     codice_fiscale: '',
@@ -30,6 +32,7 @@ function NuovoUtente() {
     data_assunzione: ''
   })
   const [error, setError] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -38,6 +41,12 @@ function NuovoUtente() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
+    if (name === 'avatar') {
+      const file = e.target.files?.[0] || null
+      setForm({ ...form, avatar: file })
+      setAvatarPreview(file ? URL.createObjectURL(file) : null)
+      return
+    }
     if (name === 'tipo_contratto') {
       setForm({
         ...form,
@@ -57,32 +66,35 @@ function NuovoUtente() {
     setError('')
 
     try {
-      const userData = {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        password_confirmation: form.password_confirmation,
-        role: form.role,
-        create_dipendente: form.create_dipendente
-      }
+      const userData = new FormData()
+      userData.append('name', form.name)
+      userData.append('email', form.email)
+      userData.append('password', form.password)
+      userData.append('password_confirmation', form.password_confirmation)
+      userData.append('role', form.role)
+      userData.append('create_dipendente', form.create_dipendente ? '1' : '0')
+      if (form.avatar) userData.append('avatar', form.avatar)
 
       if (form.create_dipendente) {
-        userData.contratto_id = form.contratto_id || null
-        userData.codice_fiscale = form.codice_fiscale || null
-        userData.iban = form.iban || null
-        userData.livello = form.livello || null
-        userData.mansione = form.mansione || null
-        userData.sesso = form.sesso || null
-        userData.tipo_contratto = form.tipo_contratto || 'indeterminato'
-        userData.data_scadenza_contratto = form.tipo_contratto === 'determinato' ? form.data_scadenza_contratto : null
-        userData.data_assunzione = form.data_assunzione || null
-        userData.percentuale_part_time = form.percentuale_part_time || 100
-        userData.giorni_lavorativi_settimanali = form.giorni_lavorativi_settimanali || 5
-        userData.R1 = form.R1 || 6
-        userData.R2 = form.R2 || 7
-        userData.rateo_mensile_ferie = form.rateo_mensile_ferie !== null && form.rateo_mensile_ferie !== '' ? form.rateo_mensile_ferie : null
-        userData.rateo_mensile_permessi_rol = form.rateo_mensile_permessi_rol !== null && form.rateo_mensile_permessi_rol !== '' ? form.rateo_mensile_permessi_rol : null
-        userData.rateo_mensile_ex_festivita = form.rateo_mensile_ex_festivita !== null && form.rateo_mensile_ex_festivita !== '' ? form.rateo_mensile_ex_festivita : null
+        const fields = {
+          contratto_id: form.contratto_id || '',
+          codice_fiscale: form.codice_fiscale || '',
+          iban: form.iban || '',
+          livello: form.livello || '',
+          mansione: form.mansione || '',
+          sesso: form.sesso || '',
+          tipo_contratto: form.tipo_contratto || 'indeterminato',
+          data_scadenza_contratto: form.tipo_contratto === 'determinato' ? form.data_scadenza_contratto : '',
+          data_assunzione: form.data_assunzione || '',
+          percentuale_part_time: form.percentuale_part_time || 100,
+          giorni_lavorativi_settimanali: form.giorni_lavorativi_settimanali || 5,
+          R1: form.R1 || 6,
+          R2: form.R2 || 7,
+          rateo_mensile_ferie: form.rateo_mensile_ferie || '',
+          rateo_mensile_permessi_rol: form.rateo_mensile_permessi_rol || '',
+          rateo_mensile_ex_festivita: form.rateo_mensile_ex_festivita || ''
+        }
+        Object.entries(fields).forEach(([key, value]) => userData.append(key, value))
       }
 
       await createUser(userData)
@@ -115,6 +127,25 @@ function NuovoUtente() {
             placeholder="Es: Mario Rossi"
             className="nuovo-utente-input"
           />
+        </div>
+
+        <div className="nuovo-utente-field">
+          <label className="nuovo-utente-label">
+            Foto profilo
+          </label>
+          <Avatar
+            name={form.name}
+            url={avatarPreview}
+            className="utente-avatar-preview-frame"
+          />
+          <input
+            type="file"
+            name="avatar"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleChange}
+            className="nuovo-utente-input"
+          />
+          <p className="nuovo-utente-hint">JPG, PNG, GIF o WEBP, massimo 2 MB</p>
         </div>
 
         <div className="nuovo-utente-field">

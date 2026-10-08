@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/useAuth'
 import Logo from '../Admin/Logo'
+import Avatar from '../Avatar'
 import QrCodeInfoModal from './QrCodeInfoModal'
 import ComunicazioniModal from './ComunicazioniModal'
 import { getComunicazioniPresenza } from '../../services/presenzeService'
@@ -103,9 +104,7 @@ function DipendenteNavbar({ isDarkMode, onToggleChange }) {
         {/* Destra - Utente + Toggle + Logout */}
         <div className="user-info">
           <span className="user-name">Benvenuto, {user?.name || 'Utente'}</span>
-          <div className="avatar" title={user?.name || 'Utente'}>
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
-          </div>
+          <Avatar name={user?.name} url={user?.avatar_url} className="avatar" />
           {/* 🔹 TOGGLE SWITCH DESKTOP */}
           <label className="theme-switch" htmlFor="checkbox-navbar">
             <input 

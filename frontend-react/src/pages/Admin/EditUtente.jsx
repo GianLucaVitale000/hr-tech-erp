@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getUser, updateUser } from '../../services/dipendentiService'
+import { useAuth } from '../../context/useAuth'
+import { getUser, updateUser, uploadUserAvatar } from '../../services/dipendentiService'
+import Avatar from '../../components/Avatar'
 
 function EditUtente() {
   const { id } = useParams()
@@ -9,10 +11,14 @@ function EditUtente() {
     email: '',
     password: '',
     password_confirmation: '',
-    role: 'dipendente'
+    role: 'dipendente',
+    avatar: null,
+    avatar_url: null
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const { user: authenticatedUser, login } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,7 +36,8 @@ function EditUtente() {
           email: u.email || '',
           password: '',
           password_confirmation: '',
-          role: u.roles?.length > 0 ? u.roles[0].name : 'dipendente'
+          role: u.roles?.length > 0 ? u.roles[0].name : 'dipendente',
+          avatar_url: u.avatar_url || null
         })
       })
       .catch(() => setError('Utente non trovato'))
@@ -39,6 +46,12 @@ function EditUtente() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    if (name === 'avatar') {
+      const file = e.target.files?.[0] || null
+      setForm({ ...form, avatar: file })
+      setAvatarPreview(file ? URL.createObjectURL(file) : null)
+      return
+    }
     setForm({ ...form, [name]: value })
   }
 
@@ -47,14 +60,29 @@ function EditUtente() {
     setError('')
 
     try {
+      if (form.avatar) {
+        await uploadUserAvatar(id, form.avatar)
+      }
+
       const userData = { ...form }
-      // Rimuovi password vuota
-      if (!userData.password) {
+      if (form.password) {
+        userData.password = form.password
+        userData.password_confirmation = form.password_confirmation
+      } else {
         delete userData.password
         delete userData.password_confirmation
       }
+      delete userData.avatar
+      delete userData.avatar_url
 
-      await updateUser(id, userData)
+      const response = await updateUser(id, userData)
+      if (String(authenticatedUser?.id) === String(id) && response.data?.user) {
+        login({
+          ...authenticatedUser,
+          ...response.data.user,
+          role: response.data.user.roles?.[0]?.name || authenticatedUser.role
+        })
+      }
       navigate('/admin/utenti')
     } catch (err) {
       const message = err.response?.data?.message || 'Errore durante l\'aggiornamento'
@@ -92,6 +120,25 @@ function EditUtente() {
             placeholder="Es: Mario Rossi"
             className="edit-utente-input"
           />
+        </div>
+
+        <div className="edit-utente-field">
+          <label className="edit-utente-label">
+            Foto profilo
+          </label>
+          <Avatar
+            name={form.name}
+            url={avatarPreview || form.avatar_url}
+            className="utente-avatar-preview-frame"
+          />
+          <input
+            type="file"
+            name="avatar"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleChange}
+            className="edit-utente-input"
+          />
+          <p className="edit-utente-hint">JPG, PNG, GIF o WEBP, massimo 2 MB</p>
         </div>
 
         <div className="edit-utente-field">

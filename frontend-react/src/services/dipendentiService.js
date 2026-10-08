@@ -4,7 +4,16 @@ import api from './api'
 export const getUsers = () => api.get('/users')
 export const getUser = (id) => api.get(`/users/${id}`)
 export const createUser = (data) => api.post('/users', data)
-export const updateUser = (id, data) => api.put(`/users/${id}`, data)
+export const uploadUserAvatar = (id, avatar) => {
+  const data = new FormData()
+  data.append('avatar', avatar)
+  return api.post(`/users/${id}/avatar`, data)
+}
+export const updateUser = (id, data) => (
+  data instanceof FormData
+    ? api.post(`/users/${id}`, data)
+    : api.put(`/users/${id}`, data)
+)
 export const deleteUser = (id) => api.delete(`/users/${id}`)
 export const getPrivacyAcknowledgments = (dipendenteId) => api.get(`/dipendenti/${dipendenteId}/privacy-acknowledgments`)
 export const createPrivacyAcknowledgment = (dipendenteId, data) => api.post(`/dipendenti/${dipendenteId}/privacy-acknowledgments`, data)

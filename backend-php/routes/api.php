@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::post('/users/{user}/avatar', [UserController::class, 'uploadAvatar']);
     Route::apiResource('users', UserController::class)->except(['show']);
 
     Route::get('/dipendenti/me', [DipendenteController::class, 'me']);
