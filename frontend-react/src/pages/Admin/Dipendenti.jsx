@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDipendenti } from '../../services/dipendentiService'
+import DipendenteModal from '../../components/Admin/DipendenteModal'
 
 function getOreSettimanaliVisualizzate(dipendente) {
   const isPartTime = Number(dipendente.percentuale_part_time ?? 100) < 100
@@ -22,6 +23,7 @@ function Dipendenti() {
   const [dipendenti, setDipendenti] = useState([])
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [selectedDipendenteId, setSelectedDipendenteId] = useState(null)
   const navigate = useNavigate()
 
   // Rileva se è mobile
@@ -82,7 +84,13 @@ function Dipendenti() {
                 <div className="dipendenti-card-fields">
                   <div className="dipendenti-card-field">
                     <span className="dipendenti-card-label">Nome e Cognome:</span>
-                    <span className="dipendenti-card-value">{d.user?.name}</span>
+                    <span 
+                      className="dipendenti-card-value" 
+                      onClick={() => setSelectedDipendenteId(d.id)}
+                      style={{ color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      {d.user?.name}
+                    </span>
                   </div>
                   <div className="dipendenti-card-field">
                     <span className="dipendenti-card-label">Cod. Fisc.:</span>
@@ -149,7 +157,14 @@ function Dipendenti() {
             <tbody>
               {dipendenti.map((d) => (
                 <tr key={d.id} className="dipendenti-table-row">
-                  <td>{d.user?.name}</td>
+                  <td>
+                    <span
+                      onClick={() => setSelectedDipendenteId(d.id)}
+                      style={{ color: 'var(--accent)', cursor: 'pointer', fontWeight: '500', textDecoration: 'underline' }}
+                    >
+                      {d.user?.name}
+                    </span>
+                  </td>
                   <td className="dipendenti-table-cell-codfiscale">{d.codice_fiscale || '-'}</td>
                   <td
                     className="dipendenti-table-cell-mansione"
@@ -182,6 +197,13 @@ function Dipendenti() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedDipendenteId && (
+        <DipendenteModal
+          dipendenteId={selectedDipendenteId}
+          onClose={() => setSelectedDipendenteId(null)}
+        />
       )}
     </div>
   )
