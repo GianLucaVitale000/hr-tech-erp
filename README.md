@@ -1,7 +1,7 @@
 # HR-Tech ERP
 
 HR-Tech ERP è un'applicazione web per la gestione dei processi HR aziendali:
-anagrafica dei dipendenti, gestione dei contratti collettivi, con inserimento di specifici parametri tratti dal CCNL applicato per attivare filtri e regole di business, rilevazione delle presenze e delle assenze con articolazione di un sistema di causali, monitoraggio/approvazione dei fogli ore, analisi HR interna sui dati registrati ed esportazione degli stessi per l'elaborazione esterna delle paghe.
+anagrafica dei dipendenti, repertorio dei CCNL applicati dalla bancadati CNEL, con inserimento di specifici parametri tratti dal testo contrattuale per attivare filtri e regole di business, rilevazione delle presenze con articolazione di un sistema di causali, monitoraggio/approvazione dei fogli ore, analisi HR interna sui dati registrati ed esportazione degli stessi per l'elaborazione esterna delle paghe.
 
 Questo è il README generale del progetto.
 Una documentazione di dettaglio dei singoli moduli è raccolta nei README dedicati elencati in [Documentazione dei moduli](#documentazione-dei-moduli).
