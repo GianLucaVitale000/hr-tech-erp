@@ -87,19 +87,19 @@ function DipendenteModal({ dipendenteId, onClose }) {
                 <span>{dipendente.livello || '-'}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Contratto CCNL:</strong>{' '}
+                <strong>CCNL applicato:</strong>{' '}
                 <span>{dipendente.contratto ? `${dipendente.contratto.codice_cnel || ''} - ${dipendente.contratto.nome_contratto}` : '-'}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Tipo Contratto:</strong>{' '}
+                <strong>Durata:</strong>{' '}
                 <span style={{ textTransform: 'capitalize' }}>{dipendente.tipo_contratto || '-'}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Data Assunzione:</strong>{' '}
+                <strong>Assunzione:</strong>{' '}
                 <span>{formatDate(dipendente.data_assunzione)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Data Scadenza Contratto:</strong>{' '}
+                <strong>Cessazione:</strong>{' '}
                 <span>{formatDate(dipendente.data_scadenza_contratto)}</span>
               </div>
               <div className="dipendente-modal-field">
@@ -111,30 +111,30 @@ function DipendenteModal({ dipendenteId, onClose }) {
                 <span>{dipendente.giorni_lavorativi_settimanali || '5'}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Riposo R1:</strong>{' '}
+                <strong>R1:</strong>{' '}
                 <span>{getGiornoNome(dipendente.R1)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Riposo R2:</strong>{' '}
+                <strong>R2:</strong>{' '}
                 <span>{getGiornoNome(dipendente.R2)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Rateo Mensile Ferie:</strong>{' '}
+                <strong>Rateo Mese Ferie:</strong>{' '}
                 <span>{formatRateo(dipendente.rateo_mensile_ferie)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Rateo Mensile Permessi ROL:</strong>{' '}
+                <strong>Rateo Mese Permessi ROL:</strong>{' '}
                 <span>{formatRateo(dipendente.rateo_mensile_permessi_rol)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Rateo Mensile Ex Festività:</strong>{' '}
+                <strong>Rateo Mese Ex Festività:</strong>{' '}
                 <span>{formatRateo(dipendente.rateo_mensile_ex_festivita)}</span>
               </div>
             </div>
 
             {dipendente.orari_settimanali && dipendente.orari_settimanali.length > 0 && (
               <div className="dipendente-modal-section">
-                <h3>Orari Settimanali Configurati</h3>
+                <h3>Orario Settimanale</h3>
                 <div className="dipendente-modal-orari-grid">
                   {dipendente.orari_settimanali.map((o) => (
                     <div key={o.id || o.giorno_settimana} className="dipendente-modal-orari-item">
