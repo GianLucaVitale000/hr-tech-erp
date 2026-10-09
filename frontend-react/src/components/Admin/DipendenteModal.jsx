@@ -67,7 +67,7 @@ function DipendenteModal({ dipendenteId, onClose }) {
                 <span>{dipendente.user?.email || '-'}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Codice Fiscale:</strong>{' '}
+                <strong>C.F.:</strong>{' '}
                 <span>{dipendente.codice_fiscale || '-'}</span>
               </div>
               <div className="dipendente-modal-field">
@@ -119,15 +119,15 @@ function DipendenteModal({ dipendenteId, onClose }) {
                 <span>{getGiornoNome(dipendente.R2)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Rateo Mese Ferie:</strong>{' '}
+                <strong>Ferie (rateo mese):</strong>{' '}
                 <span>{formatRateo(dipendente.rateo_mensile_ferie)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Rateo Mese Permessi ROL:</strong>{' '}
+                <strong>Permessi (rateo mese):</strong>{' '}
                 <span>{formatRateo(dipendente.rateo_mensile_permessi_rol)}</span>
               </div>
               <div className="dipendente-modal-field">
-                <strong>Rateo Mese Ex Festività:</strong>{' '}
+                <strong>Ex-festività (rateo mese):</strong>{' '}
                 <span>{formatRateo(dipendente.rateo_mensile_ex_festivita)}</span>
               </div>
             </div>
