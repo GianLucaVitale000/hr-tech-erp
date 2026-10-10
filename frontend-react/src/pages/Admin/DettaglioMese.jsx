@@ -43,6 +43,7 @@ const COLORS = {
   infortunio: '#fca5a5',
   maternita: '#fca5a5',
   cassa_integrazione: '#fdba74',
+  sciopero: '#d8b4fe',
 }
 
 const CAUSALI_BLU = ['ferie', 'permesso_rol', 'permesso_retribuito', 'permesso_non_retribuito']
@@ -191,6 +192,7 @@ function DettaglioMese() {
     if (CAUSALI_ROSSO.includes(presenza.causale)) return presenza.causale
     if (presenza.causale === 'cassa_integrazione') return 'cassa_integrazione'
     if (CAUSALI_BLU.includes(presenza.causale)) return presenza.causale
+    if (presenza.causale === 'sciopero') return 'sciopero'
     return presenza.causale || 'lavoro'
   }, [orePerGiorno, presenzaPerData])
 
@@ -309,6 +311,7 @@ function DettaglioMese() {
           <span><i className="calendar-color ferie" /> Ferie/Permessi</span>
           <span><i className="calendar-color malattia" /> INPS/INAIL</span>
           <span><i className="calendar-color cassa" />CIG</span>
+          <span><i className="calendar-color sciopero" />Sciopero</span>
         </div>
       </section>
 

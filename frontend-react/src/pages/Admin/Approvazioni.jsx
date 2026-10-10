@@ -282,7 +282,7 @@ function Approvazioni() {
                   <tr className="approvazioni-table-header">
                     <th>Dipendente</th>
                     <th>Mese</th>
-                    <th>GG.</th>
+                    <th>Giorni Inviati</th>
                     <th>Ore Ordinarie</th>
                     <th>Ore Eccedenti</th>
                     <th>Straordinari</th>
