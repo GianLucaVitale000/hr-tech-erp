@@ -162,25 +162,33 @@ class Dipendente extends Model
      */
     public function getOrePrevistePerGiorno(int $giornoSettimana): float
     {
-        // Per full-time, usa il calcolo standard
-        if ((float)($this->percentuale_part_time ?? 100) >= 100) {
-            $regola = $this->regolaCalcolo;
-            $oreSettimanali = (float)($regola->ore_settimanali_teoriche ?? 0);
-            if ($oreSettimanali <= 0) {
-                $oreSettimanali = (float)($this->ore_settimanali ?? 0);
+        // Se ci sono orari settimanali configurati per questo giorno specifico
+        if ($this->orariSettimanali->isNotEmpty()) {
+            $orario = $this->orariSettimanali
+                ->where('giorno_settimana', $giornoSettimana)
+                ->first();
+            if ($orario && (float)$orario->ore_giornaliere_previste > 0) {
+                return (float)$orario->ore_giornaliere_previste;
             }
-            $giorniLavorativi = (int)($this->giorni_lavorativi_settimanali ?? 5);
-            if ($oreSettimanali > 0 && $giorniLavorativi > 0) {
-                return $oreSettimanali / $giorniLavorativi;
-            }
-            return 0;
         }
-        
-        // Per part-time, cerca la configurazione personalizzata
-        $orario = $this->orariSettimanali
-            ->where('giorno_settimana', $giornoSettimana)
-            ->first();
-        
-        return $orario ? (float)$orario->ore_giornaliere_previste : 0;
+
+        // Determina dinamicamente le ore settimanali dalle relazioni e attributi disponibili
+        $oreSettimanali = (float)(
+            $this->ore_settimanali ?? 
+            $this->regola_calcolo?->ore_settimanali_teoriche ?? 
+            $this->contratto?->ore_settimanali_teoriche ?? 
+            ($this->orariSettimanali->isNotEmpty() ? $this->orariSettimanali->sum('ore_giornaliere_previste') : 0)
+        );
+
+        $giorniLavorativi = (int)(
+            $this->giorni_lavorativi_settimanali ?? 
+            ($this->orariSettimanali->where('ore_giornaliere_previste', '>', 0)->count() ?: 5)
+        );
+
+        if ($oreSettimanali > 0 && $giorniLavorativi > 0) {
+            return $oreSettimanali / $giorniLavorativi;
+        }
+
+        return 0;
     }
 }

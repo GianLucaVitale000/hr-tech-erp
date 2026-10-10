@@ -7,6 +7,7 @@ import {
   calcolaGiorniTeoriciLavorabili, 
   calcolaSupplementariEStraordinarieMensili 
 } from '../utils/analisiHRUtils'
+import { isRiposoData } from '../utils/foglioCompleto'
 
 export function useAnalisiHRData() {
   const [dipendenti, setDipendenti] = useState([])
@@ -211,23 +212,33 @@ export function useAnalisiHRData() {
           }
           if (p.causale === 'permesso_non_retribuito') {
             contatori.pnr += parseFloat(p.ore_causale || 0)
-            giorniAssenza.pnr.add(p.data)
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              giorniAssenza.pnr.add(p.data)
+            }
           }
           if (p.causale === 'malattia') {
             contatori.inps += parseFloat(p.ore_causale || 0)
-            giorniAssenza.malattia.add(p.data)
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              giorniAssenza.malattia.add(p.data)
+            }
           }
           if (p.causale === 'maternita') {
             contatori.inps += parseFloat(p.ore_causale || 0)
-            giorniAssenza.maternita.add(p.data)
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              giorniAssenza.maternita.add(p.data)
+            }
           }
           if (p.causale === 'infortunio') {
             contatori.inail += parseFloat(p.ore_causale || 0)
-            giorniAssenza.infortunio.add(p.data)
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              giorniAssenza.infortunio.add(p.data)
+            }
           }
           if (p.causale === 'cassa_integrazione') {
             contatori.cig += parseFloat(p.ore_causale || 0)
-            giorniAssenza.cig.add(p.data)
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              giorniAssenza.cig.add(p.data)
+            }
           }
           if (p.causale === 'assemblea' || p.causale === 'sciopero') {
             contatori.sindacale += parseFloat(p.ore_causale || 0)
@@ -252,14 +263,18 @@ export function useAnalisiHRData() {
           }
           
           if (causaliAssenza.includes(p.causale)) {
-            const date = new Date(p.data)
-            const dayOfWeek = date.getDay()
-            assenzePerGiornoSettimana[dayOfWeek]++
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              const date = new Date(p.data)
+              const dayOfWeek = date.getDay()
+              assenzePerGiornoSettimana[dayOfWeek]++
+            }
           }
           if (causaliAssenzaIndividuale.includes(p.causale)) {
-            const date = new Date(p.data)
-            const dayOfWeek = date.getDay()
-            assenzeIndividualiPerGiornoSettimana[dayOfWeek]++
+            if (!isRiposoData(dipendenteObj, p.data)) {
+              const date = new Date(p.data)
+              const dayOfWeek = date.getDay()
+              assenzeIndividualiPerGiornoSettimana[dayOfWeek]++
+            }
           }
         })
 

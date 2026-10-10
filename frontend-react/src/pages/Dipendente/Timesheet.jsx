@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { getMioProfilo } from '../../services/dipendentiService'
 import {
   getPresenze,
@@ -55,6 +55,21 @@ function getDataStr(anno, mese, giorno) {
 
 function CampoOre({ value, onChange, disabled, className, title, max }) {
   const [draft, setDraft] = useState(Number(value || 0).toFixed(2))
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current) {
+      setDraft(Number(value || 0).toFixed(2))
+    }
+  }, [value])
+
+  const handleInputChange = (e) => {
+    const val = e.target.value
+    setDraft(val)
+    const parsed = parseFloat(String(val).replace(',', '.'))
+    const normalized = Number.isFinite(parsed) ? parsed : 0
+    onChange(normalized)
+  }
 
   const confermaValore = () => {
     const parsed = parseFloat(String(draft).replace(',', '.'))
@@ -65,13 +80,14 @@ function CampoOre({ value, onChange, disabled, className, title, max }) {
 
   return (
     <input
+      ref={inputRef}
       type="number"
       min="0"
       max={max}
       step="0.25"
       inputMode="decimal"
       value={draft}
-      onChange={(e) => setDraft(e.target.value)}
+      onChange={handleInputChange}
       onBlur={confermaValore}
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur()
@@ -1102,6 +1118,10 @@ useEffect(() => {
   }
 
   const handleSalva = async (dataStr) => {
+    if (document.activeElement) {
+      document.activeElement.blur()
+    }
+    await new Promise(resolve => setTimeout(resolve, 50))
     setSalvataggioInCorso(dataStr)
     setErrore('')
 
@@ -1438,20 +1458,27 @@ useEffect(() => {
 
   // Funzione per ottenere le ore previste per un giorno specifico
   const getOrePrevistePerGiorno = (anno, mese, giorno) => {
-    const isFullTime = Number(dipendente?.percentuale_part_time ?? 100) >= 100;
-    if (isFullTime) {
-      const oreSettimanali = parseFloat(dipendente?.regola_calcolo?.ore_settimanali_teoriche) ||
-        parseFloat(dipendente?.contratto?.ore_settimanali_teoriche) ||
-        parseFloat(dipendente?.ore_settimanali);
-      const giorniLavorativi = parseInt(dipendente?.giorni_lavorativi_settimanali) || 5;
-      if (oreSettimanali && oreSettimanali > 0) {
-        return oreSettimanali / giorniLavorativi;
-      }
-      return 0;
-    }
     const data = new Date(anno, mese - 1, giorno)
     const giornoSettimana = data.getDay() // 0=Dom, 1=Lun, etc.
-    return orariSettimanali[giornoSettimana] || 0
+
+    // Se ci sono orari settimanali configurati per questo giorno specifico
+    if (Object.keys(orariSettimanali).length > 0 && orariSettimanali[giornoSettimana] !== undefined) {
+      return orariSettimanali[giornoSettimana]
+    }
+
+    const oreSettimanali = parseFloat(
+      dipendente?.ore_settimanali ??
+      dipendente?.regola_calcolo?.ore_settimanali_teoriche ??
+      dipendente?.contratto?.ore_settimanali_teoriche ??
+      0
+    );
+    const giorniLavorativi = parseInt(dipendente?.giorni_lavorativi_settimanali) || 5;
+
+    if (oreSettimanali > 0 && giorniLavorativi > 0) {
+      return oreSettimanali / giorniLavorativi;
+    }
+
+    return 0;
   }
 
   // Per i part-time configurati, la distribuzione settimanale determina i riposi.

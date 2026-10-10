@@ -11,7 +11,7 @@ export function haDatiSignificativi(riga) {
   )
 }
 
-function isRiposoData(dipendente, dataStr) {
+export function isRiposoData(dipendente, dataStr) {
   const [y, m, d] = dataStr.split('-')
   const dataObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
   const jsDay = dataObj.getDay() // 0-6 (0=Dom, 1=Lun... 6=Sab)
@@ -120,6 +120,27 @@ function giorniObbligatori(dipendente, anno, mese, giorni) {
 export function isFoglioCompleto(dipendente, anno, mese, giorni, righe) {
   if (!dipendente) {
     return { completo: false, message: 'Anagrafica dipendente mancante' }
+  }
+
+  const oggi = new Date()
+  const annoCorrente = oggi.getFullYear()
+  const meseCorrente = oggi.getMonth() + 1
+  if (anno > annoCorrente || (anno === annoCorrente && mese > meseCorrente)) {
+    return {
+      completo: false,
+      message: 'Non è possibile inviare un foglio presenze per un mese futuro.',
+    }
+  }
+
+  const oggiMidnight = new Date(oggi.getFullYear(), oggi.getMonth(), oggi.getDate())
+  const ultimoGiornoMese = new Date(anno, mese, 0)
+  ultimoGiornoMese.setHours(0, 0, 0, 0)
+
+  if (oggiMidnight <= ultimoGiornoMese) {
+    return {
+      completo: false,
+      message: 'Non è possibile inviare il foglio presenze prima che il mese sia terminato.',
+    }
   }
 
   const obbligatori = giorniObbligatori(dipendente, anno, mese, giorni)

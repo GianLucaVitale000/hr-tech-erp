@@ -4,6 +4,7 @@ import { getMioProfilo, getAnalisiFerie } from '../../services/dipendentiService
 import { getPresenze } from '../../services/presenzeService'
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { getFestivitaItaliane } from '../../utils/analisiHRUtils'
+import { isRiposoData } from '../../utils/foglioCompleto'
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
@@ -186,7 +187,11 @@ function DipendenteDashboard() {
   const inizioAnnoStr = `${annoCorrente}-01-01`
   const presenzeFinoOggi = presenzeAnno.filter(p => p.data <= oggiStr)
 
-  const giorniMalattia = presenzeFinoOggi.filter(p => p.causale === 'malattia' && Number(p.ore_causale || 0) > 0).length
+  const giorniMalattia = presenzeFinoOggi.filter(p => 
+    p.causale === 'malattia' && 
+    Number(p.ore_causale || 0) > 0 && 
+    !isRiposoData(profilo, p.data)
+  ).length
   const giorniLavorati = presenzeFinoOggi.filter(p => p.causale === 'lavoro' && Number(p.ore_ordinarie || 0) > 0).length
 
   const mesePrecedenteDate = new Date(oggi.getFullYear(), oggi.getMonth(), 0)
