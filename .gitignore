@@ -45,5 +45,7 @@ microservice-python/test-output/
 # ========================
 .vscode/
 .vscode/settings.json
+.continue/
+.roo/
 .DS_Store
 Thumbs.db
