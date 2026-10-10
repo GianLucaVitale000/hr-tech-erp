@@ -4,10 +4,11 @@
     ],
     "cloud": false,
     "guidelines": true,
-    "mcp": true,
+    "mcp": false,
     "nightwatch": false,
     "sail": false,
     "skills": [
-        "laravel-best-practices"
+        "laravel-best-practices",
+        "pest-testing"
     ]
 }
